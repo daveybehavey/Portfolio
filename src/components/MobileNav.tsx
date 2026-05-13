@@ -43,13 +43,23 @@ export function MobileNav() {
   }, [open]);
 
   useEffect(() => {
+    if (!open) return;
+    const t = window.setTimeout(() => {
+      const first = panelRef.current?.querySelector<HTMLElement>("a[href]");
+      first?.focus();
+    }, 0);
+    return () => clearTimeout(t);
+  }, [open]);
+
+  useEffect(() => {
     if (open) {
-      const first = panelRef.current?.querySelector<HTMLElement>("a[href], button");
-      requestAnimationFrame(() => first?.focus());
-    } else if (prevOpenRef.current) {
-      menuButtonRef.current?.focus();
+      prevOpenRef.current = true;
+      return;
     }
-    prevOpenRef.current = open;
+    if (prevOpenRef.current) {
+      menuButtonRef.current?.focus();
+      prevOpenRef.current = false;
+    }
   }, [open]);
 
   return (
