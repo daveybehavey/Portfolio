@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  /* Warm paper over cool slate — subtle “studio” feel */
+  --bg: 252 251 249;
+  --bg2: 247 245 242;
+  --panel: 255 255 255;
+  --text: 15 23 42; /* slate-900 */
+  --muted: 71 85 105; /* slate-600 */
+  --border: 226 232 240; /* slate-200 */
+  --brand: 37 99 235; /* blue-600 — primary actions */
+  --brand2: 59 130 246; /* blue-500 */
+  --mark: 79 70 229; /* indigo-600 — wordmark + accents */
+  --accent: 13 148 136; /* teal-600 — island / freshness */
+  --glow-warm: 251 191 36; /* amber-400 — mesh whisper */
+}
+
+html,
+body {
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  @apply antialiased;
+  background: linear-gradient(180deg, rgb(var(--bg)) 0%, rgb(var(--bg2)) 100%);
+  background-attachment: fixed;
+  color: rgb(var(--text));
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background-color: rgb(var(--mark) / 0.22);
+}
+
+/* Accessible focus ring for keyboard users */
+:focus-visible {
+  outline: 2px solid rgb(var(--brand) / 0.9);
+  outline-offset: 3px;
+}
+
+.noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+}
+
+.bg-mesh {
+  position: absolute;
+  inset: -120px;
+  pointer-events: none;
+  background:
+    radial-gradient(720px circle at 14% 10%, rgb(var(--mark) / 0.11), transparent 55%),
+    radial-gradient(640px circle at 86% 22%, rgb(var(--brand2) / 0.12), transparent 56%),
+    radial-gradient(560px circle at 48% 92%, rgb(var(--accent) / 0.08), transparent 60%),
+    radial-gradient(420px circle at 72% 68%, rgb(var(--glow-warm) / 0.06), transparent 50%);
+  filter: saturate(1.06);
+}
+
+@layer components {
+  .nav-link {
+    @apply relative rounded-md px-2 py-1.5 text-slate-700 transition-colors duration-200 hover:bg-slate-100/90 hover:text-slate-900;
+  }
+
+  .nav-link::after {
+    content: "";
+    @apply pointer-events-none absolute bottom-0.5 left-2 right-2 h-0.5 origin-center scale-x-0 rounded-full opacity-0 transition duration-200 ease-out;
+    background-color: rgb(var(--mark) / 0.85);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .nav-link:hover::after,
+    .nav-link:focus-visible::after {
+      @apply scale-x-100 opacity-100;
+    }
+  }
+
+  .nav-link-header {
+    @apply relative transition-colors duration-200;
+  }
+
+  .nav-link-header::after {
+    content: "";
+    @apply pointer-events-none absolute -bottom-0.5 left-0 right-0 h-0.5 origin-center scale-x-0 rounded-full opacity-0 transition duration-200 ease-out;
+    background-color: rgb(var(--mark) / 0.85);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .nav-link-header:hover::after,
+    .nav-link-header:focus-visible::after {
+      @apply scale-x-100 opacity-100;
+    }
+  }
+}
