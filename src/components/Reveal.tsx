@@ -1,15 +1,13 @@
 "use client";
 
-import { motion, type MotionProps, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
 export function Reveal({
   children,
   className,
   delay = 0,
-  y = 14,
-  once = true
+  once = true,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -18,30 +16,45 @@ export function Reveal({
   once?: boolean;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const inView = useInView(ref, {
-    amount: 0.15,
-    once,
-    margin: "0px 0px -10% 0px"
-  });
   const reduced = usePrefersReducedMotion();
+  const [visible, setVisible] = useState(reduced);
 
-  const initial: MotionProps["initial"] = reduced ? { opacity: 1 } : { opacity: 0, y };
-  const animate: MotionProps["animate"] = reduced
-    ? { opacity: 1 }
-    : inView
-      ? { opacity: 1, y: 0 }
-      : { opacity: 0, y };
+  useEffect(() => {
+    if (reduced) return;
+    const node = ref.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          if (once) observer.disconnect();
+        } else if (!once) {
+          setVisible(false);
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [reduced, once]);
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      className={className}
-      initial={initial}
-      animate={animate}
-      transition={{ duration: 0.55, ease: [0.2, 0.8, 0.2, 1], delay }}
+      className={[
+        className,
+        "transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none",
+        visible
+          ? "translate-y-0 opacity-100"
+          : "translate-y-3 opacity-0 motion-reduce:translate-y-0 motion-reduce:opacity-100",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      style={reduced ? undefined : { transitionDelay: `${delay}s` }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
-

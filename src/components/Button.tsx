@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import { useMemo, useRef } from "react";
+import { type AnalyticsLocation, trackCtaAndMaybeLead } from "@/lib/analytics";
 
 type CommonProps = {
   children: React.ReactNode;
   variant?: "primary" | "secondary";
   className?: string;
   magnetic?: boolean;
+  /** GA4: where the click happened (header, hero, packages, …). */
+  analyticsLocation?: AnalyticsLocation;
+  /** GA4: button label override (defaults to children text). */
+  analyticsLabel?: string;
 };
 
 function cn(...parts: Array<string | undefined | false>) {
@@ -33,11 +38,25 @@ function useMagnetic(magnetic: boolean | undefined) {
         const el = ref.current;
         if (!el) return;
         el.style.transform = "translate3d(0,0,0)";
-      }
+      },
     } as const;
   }, [magnetic]);
 
   return { ref, handlers };
+}
+
+function useAnalyticsClick(
+  href: string,
+  children: React.ReactNode,
+  analyticsLocation?: AnalyticsLocation,
+  analyticsLabel?: string,
+) {
+  return () => {
+    if (!analyticsLocation) return;
+    const label =
+      analyticsLabel ?? (typeof children === "string" ? children : href);
+    trackCtaAndMaybeLead({ label, location: analyticsLocation, href });
+  };
 }
 
 export function ButtonLink({
@@ -45,9 +64,17 @@ export function ButtonLink({
   children,
   variant = "primary",
   className,
-  magnetic
+  magnetic,
+  analyticsLocation,
+  analyticsLabel,
 }: CommonProps & { href: string }) {
   const { ref, handlers } = useMagnetic(magnetic);
+  const onAnalytics = useAnalyticsClick(
+    href,
+    children,
+    analyticsLocation,
+    analyticsLabel,
+  );
   const classes =
     variant === "primary"
       ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20 hover:bg-blue-500"
@@ -62,11 +89,12 @@ export function ButtonLink({
         (ref as any).current = node;
       }}
       className={cn(
-        "inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold touch-manipulation transition duration-200 ease-out will-change-transform active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold touch-manipulation transition duration-200 ease-out active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
         classes,
-        className
+        className,
       )}
       {...handlers}
+      onClick={() => onAnalytics()}
     >
       {children}
     </Link>
@@ -80,15 +108,23 @@ export function ButtonA({
   className,
   magnetic,
   target,
-  rel
+  rel,
+  analyticsLocation,
+  analyticsLabel,
 }: CommonProps & { href: string; target?: string; rel?: string }) {
   const { ref, handlers } = useMagnetic(magnetic);
+  const onAnalytics = useAnalyticsClick(
+    href,
+    children,
+    analyticsLocation,
+    analyticsLabel,
+  );
   const classes =
     variant === "primary"
       ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20 hover:bg-blue-500"
       : "border border-slate-200 bg-white/70 text-slate-900 hover:bg-white";
 
-  const safeRel = target === "_blank" ? rel ?? "noopener noreferrer" : rel;
+  const safeRel = target === "_blank" ? (rel ?? "noopener noreferrer") : rel;
 
   return (
     <a
@@ -99,14 +135,14 @@ export function ButtonA({
         ref.current = node as unknown as HTMLElement;
       }}
       className={cn(
-        "inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold touch-manipulation transition duration-200 ease-out will-change-transform active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold touch-manipulation transition duration-200 ease-out active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
         classes,
-        className
+        className,
       )}
       {...handlers}
+      onClick={() => onAnalytics()}
     >
       {children}
     </a>
   );
 }
-

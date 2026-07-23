@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import { ButtonA } from "@/components/Button";
+import { trackGenerateLead } from "@/lib/analytics";
 
 export function ContactForm({ email }: { email: string }) {
   const id = useId();
@@ -20,8 +21,13 @@ export function ContactForm({ email }: { email: string }) {
         const name = String(data.get("name") || "");
         const business = String(data.get("business") || "");
         const message = String(data.get("message") || "");
-        const subject = encodeURIComponent("Project inquiry");
-        const body = encodeURIComponent(`Name: ${name}\nBusiness: ${business}\n\nMessage:\n${message}\n`);
+        const subject = encodeURIComponent(
+          "Website launch inquiry — EuroDigital",
+        );
+        const body = encodeURIComponent(
+          `Name: ${name}\nBusiness: ${business}\n\nMessage:\n${message}\n`,
+        );
+        trackGenerateLead({ method: "contact_form", location: "contact" });
         window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
       }}
     >
@@ -40,7 +46,10 @@ export function ContactForm({ email }: { email: string }) {
         />
       </div>
       <div className="grid gap-1.5">
-        <label htmlFor={businessId} className="text-xs font-medium text-slate-600">
+        <label
+          htmlFor={businessId}
+          className="text-xs font-medium text-slate-600"
+        >
           Business
         </label>
         <input
@@ -54,20 +63,29 @@ export function ContactForm({ email }: { email: string }) {
         />
       </div>
       <div className="grid gap-1.5">
-        <label htmlFor={messageId} className="text-xs font-medium text-slate-600">
+        <label
+          htmlFor={messageId}
+          className="text-xs font-medium text-slate-600"
+        >
           Message
         </label>
         <textarea
           id={messageId}
           name="message"
-          placeholder="What do you need built? (website, app, timeline, etc.)"
+          placeholder="What does your business do? (package, pages, timeline, etc.)"
           rows={4}
           className="w-full resize-none rounded-xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-900 shadow-sm shadow-slate-900/5 placeholder:text-slate-400 transition-colors focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           required
         />
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">
-        <ButtonA href={`mailto:${email}?subject=Project%20inquiry`} variant="secondary" className="sm:flex-1">
+        <ButtonA
+          href={`mailto:${email}?subject=Website%20launch%20inquiry`}
+          variant="secondary"
+          className="sm:flex-1"
+          analyticsLocation="contact"
+          analyticsLabel="Email directly"
+        >
           Email directly
         </ButtonA>
         <button

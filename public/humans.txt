@@ -1,0 +1,11 @@
+/* TEAM */
+Developer: David Heslop
+Site: https://eurodigital.ca
+Contact: contact@eurodigital.ca
+Location: Vancouver Island, British Columbia, Canada
+
+/* SITE */
+Built with: Next.js, Tailwind CSS, Framer Motion
+Hosted: Cloudflare Pages
+Focus: Small business website launches (service + creative brands)
+Last update: May 2026

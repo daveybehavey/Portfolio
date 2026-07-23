@@ -5,18 +5,23 @@ import { Badge } from "@/components/Badge";
 import { ButtonLink } from "@/components/Button";
 import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
-const badges = ["Vancouver Island", "Shipped apps & client sites", "Scoped builds, clean handoffs"] as const;
+const badges = [
+  "Vancouver Island",
+  "Websites & online stores",
+  "Website + Google setup + handoff",
+] as const;
 
 const titleLines = [
-  "Websites and apps that feel sharp,",
-  "built for island businesses and solo operators,",
-  "and tuned to turn interest into real inquiries."
+  "We build your website,",
+  "set up the essentials,",
+  "and hand you the keys.",
 ] as const;
 
 const subtext =
-  "I'm EuroDigital — calm structure, fast pages, and copy that reads like a human wrote it. Whether you need a lead site or a small app, you get a fixed scope, a clear launch, and the keys when we're done.";
+  "EuroDigital builds clean, practical websites and working online stores for service businesses, creators, and small shops — from lead-generation sites to full ecommerce with cart, checkout, and payments, plus Google setup, email forwarding, analytics, basic SEO, and handoff.";
 
-const footerLine = "Based on Vancouver Island, BC — local SEO basics baked in, and handoffs you can run without me.";
+const footerLine =
+  "Not a big agency or monthly marketing shop — scoped website launches for trades, local services, makers, and small brands on Vancouver Island.";
 
 export function HeroIntro() {
   const reduced = usePrefersReducedMotion();
@@ -31,25 +36,28 @@ export function HeroIntro() {
   const outer = {
     hidden: {},
     show: {
-      transition: { staggerChildren: outerStagger, delayChildren: reduced ? 0 : 0.04 }
-    }
+      transition: {
+        staggerChildren: outerStagger,
+        delayChildren: reduced ? 0 : 0.04,
+      },
+    },
   };
 
   const lineContainer = {
     hidden: {},
     show: {
-      transition: { staggerChildren: lineStagger, delayChildren: 0 }
-    }
+      transition: { staggerChildren: lineStagger, delayChildren: 0 },
+    },
   };
 
   const item = {
     hidden: itemHidden,
-    show: itemShow
+    show: itemShow,
   };
 
   return (
     <div className="lg:col-span-7">
-      <motion.div initial="hidden" animate="show" variants={outer}>
+      <motion.div initial={false} animate="show" variants={outer}>
         <motion.div variants={item} className="flex flex-wrap gap-2">
           {badges.map((b) => (
             <Badge key={b}>{b}</Badge>
@@ -58,7 +66,7 @@ export function HeroIntro() {
 
         <motion.h1
           variants={lineContainer}
-          className="mt-6 text-balance text-4xl font-semibold leading-[1.1] tracking-tight text-slate-900 sm:text-6xl sm:leading-[1.05]"
+          className="mt-4 text-balance text-4xl font-semibold leading-[1.1] tracking-tight text-slate-900 sm:mt-5 sm:text-6xl sm:leading-[1.05]"
         >
           {titleLines.map((line, i) => (
             <motion.span key={i} variants={item} className="block">
@@ -74,19 +82,40 @@ export function HeroIntro() {
           {subtext}
         </motion.p>
 
-        <motion.div variants={item} className="mt-7 flex flex-wrap items-center gap-3">
-          <ButtonLink href="#featured" magnetic>
-            Explore NoteBill
+        <motion.div
+          variants={item}
+          className="mt-6 flex flex-wrap items-center gap-3"
+        >
+          <ButtonLink
+            href="#packages"
+            magnetic
+            analyticsLocation="hero"
+            analyticsLabel="View packages"
+          >
+            View packages
           </ButtonLink>
-          <ButtonLink href="#contact" variant="secondary">
-            Start a conversation
+          <ButtonLink
+            href="#examples"
+            variant="secondary"
+            analyticsLocation="hero"
+            analyticsLabel="See example types"
+          >
+            See example types
           </ButtonLink>
-          <ButtonLink href="/projects" variant="secondary">
-            Full portfolio
+          <ButtonLink
+            href="#contact"
+            variant="secondary"
+            analyticsLocation="hero"
+            analyticsLabel="Get a quote"
+          >
+            Get a quote
           </ButtonLink>
         </motion.div>
 
-        <motion.p variants={item} className="mt-4 text-sm leading-relaxed text-slate-600">
+        <motion.p
+          variants={item}
+          className="mt-4 text-sm leading-relaxed text-slate-600"
+        >
           {footerLine}
         </motion.p>
       </motion.div>

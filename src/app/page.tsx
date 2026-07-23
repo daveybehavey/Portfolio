@@ -1,71 +1,61 @@
 import Image from "next/image";
-import Link from "next/link";
+
 import { Accordion } from "@/components/Accordion";
-import { BrandLogo } from "@/components/BrandLogo";
+
 import { ButtonA, ButtonLink } from "@/components/Button";
+
 import { Card } from "@/components/Card";
+
 import { Container } from "@/components/Container";
+
 import { ContactForm } from "@/components/ContactForm";
+
 import { HeroCollage } from "@/components/HeroCollage";
+
 import { HeroIntro } from "@/components/HeroIntro";
+
 import { HeroSection } from "@/components/HeroSection";
-import { MobileNav } from "@/components/MobileNav";
+
+import { PageBackground } from "@/components/PageBackground";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SkipLink } from "@/components/SkipLink";
+import { WhyChooseSection } from "@/components/WhyChooseSection";
+
 import { ProjectCard } from "@/components/ProjectCard";
+
 import { Reveal } from "@/components/Reveal";
+
 import { Section } from "@/components/Section";
+
 import { SiteFooter } from "@/components/SiteFooter";
-import { CONTACT_EMAIL } from "@/lib/site";
+
+import { FULL_LAUNCH_INCLUDES, PACKAGES, PROJECT_ARCHETYPES } from "@/lib/offer";
+
 import { projects } from "@/lib/projects";
 
-const [featuredProject, ...otherProjects] = projects;
-const homepageProjects = otherProjects.slice(0, 2);
+import { CONTACT_EMAIL, CONTACT_REPLY_NOTE } from "@/lib/site";
+
+const homepageProjects = projects.filter(
+  (p) => p.name === "StarMapCo" || p.name === "VancouverIslandProRoofing",
+);
 
 export default function Home() {
   return (
     <div className="relative min-h-screen overflow-x-clip">
-      <div className="bg-mesh" aria-hidden />
-      <div className="noise" aria-hidden />
+      <PageBackground />
 
-      <a
-        href="#main-content"
-        className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white opacity-0 shadow-lg transition focus:translate-y-0 focus:opacity-100"
+      <SkipLink />
+
+      <SiteHeader />
+
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="relative z-10 outline-none"
       >
-        Skip to content
-      </a>
-
-      <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/78 shadow-[0_1px_0_0_rgba(255,255,255,0.65)_inset] shadow-sm shadow-slate-900/[0.04] backdrop-blur-md ring-1 ring-slate-900/[0.02] supports-[backdrop-filter]:bg-white/68">
-        <Container>
-          <div className="flex min-h-14 items-center justify-between gap-4 py-2.5 sm:min-h-[4.25rem] sm:py-3">
-            <BrandLogo />
-            <nav className="hidden items-center gap-0.5 text-sm sm:flex" aria-label="Primary">
-              <a href="#featured" className="nav-link">
-                NoteBill
-              </a>
-              <a href="#work" className="nav-link">
-                Work
-              </a>
-              <a href="#services" className="nav-link">
-                Services
-              </a>
-              <a href="#process" className="nav-link">
-                Process
-              </a>
-              <Link href="/projects" className="nav-link">
-                Portfolio
-              </Link>
-              <a href="#contact" className="nav-link">
-                Contact
-              </a>
-            </nav>
-            <MobileNav />
-          </div>
-        </Container>
-      </header>
-
-      <main id="main-content" tabIndex={-1} className="outline-none pb-24 sm:pb-0">
         <HeroSection>
           <Container>
-            <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
+            <div className="grid gap-8 lg:grid-cols-12 lg:items-start lg:gap-10">
               <HeroIntro />
 
               <div className="lg:col-span-5">
@@ -73,45 +63,49 @@ export default function Home() {
                   <HeroCollage
                     items={[
                       {
-                        src: featuredProject.imageSrc,
-                        alt: "NoteBill app",
+                        src: "/projects/maestrosservices.webp",
+                        alt: "MaestrosServices website",
                         className: "col-span-7 aspect-[16/10]",
-                        speed: 1
+                      },
+                      {
+                        src: "/projects/angelkisscreations.webp",
+                        alt: "AnglKissCreations website",
+                        className: "col-span-5 aspect-[16/10]",
                       },
                       {
                         src: "/projects/starmapco.webp",
                         alt: "StarMapCo website",
                         className: "col-span-5 aspect-[16/10]",
-                        speed: 0.85
                       },
                       {
-                        src: "/projects/maestrosservices.webp",
-                        alt: "MaestrosServices website",
-                        className: "col-span-5 aspect-[16/10]",
-                        speed: 0.7
-                      },
-                      {
-                        src: "/projects/angelkisscreations.webp",
-                        alt: "AnglKissCreations website",
+                        src: "/projects/vancouverislandproroofing.webp",
+                        alt: "Vancouver Island Pro Roofing website",
                         className: "col-span-7 aspect-[16/10]",
-                        speed: 0.95
-                      }
+                      },
                     ]}
                   />
 
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     {[
-                      { k: "Focus", v: "Fixed-scope builds" },
-                      { k: "Style", v: "Calm, modern UI" },
-                      { k: "Discover", v: "Local-ready SEO" },
-                      { k: "Wrap-up", v: "You own the keys" }
+                      { k: "Offer", v: "Website launch" },
+
+                      { k: "Setup", v: "Google + email" },
+
+                      { k: "Discover", v: "Basic SEO" },
+
+                      { k: "Wrap-up", v: "You own it" },
                     ].map((item) => (
                       <Card
                         key={item.k}
                         className="p-4 transition-transform duration-300 ease-out hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
                       >
-                        <div className="text-xs font-medium text-slate-600">{item.k}</div>
-                        <div className="mt-1 text-lg font-semibold text-slate-900">{item.v}</div>
+                        <div className="text-xs font-medium text-slate-600">
+                          {item.k}
+                        </div>
+
+                        <div className="mt-1 text-lg font-semibold text-slate-900">
+                          {item.v}
+                        </div>
                       </Card>
                     ))}
                   </div>
@@ -122,122 +116,194 @@ export default function Home() {
         </HeroSection>
 
         <Section
-          id="featured"
-          eyebrow="Live on Google Play"
-          title="Meet NoteBill — invoicing built for solo operators."
-          subtitle="A real product in the store beats mockups every time. NoteBill is the fastest way to see how I think about UX, AI-assisted flows, and shipping something people actually open every week."
+          id="examples"
+          eyebrow="Who this is for"
+          title="Three common launches — all setup included."
+          subtitle="Local service sites, creative brand showcases, and full online stores. Pick the fit for your business; every package includes the essentials and a clear handoff."
         >
-          <div className="grid gap-4 lg:grid-cols-12 lg:items-stretch">
-            <Reveal className="lg:col-span-7">
-              <Card className="overflow-hidden rounded-3xl transition-shadow duration-500 ease-out hover:shadow-xl hover:shadow-indigo-950/[0.08] motion-reduce:hover:shadow-md">
-                <div className="grid h-full gap-0 lg:grid-cols-2">
-                  <div className="relative min-h-[260px] lg:min-h-full">
+          <div className="grid gap-4 lg:grid-cols-3">
+            {PROJECT_ARCHETYPES.map((archetype, idx) => (
+              <Reveal key={archetype.id} delay={0.03 * idx}>
+                <Card className="overflow-hidden transition-shadow duration-500 ease-out hover:shadow-xl hover:shadow-indigo-950/[0.08] motion-reduce:hover:shadow-md">
+                  <div className="relative min-h-[220px] sm:min-h-[260px]">
                     <Image
-                      src={featuredProject.imageSrc}
-                      alt={`${featuredProject.name} preview`}
+                      src={archetype.imageSrc}
+                      alt={`${archetype.example} website example`}
                       fill
                       className="object-cover"
-                      sizes="(min-width: 1024px) 38rem, 100vw"
-                      priority
-                      fetchPriority="high"
+                      sizes="(min-width: 1024px) 28rem, 100vw"
+                      priority={idx === 0}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-slate-950/10 to-transparent" />
-                    {featuredProject.playStoreUrl ? (
-                      <a
-                        href={featuredProject.playStoreUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="absolute left-5 top-5 rounded-full border border-white/30 bg-white/20 px-3 py-1 text-xs font-medium text-white shadow-sm backdrop-blur-md transition hover:bg-white/35"
-                      >
-                        Google Play
-                      </a>
-                    ) : null}
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/15 to-transparent" />
+
+                    <a
+                      href={archetype.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute left-5 top-5 rounded-full border border-white/30 bg-white/20 px-3 py-1 text-xs font-medium text-white shadow-sm backdrop-blur-md transition hover:bg-white/35"
+                    >
+                      Live example
+                    </a>
                   </div>
+
                   <div className="p-7 sm:p-8">
-                    <div className="text-sm font-medium uppercase tracking-wider text-slate-500">NoteBill</div>
-                    <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
-                      AI-assisted invoicing for people who wear every hat.
-                    </h2>
-                    <p className="mt-4 text-sm leading-relaxed text-slate-700">
-                      NoteBill drafts and organizes invoices so you spend less time wording line items and more time
-                      getting paid. It is live on Google Play, tuned for contractors and solo operators, and evolving
-                      with real feedback.
-                    </p>
-                    <div className="mt-5 grid gap-2 text-sm text-slate-800">
-                      {featuredProject.bullets.map((bullet) => (
-                        <div key={bullet} className="flex gap-2">
-                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" />
-                          <span>{bullet}</span>
-                        </div>
-                      ))}
+                    <div className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
+                      {archetype.example}
                     </div>
-                    <div className="mt-6 flex flex-wrap gap-3">
-                      {featuredProject.playStoreUrl ? (
-                        <ButtonA href={featuredProject.playStoreUrl} target="_blank" rel="noopener noreferrer" magnetic>
-                          Get on Google Play
-                        </ButtonA>
-                      ) : null}
+
+                    <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-900">
+                      {archetype.title}
+                    </h2>
+
+                    <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                      {archetype.body}
+                    </p>
+
+                    <div className="mt-5">
                       <ButtonA
-                        href={featuredProject.url}
+                        href={archetype.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         variant="secondary"
-                        magnetic={!featuredProject.playStoreUrl}
+                        magnetic
                       >
-                        notebill.app
+                        View {archetype.example}
                       </ButtonA>
-                      <ButtonLink href="/projects" variant="secondary">
-                        View all projects
-                      </ButtonLink>
                     </div>
                   </div>
-                </div>
-              </Card>
-            </Reveal>
-
-            <Reveal delay={0.05} className="lg:col-span-5">
-              <Card className="p-7 sm:p-8">
-                <div className="text-sm font-medium text-slate-600">Why it leads the page</div>
-                <div className="mt-3 grid gap-3">
-                  {[
-                    "It is shipped software — not a concept deck.",
-                    "It shows how I design for busy owners who need invoices off their plate.",
-                    "It covers app craft, AI-assisted UX, and what launch support looks like.",
-                    "It gives you a product story, not just a carousel of static shots."
-                  ].map((item, idx) => (
-                    <div
-                      key={item}
-                      className="flex gap-3 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm shadow-slate-900/5"
-                    >
-                      <span
-                        className={[
-                          "mt-2 h-2 w-2 shrink-0 rounded-full",
-                          idx % 2 === 0 ? "bg-indigo-600" : "bg-teal-600"
-                        ].join(" ")}
-                      />
-                      <span className="text-sm text-slate-700">{item}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-indigo-50/80 via-white/70 to-teal-50/40 p-4 text-sm leading-relaxed text-slate-700">
-                  Early days call for honest numbers — I will surface traction here as it grows instead of padding the
-                  story.
-                </div>
-              </Card>
-            </Reveal>
+                </Card>
+              </Reveal>
+            ))}
           </div>
         </Section>
 
         <Section
+          id="packages"
+          eyebrow="Packages"
+          title="Launches for websites and online stores"
+          subtitle="From a bare one-pager with domain only, up to full stores. Starting prices below — final quote depends on scope. Most brochure launches land under $1k."
+        >
+          <div className="grid gap-4">
+            <Reveal>
+              <Card className="p-6 sm:p-7 transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:border-indigo-200/55 motion-reduce:hover:translate-y-0">
+                <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-slate-600">
+                      Full launch packages include
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">
+                      One-Page Essentials is domain + single page only — no Google or analytics
+                      setup.
+                    </p>
+                    <ul className="mt-4 grid gap-2 text-sm text-slate-800 sm:grid-cols-2 lg:gap-x-8">
+                      {FULL_LAUNCH_INCLUDES.map((item) => (
+                        <li key={item} className="flex gap-2">
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <ButtonLink
+                    href="/#contact"
+                    className="w-full shrink-0 lg:w-auto"
+                    magnetic
+                    analyticsLocation="packages"
+                    analyticsLabel="Request a quote"
+                  >
+                    Request a quote
+                  </ButtonLink>
+                </div>
+              </Card>
+            </Reveal>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {PACKAGES.map((pkg, idx) => (
+                <Reveal
+                  key={pkg.name}
+                  delay={0.03 * idx}
+                  className={"span" in pkg && pkg.span === "full" ? "sm:col-span-2" : undefined}
+                >
+                  <Card
+                    className={[
+                      "flex h-full flex-col p-6 transition-transform duration-300 ease-out hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
+                      "highlight" in pkg && pkg.highlight
+                        ? "border-indigo-200/80 bg-gradient-to-br from-indigo-50/50 via-white to-white shadow-md shadow-indigo-950/[0.06]"
+                        : "essentialsOnly" in pkg && pkg.essentialsOnly
+                          ? "border-slate-200/90 bg-slate-50/40 hover:border-slate-300/80"
+                          : "hover:border-indigo-200/55",
+                    ].join(" ")}
+                  >
+                    {"badge" in pkg && pkg.badge ? (
+                      <span className="mb-2 inline-flex w-fit rounded-full border border-indigo-200/60 bg-indigo-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-700">
+                        {pkg.badge}
+                      </span>
+                    ) : null}
+
+                    <div className="text-base font-semibold text-slate-900">
+                      {pkg.name}
+                    </div>
+
+                    <div className="mt-1 text-sm font-medium text-indigo-700">
+                      {pkg.price}
+                    </div>
+
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                      {pkg.bestFor}
+                    </p>
+
+                    {"excludesNote" in pkg && pkg.excludesNote ? (
+                      <p className="mt-2 text-xs leading-relaxed text-slate-500">
+                        {pkg.excludesNote}
+                      </p>
+                    ) : null}
+
+                    <ul className="mt-4 flex-1 grid gap-2 text-sm text-slate-800">
+                      {pkg.includes.map((item) => (
+                        <li key={item} className="flex gap-2">
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="mt-5 border-t border-slate-100 pt-4">
+                      <ButtonLink
+                        href="/#contact"
+                        variant={
+                          "highlight" in pkg && pkg.highlight
+                            ? "primary"
+                            : "secondary"
+                        }
+                        className="w-full text-sm"
+                        magnetic={"highlight" in pkg && !!pkg.highlight}
+                        analyticsLocation="packages"
+                        analyticsLabel={`Get a quote — ${pkg.name}`}
+                      >
+                        Get a quote
+                      </ButtonLink>
+                    </div>
+                  </Card>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </Section>
+
+        <WhyChooseSection />
+
+        <Section
           id="work"
-          eyebrow="Selected work"
-          title="A tight snapshot next to NoteBill."
-          subtitle="Homepage visitors see range and craft fast; the portfolio page holds the full set when you want to browse every build."
+          eyebrow="More work"
+          title="Live sites beyond the main examples."
+          subtitle="The portfolio page has the full set — including side projects — when you want to browse everything."
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm text-slate-600">
-              I keep the fold intentional — depth lives one click away.
+              Including a live ecommerce store (StarMapCo) and other client builds.
             </div>
+
             <ButtonLink href="/projects" variant="secondary">
               Open full portfolio
             </ButtonLink>
@@ -253,109 +319,46 @@ export default function Home() {
         </Section>
 
         <Section
-          id="services"
-          eyebrow="Services"
-          title="What I build — and how we wrap."
-          subtitle="I shine on scoped builds: ship something solid, show you how to run it, then step back. Ongoing retainers only happen when we both want that arrangement."
-        >
-          <div className="grid gap-4 lg:grid-cols-12">
-            <Reveal className="lg:col-span-5">
-              <Card className="p-7 transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:border-indigo-200/55 motion-reduce:hover:translate-y-0">
-                <div className="text-sm font-medium text-slate-600">Best fit</div>
-                <div className="mt-3 text-3xl font-semibold text-slate-900">Build, launch, hand off.</div>
-                <div className="mt-2 text-sm leading-relaxed text-slate-700">
-                  You get a written scope, predictable milestones, and a finished thing you can operate — no mystery
-                  invoices or endless “just one more tweak” cycles unless we plan for them up front.
-                </div>
-                <div className="mt-6 grid gap-2 text-sm text-slate-800">
-                  {["Custom websites", "Mobile app builds", "Launch-ready SEO basics", "Project handoff + credentials"].map(
-                    (item) => (
-                      <div key={item} className="flex gap-2">
-                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" />
-                        <span>{item}</span>
-                      </div>
-                    )
-                  )}
-                </div>
-                <div className="mt-7">
-                  <ButtonLink href="#contact" className="w-full" magnetic>
-                    Start a project
-                  </ButtonLink>
-                </div>
-              </Card>
-            </Reveal>
-
-            <div className="grid gap-4 lg:col-span-7 sm:grid-cols-2">
-              {[
-                {
-                  title: "Websites",
-                  body: "Lead-ready sites for trades, shops, and makers who need to look legit the second someone lands on mobile.",
-                  list: ["Service storytelling", "CTAs that match how you sell", "Layouts that stay fast"]
-                },
-                {
-                  title: "Apps",
-                  body: "Focused mobile work — MVPs and v1s where the interface and launch checklist both have to be real.",
-                  list: ["Product UI", "Sensible feature cuts", "Store-ready polish"]
-                },
-                {
-                  title: "SEO basics",
-                  body: "Foundational structure so Google (and humans) understand who you help and where you show up.",
-                  list: ["Metadata + schema basics", "Clean heading flow", "Neighborhood-aware copy"]
-                },
-                {
-                  title: "Handoff",
-                  body: "Access, repos, and a walkthrough so you are never guessing what shipped or how to keep it alive.",
-                  list: ["Credential pass", "Repo or export", "What to do next"]
-                }
-              ].map((service, idx) => (
-                <Reveal key={service.title} delay={0.03 * idx}>
-                  <Card className="p-6 transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:border-indigo-200/55 motion-reduce:hover:translate-y-0">
-                    <div className="text-base font-semibold text-slate-900">{service.title}</div>
-                    <div className="mt-2 text-sm leading-relaxed text-slate-700">{service.body}</div>
-                    <ul className="mt-4 grid gap-2 text-sm text-slate-800">
-                      {service.list.map((item) => (
-                        <li key={item} className="flex gap-2">
-                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </Card>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </Section>
-
-        <Section
           id="process"
           eyebrow="Process"
-          title="From first message to launch without the fog."
-          subtitle="Every step has a visible outcome — you always know what is happening now and what “done” includes."
+          title="From first message to launch — without the fog."
+          subtitle="Fixed scope, visible milestones, and a handoff you can actually use. No mystery retainers unless we agree to something extra later."
         >
           <div className="grid gap-4 lg:grid-cols-4">
             {[
               {
                 t: "1) Discovery",
-                d: "You share goals, audience, and a few references. I confirm fit, risks, and what a realistic v1 covers."
+
+                d: "You share your business, goals, and a few references. I confirm fit, page count, and what a realistic launch covers.",
               },
+
               {
                 t: "2) Plan",
-                d: "We lock pages or features, success metrics, and a timeline so the build does not sprawl mid-flight."
+
+                d: "We lock pages, contact paths, Google setup needs, and a timeline so the build does not sprawl mid-flight.",
               },
+
               {
                 t: "3) Build",
-                d: "Design and implementation stay mobile-first, performance-conscious, and aligned to the plan we wrote down."
+
+                d: "Design and pages stay mobile-first and fast — services or products, trust sections, forms, and basic SEO structure.",
               },
+
               {
-                t: "4) Handoff",
-                d: "Access, repos, hosting notes, and a concise walkthrough — you can keep shipping without waiting on me."
-              }
+                t: "4) Launch & handoff",
+
+                d: "Domain, hosting, email forwarding, Analytics, Search Console, checklist, and a walkthrough — you own the keys.",
+              },
             ].map((step, idx) => (
               <Reveal key={step.t} delay={0.03 * idx}>
                 <Card className="p-6 transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:border-indigo-200/55 motion-reduce:hover:translate-y-0">
-                  <div className="text-base font-semibold text-slate-900">{step.t}</div>
-                  <div className="mt-2 text-sm leading-relaxed text-slate-700">{step.d}</div>
+                  <div className="text-base font-semibold text-slate-900">
+                    {step.t}
+                  </div>
+
+                  <div className="mt-2 text-sm leading-relaxed text-slate-700">
+                    {step.d}
+                  </div>
                 </Card>
               </Reveal>
             ))}
@@ -367,45 +370,105 @@ export default function Home() {
             <Accordion
               items={[
                 {
-                  q: "Do you stay on for monthly product management?",
-                  a: "Rarely by default. I am happiest delivering a scoped build plus launch support. If you want a longer rhythm afterward, we will spell out what that means so expectations stay clean."
+                  q: "Are these prices fixed?",
+
+                  a: "The site shows starting points. One-Page Essentials (single HTML/CSS/JS page, domain + hosting only) often lands around $299–$449. Starter and simple brochure sites often land in the $400–$700 range; Business and Brand launches often land around $850–$1,100 depending on pages and content. Ecommerce depends on product count and platform. You get a clear written quote before any work starts.",
                 },
+
                 {
-                  q: "Can you help with local SEO?",
-                  a: "Yes — the practical kind. Clear service areas, human-readable headings, metadata that matches how you actually talk to customers, and structure search engines can parse without gimmicks."
+                  q: "What is the bare minimum package?",
+
+                  a: "One-Page Essentials: one lightweight page, domain and hosting hooked up, and your contact details on the page — no contact form, no Google Analytics, no Business Profile, no custom email setup. It is for people who literally just need to be findable online.",
                 },
+
+                {
+                  q: "Is this a monthly marketing or IT retainer?",
+
+                  a: "No — the core offer is a one-time website launch with setup and handoff. If you want ongoing help afterward, we will scope it separately so expectations stay clear.",
+                },
+
+                {
+                  q: "Can you set up a full working ecommerce store?",
+
+                  a: "Yes — that is what the Ecommerce Store Launch package is for: a real storefront with products, cart, checkout, and payments — not just a brochure site with photos. We pick a stack that fits your size (often avoiding Shopify’s ~$49 CAD/month Basic plan when you do not need it), configure payments and shipping basics, and walk you through products and orders before handoff.",
+                },
+
+                {
+                  q: "Why not just use Shopify?",
+
+                  a: "Shopify is excellent when you want their ecosystem and do not mind the monthly plan (Basic is about $49 CAD/month, or ~$37/mo on annual billing, per Shopify Canada — plus apps and themes). Many Island shops only need a straightforward store. EuroDigital can launch on a one-time project fee with modest ongoing hosting instead of that recurring platform subscription. You still pay normal per-sale payment processing either way.",
+                },
+
+                {
+                  q: "Do you build big apps or SaaS products?",
+
+                  a: "That is not the main focus. EuroDigital is positioned around practical websites and small-business online stores. Larger custom software is only scoped under Custom Launch when it truly fits.",
+                },
+
+                {
+                  q: "Can you help with Google Business Profile and local SEO?",
+
+                  a: "Yes — the practical kind included in launch packages: profile setup or support when it fits, Analytics, Search Console, readable service-area copy, and metadata structure search engines can parse.",
+                },
+
                 {
                   q: "What does handoff include?",
-                  a: "The accesses you need, repos or exports, hosting notes, and a focused walkthrough so you can update copy, post blogs, or hand things to another dev without guesswork."
+
+                  a: "Access you need, hosting and domain notes, email forwarding setup, analytics accounts, a short launch checklist, and a walkthrough so you can update copy or hand things to someone else without guesswork.",
                 },
+
                 {
-                  q: "Where can I see everything you have shipped?",
-                  a: "The homepage highlights the strongest proof — especially NoteBill — and the portfolio page collects the rest for a fuller picture."
-                }
+                  q: "Where can I see more projects?",
+
+                  a: "This page highlights local service sites, creative brands, and ecommerce — plus more live builds in the portfolio, including side projects like NoteBill.",
+                },
               ]}
             />
           </div>
         </Section>
 
-        <Section id="contact" eyebrow="Contact" title="Tell me what you are shipping next.">
+        <Section
+          id="contact"
+          eyebrow="Contact"
+          title="Tell me about your business launch."
+          subtitle="No long RFP required — a short note about your business, preferred package, and timeline is enough for a reply with next steps."
+        >
           <Reveal>
             <Card className="p-8 sm:p-12">
               <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
                 <div>
-                  <div className="text-sm font-medium text-slate-600">Fastest way to start</div>
+                  <div className="text-sm font-medium text-slate-600">
+                    Fastest way to start
+                  </div>
+
                   <div className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-                    A tight note beats a vague brief — I will answer with next steps.
+                    Share what you do, which package feels close, and your
+                    timeline.
                   </div>
-                  <div className="mt-3 text-slate-700">
-                    Share what you sell, what success looks like, any deadlines, and whether you want launch-only help
-                    or a longer rhythm after go-live.
-                  </div>
+
+                  <p className="mt-3 text-slate-700">
+                    Service business, creative brand, or something in between —
+                    a few sentences about your customers and what “live” should
+                    look like is enough to start.
+                  </p>
+
+                  <p className="mt-3 text-sm text-slate-600">
+                    {CONTACT_REPLY_NOTE}
+                  </p>
+
                   <div className="mt-5 flex flex-wrap gap-3">
-                    <ButtonA href={`mailto:${CONTACT_EMAIL}`} variant="secondary" magnetic>
-                      Email hello@eurodigital.ca
+                    <ButtonA
+                      href={`mailto:${CONTACT_EMAIL}`}
+                      variant="secondary"
+                      magnetic
+                      analyticsLocation="contact"
+                      analyticsLabel="Email contact"
+                    >
+                      Email {CONTACT_EMAIL}
                     </ButtonA>
+
                     <ButtonLink href="/projects" variant="secondary">
-                      Browse projects
+                      Browse portfolio
                     </ButtonLink>
                   </div>
                 </div>
@@ -420,19 +483,6 @@ export default function Home() {
       </main>
 
       <SiteFooter />
-
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200/80 bg-white/92 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-12px_40px_-16px_rgba(15,23,42,0.1)] backdrop-blur-md sm:hidden">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4">
-          <div className="text-xs font-medium text-slate-700">Planning a site or app?</div>
-          <a
-            href="#contact"
-            className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-blue-600/25 transition duration-200 ease-out hover:bg-blue-500 active:scale-[0.96] touch-manipulation motion-reduce:active:scale-100"
-          >
-            Contact
-          </a>
-        </div>
-      </div>
     </div>
   );
 }
-
