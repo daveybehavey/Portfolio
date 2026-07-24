@@ -4,12 +4,12 @@ Static marketing site for [eurodigital.ca](https://eurodigital.ca) — small-bus
 
 **Stack:** Next.js 15 (static export) · Tailwind · Framer Motion · Cloudflare Pages
 
-**Node.js:** use **20.x** (see `.nvmrc` / `.node-version` and `package.json` `engines`). Compatible with the committed Next.js 15.5 line without dependency upgrades.
+**Node.js:** use **22.x** (see `.nvmrc` / `.node-version` and `package.json` `engines`). Chosen because Next.js 15.5 accepts `>=20`, while committed `wrangler` / `miniflare` require `>=22`, without upgrading dependencies.
 
 ## Run locally
 
 ```powershell
-# Use Node 20.x (nvm use / fnm use / equivalent)
+# Use Node 22.x (nvm use / fnm use / equivalent)
 npm ci
 cp .env.example .env.local   # optional: analytics token
 npm run dev
