@@ -14,52 +14,70 @@ export type Project = {
 
 export const projects: readonly Project[] = [
   {
-    name: "NoteBill",
-    tagline: "AI invoice app",
-    url: "https://notebill.app",
-    playStoreUrl: "https://play.google.com/store/apps/details?id=app.notebill.app",
-    outcome:
-      "NoteBill helps contractors and solo operators draft, organize, and send invoices faster — with AI-assisted wording and a workflow tuned to how people actually work.",
-    bullets: ["AI-assisted invoice creation", "Designed for solo operators", "Live on Google Play"],
-    label: "Featured app",
-    imageSrc: "/projects/notebill.webp",
-    isFeatured: true
-  },
-  {
-    name: "StarMapCo",
-    tagline: "Personalized gifts (storefront)",
-    url: "https://starmapco.com",
-    outcome: "Product-focused site for a personalized gift experience and conversion flow.",
-    bullets: ["Product pages", "Personalization UX", "Conversion-focused sections"],
-    label: "Ecommerce",
-    imageSrc: "/projects/starmapco.webp"
-  },
-  {
     name: "MaestrosServices",
-    tagline: "Landscaping business (lead-gen)",
+    tagline: "Landscaping & outdoor services",
     url: "https://maestrosservices.com",
-    outcome: "Service-business site built to turn visitors into calls and quote requests.",
-    bullets: ["Clear services + CTA", "Trust sections", "Mobile-first layout"],
+    outcome:
+      "Local service business site built to explain offerings, build trust, and turn visitors into calls and quote requests.",
+    bullets: [
+      "Clear services + contact paths",
+      "Trust-focused layout",
+      "Mobile-first lead capture",
+    ],
     label: "Local services",
-    imageSrc: "/projects/maestrosservices.webp"
+    imageSrc: "/projects/maestrosservices.webp",
+    isFeatured: true,
   },
   {
     name: "AnglKissCreations",
-    tagline: "Handmade products (catalog)",
+    tagline: "Handmade products & brand",
     url: "https://angelkisscreations.com",
-    outcome: "Small business website for showcasing products and driving inquiries and orders.",
-    bullets: ["Product/gallery layout", "Fast navigation", "Simple inquiry flow"],
-    label: "Small business",
-    imageSrc: "/projects/angelkisscreations.webp"
+    outcome:
+      "Creative small-business site for showcasing products, sharing the brand story, and making inquiries easy.",
+    bullets: ["Product showcase", "Brand story", "Simple inquiry flow"],
+    label: "Creative brand",
+    imageSrc: "/projects/angelkisscreations.webp",
+    isFeatured: true,
+  },
+  {
+    name: "NoteBill",
+    tagline: "Side project · invoice app",
+    url: "https://notebill.app",
+    playStoreUrl:
+      "https://play.google.com/store/apps/details?id=app.notebill.app",
+    outcome:
+      "A separate product I built and shipped — not the core EuroDigital offer, but proof I can deliver polished software when needed.",
+    bullets: [
+      "Live on Google Play",
+      "AI-assisted workflows",
+      "Outside the main website focus",
+    ],
+    label: "App (side project)",
+    imageSrc: "/projects/notebill.webp",
+  },
+  {
+    name: "StarMapCo",
+    tagline: "Ecommerce · personalized gifts",
+    url: "https://starmapco.com",
+    outcome:
+      "Working online store — product catalog, purchase flow, and a polished brand experience built to convert visitors into orders.",
+    bullets: [
+      "Storefront + product pages",
+      "Checkout & payments setup",
+      "Conversion-focused layout",
+    ],
+    label: "Ecommerce store",
+    imageSrc: "/projects/starmapco.webp",
   },
   {
     name: "VancouverIslandProRoofing",
     tagline: "Roofing business (early work)",
     url: "https://vancouverislandproroofing.com",
-    outcome: "An early client website that shows the start of the work I build from.",
+    outcome:
+      "An early client website that shows the start of the work I build from.",
     bullets: ["Early project", "Live site", "Rebuild-ready"],
     label: "Early work",
     imageSrc: "/projects/vancouverislandproroofing.webp",
-    isEarlyWork: true
-  }
+    isEarlyWork: true,
+  },
 ] as const;

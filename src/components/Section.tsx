@@ -8,7 +8,7 @@ export function Section({
   className,
   titleAs = "h2",
   divider = true,
-  children
+  children,
 }: {
   id?: string;
   eyebrow?: string;
@@ -24,7 +24,12 @@ export function Section({
   const TitleTag = titleAs;
 
   return (
-    <section id={id} className={["relative py-16 sm:py-24 lg:py-28", className].filter(Boolean).join(" ")}>
+    <section
+      id={id}
+      className={["relative py-16 sm:py-24 lg:py-28", className]
+        .filter(Boolean)
+        .join(" ")}
+    >
       {divider ? (
         <div
           aria-hidden
@@ -36,8 +41,13 @@ export function Section({
           <div className="mb-10 max-w-2xl sm:mb-12 lg:mb-14">
             {eyebrow && (
               <div className="flex items-center gap-2.5">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500 shadow-sm shadow-indigo-500/40" aria-hidden />
-                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">{eyebrow}</div>
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500 shadow-sm shadow-indigo-500/40"
+                  aria-hidden
+                />
+                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
+                  {eyebrow}
+                </div>
               </div>
             )}
             {title && (
@@ -57,4 +67,3 @@ export function Section({
     </section>
   );
 }
-

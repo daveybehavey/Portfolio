@@ -23,16 +23,9 @@ body {
   height: 100%;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
-}
-
 body {
   @apply antialiased;
   background: linear-gradient(180deg, rgb(var(--bg)) 0%, rgb(var(--bg2)) 100%);
-  background-attachment: fixed;
   color: rgb(var(--text));
   text-rendering: optimizeLegibility;
 }
@@ -47,25 +40,30 @@ body {
   outline-offset: 3px;
 }
 
+.page-decor {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  z-index: 0;
+}
+
 .noise {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  opacity: 0.045;
-  mix-blend-mode: multiply;
+  opacity: 0.035;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
 }
 
 .bg-mesh {
   position: absolute;
-  inset: -120px;
-  pointer-events: none;
+  inset: -80px;
   background:
-    radial-gradient(720px circle at 14% 10%, rgb(var(--mark) / 0.11), transparent 55%),
-    radial-gradient(640px circle at 86% 22%, rgb(var(--brand2) / 0.12), transparent 56%),
+    radial-gradient(720px circle at 14% 10%, rgb(var(--mark) / 0.06), transparent 55%),
+    radial-gradient(640px circle at 86% 22%, rgb(var(--brand2) / 0.07), transparent 56%),
     radial-gradient(560px circle at 48% 92%, rgb(var(--accent) / 0.08), transparent 60%),
     radial-gradient(420px circle at 72% 68%, rgb(var(--glow-warm) / 0.06), transparent 50%);
-  filter: saturate(1.06);
 }
 
 @layer components {

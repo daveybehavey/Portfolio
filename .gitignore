@@ -8,10 +8,23 @@ out
 # production
 build
 
+# wrangler / Cloudflare local state
+.wrangler
+.dev.vars
+
 # misc
 .DS_Store
+Thumbs.db
+Desktop.ini
 *.pem
 *.tsbuildinfo
+lighthouse-reports/
+
+# editor / OS
+.idea/
+.vscode/
+*.swp
+*~
 
 # debug
 npm-debug.log*
@@ -19,6 +32,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# local env files
-.env*.local
-
+# local env files (keep .env.example)
+.env
+.env.*
+!.env.example

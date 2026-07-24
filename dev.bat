@@ -11,8 +11,8 @@ if not exist "node_modules\next\" (
 echo.
 echo ============================================================
 echo   Portfolio dev server
-echo   Open in your browser:  http://127.0.0.1:3010
-echo   (Port 3010, host 127.0.0.1 — avoids common 3000 conflicts)
+echo   Open in your browser:  http://127.0.0.1:3011
+echo   (Port 3011 — do NOT use localhost:3010; another app may be on that port)
 echo ============================================================
 echo.
 

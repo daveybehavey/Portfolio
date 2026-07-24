@@ -6,13 +6,14 @@ import { ButtonLink } from "@/components/Button";
 import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
 const links = [
-  { href: "#featured", label: "NoteBill" },
-  { href: "#work", label: "Work" },
-  { href: "#services", label: "Services" },
-  { href: "#process", label: "Process" },
+  { href: "/#examples", label: "Examples" },
+  { href: "/#packages", label: "Packages" },
+  { href: "/#why-us", label: "Why us" },
+  { href: "/#work", label: "Work" },
+  { href: "/#process", label: "Process" },
   { href: "/projects", label: "Portfolio" },
-  { href: "#faq", label: "FAQ" },
-  { href: "#contact", label: "Contact" }
+  { href: "/#faq", label: "FAQ" },
+  { href: "/#contact", label: "Contact" },
 ] as const;
 
 export function MobileNav() {
@@ -63,7 +64,7 @@ export function MobileNav() {
   }, [open]);
 
   return (
-    <div className="sm:hidden">
+    <div className="lg:hidden">
       <button
         ref={menuButtonRef}
         type="button"
@@ -100,10 +101,19 @@ export function MobileNav() {
               aria-modal="true"
               aria-label="Site navigation"
               className="fixed left-3 right-3 top-20 z-50 overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 shadow-lg shadow-slate-900/10 backdrop-blur-md"
-              initial={reduced ? { opacity: 1 } : { opacity: 0, y: -8, scale: 0.98 }}
-              animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-              exit={reduced ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.98 }}
-              transition={{ duration: reduced ? 0 : 0.18, ease: [0.2, 0.8, 0.2, 1] }}
+              initial={
+                reduced ? { opacity: 1 } : { opacity: 0, y: -8, scale: 0.98 }
+              }
+              animate={
+                reduced ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }
+              }
+              exit={
+                reduced ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.98 }
+              }
+              transition={{
+                duration: reduced ? 0 : 0.18,
+                ease: [0.2, 0.8, 0.2, 1],
+              }}
             >
               <div className="p-4">
                 <div className="grid gap-1">
@@ -119,8 +129,14 @@ export function MobileNav() {
                   ))}
                 </div>
                 <div className="mt-4">
-                  <ButtonLink href="#contact" className="w-full" magnetic>
-                    Contact
+                  <ButtonLink
+                    href="/#contact"
+                    className="w-full"
+                    magnetic
+                    analyticsLocation="mobile_nav"
+                    analyticsLabel="Get a quote"
+                  >
+                    Get a quote
                   </ButtonLink>
                 </div>
               </div>

@@ -1,47 +1,73 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { CONTACT_EMAIL, SITE_DESCRIPTION, SITE_URL, defaultOpenGraph } from "@/lib/site";
+import { CloudflareAnalytics } from "@/components/CloudflareAnalytics";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import {
+  CONTACT_EMAIL,
+  SITE_DESCRIPTION,
+  SITE_URL,
+  defaultOpenGraph,
+} from "@/lib/site";
 
 const sans = Inter({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-sans"
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "EuroDigital — Island websites & apps",
-    template: "%s — EuroDigital"
+    default: "EuroDigital — Small business website launches",
+    template: "%s — EuroDigital",
   },
   description: SITE_DESCRIPTION,
   alternates: { canonical: "/" },
   openGraph: {
     ...defaultOpenGraph,
-    title: "EuroDigital — Island websites & apps",
+    title: "EuroDigital — Small business website launches",
     description: SITE_DESCRIPTION,
-    url: SITE_URL
+    url: SITE_URL,
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "EuroDigital — Small business website launches",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "EuroDigital — Island websites & apps",
-    description: SITE_DESCRIPTION
+    title: "EuroDigital — Small business website launches",
+    description: SITE_DESCRIPTION,
+    images: ["/og-image.png"],
   },
-  robots: { index: true, follow: true }
+  robots: { index: true, follow: true },
+  icons: {
+    icon: [
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    shortcut: "/favicon-32x32.png",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#faf9f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f172a" }
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
   ],
   width: "device-width",
-  initialScale: 1
+  initialScale: 1,
 };
 
 export default function RootLayout({
-  children
+  children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
@@ -53,9 +79,11 @@ export default function RootLayout({
         "@id": `${SITE_URL}/#organization`,
         name: "EuroDigital",
         url: SITE_URL,
+        logo: `${SITE_URL}/brand/logo.png`,
+        image: `${SITE_URL}/og-image.png`,
         email: CONTACT_EMAIL,
         areaServed: ["Vancouver Island", "British Columbia", "Canada"],
-        description: SITE_DESCRIPTION
+        description: SITE_DESCRIPTION,
       },
       {
         "@type": "WebSite",
@@ -63,17 +91,19 @@ export default function RootLayout({
         url: SITE_URL,
         name: "EuroDigital",
         description:
-          "Official EuroDigital portfolio — project samples, services, and inquiries for Vancouver Island businesses.",
+          "EuroDigital — small business website launches, packages, and portfolio for Vancouver Island service businesses and creative brands.",
         publisher: { "@id": `${SITE_URL}/#organization` },
-        inLanguage: "en-CA"
-      }
-    ]
+        inLanguage: "en-CA",
+      },
+    ],
   };
 
   return (
     <html lang="en-CA" className={sans.variable}>
       <body className="font-sans antialiased">
         {children}
+        <GoogleAnalytics />
+        <CloudflareAnalytics />
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
