@@ -4,12 +4,21 @@ Static marketing site for [eurodigital.ca](https://eurodigital.ca) — small-bus
 
 **Stack:** Next.js 15 (static export) · Tailwind · Framer Motion · Cloudflare Pages
 
-**Node.js:** use **22.x** (see `.nvmrc` / `.node-version` and `package.json` `engines`). Chosen because Next.js 15.5 accepts `>=20`, while committed `wrangler` / `miniflare` require `>=22`, without upgrading dependencies.
+## Runtime (verified)
+
+Use these exact versions before `npm ci` — they reproduce the reviewed clean build:
+
+| Tool | Version |
+|------|---------|
+| **Node.js** | **22.17.1** (see `.nvmrc` / `.node-version` / `package.json` `engines.node`) |
+| **npm** | **10.9.2** (`package.json` `engines.npm` and `packageManager`) |
+
+Pin rationale: Next.js 15.5 accepts `>=20`, while committed `wrangler` / `miniflare` require `>=22`. Exact `22.17.1` / `npm@10.9.2` match the verification environment for this recovery PR.
 
 ## Run locally
 
 ```powershell
-# Use Node 22.x (nvm use / fnm use / equivalent)
+# Switch to Node 22.17.1 and npm 10.9.2 first (nvm use / fnm use / equivalent)
 npm ci
 cp .env.example .env.local   # optional: analytics token
 npm run dev
@@ -18,6 +27,12 @@ npm run dev
 Open **http://127.0.0.1:3011** (not `localhost:3010` — another project may be on that port). Windows: double-click `dev.bat`.
 
 If the page looks unstyled, run `npm run dev:clean` (clears a stale `.next` cache and restarts dev).
+
+### Reproducibility notes (non-blocking)
+
+- `next/font/google` needs network access during `npm run build` to fetch Inter.
+- `npm run sync:brand` defaults to the sibling directory `../EuroDigital Invoices/ASSETS` (override with `EURODIGITAL_ASSETS_DIR`).
+- Committed generated brand assets under `public/` allow the normal site build to succeed without that external directory. Do not delete the committed copies for local builds.
 
 ## Edit content
 
@@ -62,13 +77,13 @@ npm run pages:preview
 
 1. [Google Analytics](https://analytics.google.com/) → create property for **eurodigital.ca**
 2. **Admin → Data streams → Web** → copy **Measurement ID** (`G-XXXXXXXX`)
-3. Add to `.env.local` (bake into a future authorized deploy if/when CI exists):
+3. Add to `.env.local` (bake into a future authorized deploy if/when a separately reviewed CI workflow exists):
 
    ```env
    NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
    ```
 
-4. Rebuild and deploy.
+4. Rebuild and deploy (only after explicit authorization if targeting production).
 
 **Events sent from this site:**
 
@@ -88,11 +103,26 @@ In GA4: **Admin → Events → Mark as key event** on `generate_lead` (and optio
    NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN=your_token_here
    ```
 
-3. Rebuild and deploy. Privacy copy updates automatically on `/privacy`.
+3. Rebuild and deploy (only after explicit authorization if targeting production). Privacy copy updates automatically on `/privacy`.
 
-## Optional: Cloudflare helpers
+## Cloudflare helper commands (`scripts/cf-api.js`)
 
-`scripts/cf-api.js` — zone lookup, www CNAME, email routing status, contact forward rule. Needs credentials in `.env.local` (see `.env.example`).
+Manual CLI only. Requires Cloudflare credentials in `.env.local` (see `.env.example`). **Not** invoked by `npm install`, `npm ci`, `build`, `lint`, `typecheck`, tests, or any GitHub Actions workflow in this repository.
+
+| Command | Classification | Effect | Authorization requirement |
+|---------|----------------|--------|---------------------------|
+| `zone-id` | READ-ONLY | Looks up a Cloudflare zone id by name (GET) | Cloudflare credentials required; safe for inspection |
+| `email-routing-status` | READ-ONLY | Reports email routing settings, rules, and MX records (GET) | Cloudflare credentials required; safe for inspection |
+| `ensure-www-cname` | PRODUCTION-CHANGING | Creates or updates the production `www.eurodigital.ca` CNAME DNS record | Changes live Cloudflare DNS. Requires valid credentials. Do **not** run for testing or routine local development. Requires **explicit authorization immediately before** execution. Never invoke from install, build, lint, tests, or CI unless a separately approved workflow exists. |
+| `ensure-contact-forward` | PRODUCTION-CHANGING | May create a Cloudflare Email Routing destination; may create an enabled `contact@eurodigital.ca` forward rule; may trigger destination-verification email | Changes live Cloudflare email routing. Requires valid credentials. Do **not** run for testing or routine local development. Requires **explicit authorization immediately before** execution. Never invoke from install, build, lint, tests, or CI unless a separately approved workflow exists. |
+| `create-www-forward-page-rule` | PRODUCTION-CHANGING | Creates an active production page rule redirecting `www.eurodigital.ca/*` → `https://eurodigital.ca/$1` (301) | Changes live Cloudflare page rules. Requires valid credentials. Do **not** run for testing or routine local development. Requires **explicit authorization immediately before** execution. Never invoke from install, build, lint, tests, or CI unless a separately approved workflow exists. |
+
+Example (read-only only unless authorized):
+
+```powershell
+node scripts/cf-api.js zone-id eurodigital.ca
+node scripts/cf-api.js email-routing-status <zoneId>
+```
 
 ## SEO checklist (manual, one-time)
 
