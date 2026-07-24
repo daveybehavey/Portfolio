@@ -4,10 +4,13 @@ Static marketing site for [eurodigital.ca](https://eurodigital.ca) — small-bus
 
 **Stack:** Next.js 15 (static export) · Tailwind · Framer Motion · Cloudflare Pages
 
+**Node.js:** use **20.x** (see `.nvmrc` / `.node-version` and `package.json` `engines`). Compatible with the committed Next.js 15.5 line without dependency upgrades.
+
 ## Run locally
 
 ```powershell
-npm install
+# Use Node 20.x (nvm use / fnm use / equivalent)
+npm ci
 cp .env.example .env.local   # optional: analytics token
 npm run dev
 ```
@@ -43,21 +46,23 @@ npm run assets:refresh # sync:brand + capture:screens
 npm run lighthouse     # build + Lighthouse scores (see lighthouse-reports/)
 npm run lint           # ESLint
 npm run typecheck      # tsc --noEmit
-npm run pages:deploy   # build + wrangler deploy (manual)
+npm run pages:deploy   # PRODUCTION-CHANGING — only after explicit authorization
 npm run pages:preview
 ```
 
 ## Deploy
 
-**Manual:** `npm run pages:deploy` (requires `wrangler login` or API token).
+**Current production:** eurodigital.ca remains the previous **manual** Cloudflare Pages deploy. Merging source to GitHub does **not** change production by itself.
 
-**GitHub Actions:** Push to `main` with secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (see `.github/workflows/deploy.yml`). Optional: `NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN` if analytics should be baked into CI builds.
+**GitHub Actions:** there is **no** active deployment workflow in this repository yet. A future, separately reviewed PR will establish CI and controlled deployment.
+
+**Manual deploy:** `npm run pages:deploy` builds and pushes to Cloudflare Pages (`eurodigital-ca`). That is **production-changing**. Run it only after explicit authorization (requires `wrangler login` or an API token).
 
 ## Optional: Google Analytics 4 (conversion tracking)
 
 1. [Google Analytics](https://analytics.google.com/) → create property for **eurodigital.ca**
 2. **Admin → Data streams → Web** → copy **Measurement ID** (`G-XXXXXXXX`)
-3. Add to `.env.local` (and CI secrets if you deploy via GitHub Actions):
+3. Add to `.env.local` (bake into a future authorized deploy if/when CI exists):
 
    ```env
    NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
