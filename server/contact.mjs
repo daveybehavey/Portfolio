@@ -247,7 +247,7 @@ async function readJsonBody(request) {
   }
 }
 
-async function verifyTurnstile({ token, submissionId, remoteIp, config, fetchImpl }) {
+async function verifyTurnstile({ token, remoteIp, config, fetchImpl }) {
   let response;
   try {
     response = await fetchWithTimeout(fetchImpl, TURNSTILE_ENDPOINT, {
@@ -257,7 +257,6 @@ async function verifyTurnstile({ token, submissionId, remoteIp, config, fetchImp
         secret: config.turnstileSecret,
         response: token,
         remoteip: remoteIp || undefined,
-        idempotency_key: submissionId,
       }),
     });
   } catch {
@@ -375,7 +374,7 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
         code: validated.spam ? "invalid_submission" : "validation_failed",
         message: validated.spam
           ? "The submission could not be accepted."
-          : "Review the highlighted fields.",
+          : "Review the form fields and try again.",
         errors: validated.errors,
       },
       origin,
@@ -385,7 +384,6 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
   const remoteIp = request.headers.get("CF-Connecting-IP") || "";
   const turnstile = await verifyTurnstile({
     token: validated.values.turnstileToken,
-    submissionId: validated.values.submissionId,
     remoteIp,
     config,
     fetchImpl,
