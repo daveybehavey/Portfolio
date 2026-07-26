@@ -9,6 +9,7 @@ import {
   validateActivationConfig,
   validateSmokeTarget,
 } from "../scripts/contact-activation-lib.mjs";
+import { applyEuroDigitalProductionPolicy } from "../scripts/contact-project-policy.mjs";
 
 const testEnvironment = {
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: TURNSTILE_TEST_SITE_KEY,
@@ -48,9 +49,32 @@ test("test-mode preflight accepts official Turnstile and Resend test destination
 });
 
 test("production preflight accepts non-test credentials and reviewed origins", () => {
-  const report = validateActivationConfig(productionEnvironment, { mode: "production" });
+  const report = applyEuroDigitalProductionPolicy(
+    validateActivationConfig(productionEnvironment, { mode: "production" }),
+    productionEnvironment,
+  );
   assert.equal(report.ok, true);
   assert.equal(report.summary.failed, 0);
+});
+
+test("EuroDigital production policy rejects unrelated sender and origin hosts", () => {
+  const environment = {
+    ...productionEnvironment,
+    CONTACT_FROM_EMAIL: "Website <website@attacker.example>",
+    CONTACT_ALLOWED_ORIGINS: "https://attacker.example",
+    TURNSTILE_ALLOWED_HOSTNAMES: "attacker.example",
+  };
+  const report = applyEuroDigitalProductionPolicy(
+    validateActivationConfig(environment, { mode: "production" }),
+    environment,
+  );
+  assert.equal(report.ok, false);
+  const failed = report.checks
+    .filter((item) => item.status === "fail")
+    .map((item) => item.name);
+  assert.ok(failed.includes("EURODIGITAL_PRODUCTION_SENDER"));
+  assert.ok(failed.includes("EURODIGITAL_PRODUCTION_ORIGINS"));
+  assert.ok(failed.includes("EURODIGITAL_TURNSTILE_HOSTNAMES"));
 });
 
 test("production preflight rejects test credentials and testing domains", () => {
