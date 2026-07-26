@@ -90,7 +90,7 @@ export function ContactForm({ email }: { email: string }) {
   const id = useId();
   const turnstileContainerRef = useRef<HTMLDivElement>(null);
   const turnstileWidgetIdRef = useRef<string | null>(null);
-  const submissionIdRef = useRef(createSubmissionId());
+  const submissionIdRef = useRef<string | null>(null);
   const [turnstileReady, setTurnstileReady] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [status, setStatus] = useState<SubmissionStatus>({
@@ -186,6 +186,8 @@ export function ContactForm({ email }: { email: string }) {
 
     const form = event.currentTarget;
     const data = new FormData(form);
+    const submissionId = submissionIdRef.current ?? createSubmissionId();
+    submissionIdRef.current = submissionId;
     const payload = {
       name: String(data.get("name") || ""),
       email: String(data.get("email") || ""),
@@ -194,7 +196,7 @@ export function ContactForm({ email }: { email: string }) {
       message: String(data.get("message") || ""),
       website: String(data.get("website") || ""),
       turnstileToken,
-      submissionId: submissionIdRef.current,
+      submissionId,
     };
 
     setStatus({ state: "submitting", message: "Sending your inquiry…" });
@@ -224,7 +226,7 @@ export function ContactForm({ email }: { email: string }) {
         message: result.message || "Your inquiry was delivered.",
       });
       form.reset();
-      submissionIdRef.current = createSubmissionId();
+      submissionIdRef.current = null;
       resetTurnstile();
     } catch {
       setStatus({
