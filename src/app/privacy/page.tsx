@@ -11,7 +11,7 @@ import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Privacy",
   description:
-    "How EuroDigital handles analytics and contact on eurodigital.ca.",
+    "How EuroDigital handles contact inquiries, spam protection, analytics, and hosting on eurodigital.ca.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -34,26 +34,64 @@ export default function PrivacyPage() {
               Privacy
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
-              Simple and minimal.
+              Simple, limited, and explained.
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-slate-600">
-              This site is a static portfolio for EuroDigital ({SITE_URL}).
-              There are no accounts and no comment forms stored on this server.
+              EuroDigital ({SITE_URL}) does not provide visitor accounts or keep a
+              customer database on the public website. Static pages remain static;
+              only the inquiry endpoint performs server-side processing.
             </p>
 
             <h2 className="mt-10 text-xl font-semibold text-slate-900">
-              Contact
+              Contact inquiries
             </h2>
             <p className="mt-3 leading-relaxed text-slate-700">
-              When you use the contact form or email link, your message is sent
-              through your own email app to{" "}
+              You can always email{" "}
               <a
                 href={`mailto:${CONTACT_EMAIL}`}
                 className="font-medium text-indigo-600 hover:text-indigo-700"
               >
                 {CONTACT_EMAIL}
-              </a>
-              . I do not store form submissions on this server.
+              </a>{" "}
+              directly. When the online form is enabled, it sends the name, email
+              address, business or industry, selected project type, message, and a
+              random submission identifier to a narrow Cloudflare Pages Function.
+              The visitor&apos;s email address is used as the reply-to address and is
+              never accepted as the trusted sender address.
+            </p>
+
+            <h2 className="mt-10 text-xl font-semibold text-slate-900">
+              Spam protection and email delivery
+            </h2>
+            <p className="mt-3 leading-relaxed text-slate-700">
+              The form uses{" "}
+              <a
+                href="https://www.cloudflare.com/privacypolicy/"
+                className="font-medium text-indigo-600 hover:text-indigo-700"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Cloudflare Turnstile
+              </a>{" "}
+              to check whether a submission appears legitimate. The server sends
+              the Turnstile token and technical request information, which may
+              include an IP address, to Cloudflare for validation. A valid token is
+              required before the message is delivered.
+            </p>
+            <p className="mt-3 leading-relaxed text-slate-700">
+              Valid inquiries are sent through{" "}
+              <a
+                href="https://resend.com/legal/privacy-policy"
+                className="font-medium text-indigo-600 hover:text-indigo-700"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Resend
+              </a>{" "}
+              to {CONTACT_EMAIL}. EuroDigital does not write inquiry contents to a
+              website database. The message is retained in the receiving mailbox,
+              and Cloudflare or Resend may retain operational records according to
+              their services, account settings, and legal obligations.
             </p>
 
             <h2 className="mt-10 text-xl font-semibold text-slate-900">
@@ -74,8 +112,8 @@ export default function PrivacyPage() {
                         Google Analytics 4
                       </a>{" "}
                       to understand how people find the site and which pages and
-                      contact actions they use (aggregate traffic and button
-                      events — not ad personalization).{" "}
+                      contact actions they use (aggregate traffic and button events
+                      — not ad personalization).{" "}
                     </>
                   ) : null}
                   {cfAnalyticsEnabled ? (
@@ -89,53 +127,4 @@ export default function PrivacyPage() {
                       >
                         Cloudflare Web Analytics
                       </a>{" "}
-                      for lightweight, cookie-free visit counts.{" "}
-                    </>
-                  ) : null}
-                  You can block these scripts with a browser extension or
-                  privacy settings if you prefer.
-                </>
-              ) : (
-                "This deployment does not load third-party analytics scripts."
-              )}
-            </p>
-
-            <h2 className="mt-10 text-xl font-semibold text-slate-900">
-              Hosting
-            </h2>
-            <p className="mt-3 leading-relaxed text-slate-700">
-              The site is hosted on Cloudflare Pages. Cloudflare may process
-              technical request data (IP address, user agent) as part of
-              delivering the site and protecting it from abuse.
-            </p>
-
-            <h2 className="mt-10 text-xl font-semibold text-slate-900">
-              Questions
-            </h2>
-            <p className="mt-3 leading-relaxed text-slate-700">
-              Email{" "}
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                className="font-medium text-indigo-600 hover:text-indigo-700"
-              >
-                {CONTACT_EMAIL}
-              </a>{" "}
-              if anything here should be clearer.
-            </p>
-
-            <p className="mt-10 text-sm text-slate-500">
-              <Link
-                href="/"
-                className="font-medium text-slate-700 hover:text-slate-900"
-              >
-                ← Back to home
-              </Link>
-            </p>
-          </article>
-        </Container>
-      </main>
-
-      <SiteFooter />
-    </div>
-  );
-}
+                      for lightweight, cookie-free visit counts.{" 
