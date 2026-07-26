@@ -12,6 +12,8 @@
     "dev:clean": "node -e \"try{require('fs').rmSync('.next',{recursive:true,force:true})}catch(e){}\" && next dev -p 3011 -H 127.0.0.1",
     "build": "next build",
     "test": "node --test test/*.test.mjs",
+    "contact:preflight": "node scripts/contact-preflight.mjs",
+    "contact:smoke": "node scripts/contact-smoke.mjs",
     "sync:brand": "node scripts/sync-brand-assets.mjs",
     "capture:screens": "node scripts/capture-screenshots.mjs",
     "assets:refresh": "npm run sync:brand && npm run capture:screens",
