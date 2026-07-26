@@ -1,58 +1,98 @@
 import Image from "next/image";
 
 import { Accordion } from "@/components/Accordion";
-
 import { ButtonA, ButtonLink } from "@/components/Button";
-
 import { Card } from "@/components/Card";
-
 import { Container } from "@/components/Container";
-
 import { ContactForm } from "@/components/ContactForm";
-
 import { HeroCollage } from "@/components/HeroCollage";
-
 import { HeroIntro } from "@/components/HeroIntro";
-
 import { HeroSection } from "@/components/HeroSection";
-
 import { PageBackground } from "@/components/PageBackground";
+import { ProjectCard } from "@/components/ProjectCard";
+import { Reveal } from "@/components/Reveal";
+import { Section } from "@/components/Section";
+import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SkipLink } from "@/components/SkipLink";
 import { WhyChooseSection } from "@/components/WhyChooseSection";
-
-import { ProjectCard } from "@/components/ProjectCard";
-
-import { Reveal } from "@/components/Reveal";
-
-import { Section } from "@/components/Section";
-
-import { SiteFooter } from "@/components/SiteFooter";
-
 import { FULL_LAUNCH_INCLUDES, PACKAGES, PROJECT_ARCHETYPES } from "@/lib/offer";
-
 import { projects } from "@/lib/projects";
-
 import { CONTACT_EMAIL, CONTACT_REPLY_NOTE } from "@/lib/site";
 
 const homepageProjects = projects.filter(
-  (p) => p.name === "StarMapCo" || p.name === "VancouverIslandProRoofing",
+  (project) => project.name === "MaestrosServices" || project.name === "StarMapCo",
 );
+
+const heroFacts = [
+  { key: "Built for", value: "Local businesses" },
+  { key: "Scope", value: "Clear project" },
+  { key: "Setup", value: "Google + domain" },
+  { key: "Handoff", value: "You own it" },
+] as const;
+
+const processSteps = [
+  {
+    title: "1) Fit and discovery",
+    body: "You share the business, customers, current setup, goals, and a few references. I confirm whether the project fits and what information is still missing.",
+  },
+  {
+    title: "2) Written scope",
+    body: "We lock the pages, customer actions, content responsibilities, setup work, timeline, exclusions, and price before the build expands.",
+  },
+  {
+    title: "3) Build and review",
+    body: "The site is designed mobile-first around credibility, services or products, clear calls to action, and a practical search-friendly structure.",
+  },
+  {
+    title: "4) Launch and handoff",
+    body: "Domain, hosting, analytics, Search Console, account access, launch notes, and a walkthrough are organized so you understand what you own.",
+  },
+] as const;
+
+const faqItems = [
+  {
+    q: "Are these prices fixed?",
+    a: "They are starting points for a defined scope. One-Page Launch starts at $499 CAD, Business Website starts at $1,250 CAD, and Online Store starts at $2,000 CAD. Content volume, integrations, product count, migrations, and unusual requirements can change the quote. You receive written deliverables and a price before work starts.",
+  },
+  {
+    q: "What is included in the One-Page Launch?",
+    a: "One focused, mobile-friendly page with your offer, services or key information, contact links, basic metadata, and domain/hosting connection. It is intentionally lean. Multi-page content, advanced forms, analytics, Business Profile work, and integrations belong in a larger launch.",
+  },
+  {
+    q: "Who is the Business Website for?",
+    a: "It is the core offer for trades, local service businesses, professionals, and growing brands that need several pages, stronger trust content, a proper inquiry path, practical Google setup, and a documented handoff.",
+  },
+  {
+    q: "Is this a monthly marketing or IT retainer?",
+    a: "No. The standard offer is a one-time scoped website launch. Ongoing updates, maintenance, content, or marketing can be quoted separately when they are genuinely useful, but they are not required to keep the project relationship alive.",
+  },
+  {
+    q: "How long does a website take?",
+    a: "Timing depends on scope and how quickly content and decisions arrive. A small one-page project can move quickly; a multi-page business site or store takes longer because content, review, products, payments, and launch setup require more coordination. The written estimate includes a realistic timeline and client dependencies.",
+  },
+  {
+    q: "Can you build a working online store?",
+    a: "Yes. Online Store projects can include products, collections, cart, checkout, payments, shipping and tax basics, notifications, analytics, and a walkthrough for day-to-day operations. The stack is chosen to fit the business rather than forcing every shop into the same platform.",
+  },
+  {
+    q: "Can you help with Google Business Profile and local SEO?",
+    a: "Yes, within a practical launch scope: Business Profile support when appropriate, Analytics, Search Console, readable service-area content, technical metadata, and a site structure search engines can understand. EuroDigital does not promise rankings or sell vague SEO guarantees.",
+  },
+  {
+    q: "What does handoff include?",
+    a: "The relevant account access, domain and hosting notes, analytics setup, launch checklist, files or repository access, and a walkthrough appropriate to the project. The goal is to leave ownership understandable rather than keeping essential access hidden.",
+  },
+] as const;
 
 export default function Home() {
   return (
     <div className="relative min-h-screen overflow-x-clip">
       <PageBackground />
-
       <SkipLink />
-
       <SiteHeader />
 
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="relative z-10 outline-none"
-      >
+      <main id="main-content" tabIndex={-1} className="relative z-10 outline-none">
         <HeroSection>
           <Container>
             <div className="grid gap-8 lg:grid-cols-12 lg:items-start lg:gap-10">
@@ -86,25 +126,14 @@ export default function Home() {
                   />
 
                   <div className="mt-4 grid grid-cols-2 gap-3">
-                    {[
-                      { k: "Offer", v: "Website launch" },
-
-                      { k: "Setup", v: "Google + email" },
-
-                      { k: "Discover", v: "Basic SEO" },
-
-                      { k: "Wrap-up", v: "You own it" },
-                    ].map((item) => (
+                    {heroFacts.map((item) => (
                       <Card
-                        key={item.k}
+                        key={item.key}
                         className="p-4 transition-transform duration-300 ease-out hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
                       >
-                        <div className="text-xs font-medium text-slate-600">
-                          {item.k}
-                        </div>
-
+                        <div className="text-xs font-medium text-slate-600">{item.key}</div>
                         <div className="mt-1 text-lg font-semibold text-slate-900">
-                          {item.v}
+                          {item.value}
                         </div>
                       </Card>
                     ))}
@@ -117,9 +146,9 @@ export default function Home() {
 
         <Section
           id="examples"
-          eyebrow="Who this is for"
-          title="Three common launches — all setup included."
-          subtitle="Local service sites, creative brand showcases, and full online stores. Pick the fit for your business; every package includes the essentials and a clear handoff."
+          eyebrow="Live examples"
+          title="Three practical ways EuroDigital can help you launch."
+          subtitle="Local service businesses are the core focus, with polished brand sites and working ecommerce available when those are the right fit. Every example below is live and inspectable."
         >
           <div className="grid gap-4 lg:grid-cols-3">
             {PROJECT_ARCHETYPES.map((archetype, idx) => (
@@ -134,16 +163,14 @@ export default function Home() {
                       sizes="(min-width: 1024px) 28rem, 100vw"
                       priority={idx === 0}
                     />
-
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/15 to-transparent" />
-
                     <a
                       href={archetype.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="absolute left-5 top-5 rounded-full border border-white/30 bg-white/20 px-3 py-1 text-xs font-medium text-white shadow-sm backdrop-blur-md transition hover:bg-white/35"
                     >
-                      Live example
+                      Open live site
                     </a>
                   </div>
 
@@ -151,15 +178,12 @@ export default function Home() {
                     <div className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
                       {archetype.example}
                     </div>
-
                     <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-900">
                       {archetype.title}
                     </h2>
-
                     <p className="mt-3 text-sm leading-relaxed text-slate-700">
                       {archetype.body}
                     </p>
-
                     <div className="mt-5">
                       <ButtonA
                         href={archetype.url}
@@ -180,21 +204,21 @@ export default function Home() {
 
         <Section
           id="packages"
-          eyebrow="Packages"
-          title="Launches for websites and online stores"
-          subtitle="From a bare one-pager with domain only, up to full stores. Starting prices below — final quote depends on scope. Most brochure launches land under $1k."
+          eyebrow="Launch offers"
+          title="Four clear ways to get your business online."
+          subtitle="These are starting points for a defined scope, not teaser prices. Business Website is the recommended path for most established local businesses that need a credible site and a proper inquiry flow."
         >
           <div className="grid gap-4">
             <Reveal>
-              <Card className="p-6 sm:p-7 transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:border-indigo-200/55 motion-reduce:hover:translate-y-0">
+              <Card className="p-6 transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:border-indigo-200/55 motion-reduce:hover:translate-y-0 sm:p-7">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium text-slate-600">
-                      Full launch packages include
+                      Business Website and Online Store launches include
                     </div>
                     <p className="mt-1 text-xs text-slate-500">
-                      One-Page Essentials is domain + single page only — no Google or analytics
-                      setup.
+                      One-Page Launch is deliberately lean. Larger launches include the full
+                      planning, setup, measurement, and handoff layer.
                     </p>
                     <ul className="mt-4 grid gap-2 text-sm text-slate-800 sm:grid-cols-2 lg:gap-x-8">
                       {FULL_LAUNCH_INCLUDES.map((item) => (
@@ -206,13 +230,13 @@ export default function Home() {
                     </ul>
                   </div>
                   <ButtonLink
-                    href="/#contact"
+                    href="#contact"
                     className="w-full shrink-0 lg:w-auto"
                     magnetic
                     analyticsLocation="packages"
-                    analyticsLabel="Request a quote"
+                    analyticsLabel="Request a project estimate"
                   >
-                    Request a quote
+                    Request a project estimate
                   </ButtonLink>
                 </div>
               </Card>
@@ -240,26 +264,15 @@ export default function Home() {
                         {pkg.badge}
                       </span>
                     ) : null}
-
-                    <div className="text-base font-semibold text-slate-900">
-                      {pkg.name}
-                    </div>
-
-                    <div className="mt-1 text-sm font-medium text-indigo-700">
-                      {pkg.price}
-                    </div>
-
-                    <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                      {pkg.bestFor}
-                    </p>
-
+                    <div className="text-base font-semibold text-slate-900">{pkg.name}</div>
+                    <div className="mt-1 text-sm font-medium text-indigo-700">{pkg.price}</div>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600">{pkg.bestFor}</p>
                     {"excludesNote" in pkg && pkg.excludesNote ? (
                       <p className="mt-2 text-xs leading-relaxed text-slate-500">
                         {pkg.excludesNote}
                       </p>
                     ) : null}
-
-                    <ul className="mt-4 flex-1 grid gap-2 text-sm text-slate-800">
+                    <ul className="mt-4 grid flex-1 gap-2 text-sm text-slate-800">
                       {pkg.includes.map((item) => (
                         <li key={item} className="flex gap-2">
                           <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
@@ -267,21 +280,16 @@ export default function Home() {
                         </li>
                       ))}
                     </ul>
-
                     <div className="mt-5 border-t border-slate-100 pt-4">
                       <ButtonLink
-                        href="/#contact"
-                        variant={
-                          "highlight" in pkg && pkg.highlight
-                            ? "primary"
-                            : "secondary"
-                        }
+                        href="#contact"
+                        variant={"highlight" in pkg && pkg.highlight ? "primary" : "secondary"}
                         className="w-full text-sm"
                         magnetic={"highlight" in pkg && !!pkg.highlight}
                         analyticsLocation="packages"
-                        analyticsLabel={`Get a quote — ${pkg.name}`}
+                        analyticsLabel={`Request estimate — ${pkg.name}`}
                       >
-                        Get a quote
+                        Request an estimate
                       </ButtonLink>
                     </div>
                   </Card>
@@ -295,15 +303,14 @@ export default function Home() {
 
         <Section
           id="work"
-          eyebrow="More work"
-          title="Live sites beyond the main examples."
-          subtitle="The portfolio page has the full set — including side projects — when you want to browse everything."
+          eyebrow="Selected proof"
+          title="Live projects you can inspect — without invented results."
+          subtitle="The work below demonstrates service-business lead structure and a complete ecommerce purchase flow. Claims stay limited to what the live projects and repository can support."
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm text-slate-600">
-              Including a live ecommerce store (StarMapCo) and other client builds.
+              More client work and side projects are available in the full portfolio.
             </div>
-
             <ButtonLink href="/projects" variant="secondary">
               Open full portfolio
             </ButtonLink>
@@ -322,42 +329,15 @@ export default function Home() {
           id="process"
           eyebrow="Process"
           title="From first message to launch — without the fog."
-          subtitle="Fixed scope, visible milestones, and a handoff you can actually use. No mystery retainers unless we agree to something extra later."
+          subtitle="Fixed scope, visible milestones, honest dependencies, and a handoff you can actually use."
         >
           <div className="grid gap-4 lg:grid-cols-4">
-            {[
-              {
-                t: "1) Discovery",
-
-                d: "You share your business, goals, and a few references. I confirm fit, page count, and what a realistic launch covers.",
-              },
-
-              {
-                t: "2) Plan",
-
-                d: "We lock pages, contact paths, Google setup needs, and a timeline so the build does not sprawl mid-flight.",
-              },
-
-              {
-                t: "3) Build",
-
-                d: "Design and pages stay mobile-first and fast — services or products, trust sections, forms, and basic SEO structure.",
-              },
-
-              {
-                t: "4) Launch & handoff",
-
-                d: "Domain, hosting, email forwarding, Analytics, Search Console, checklist, and a walkthrough — you own the keys.",
-              },
-            ].map((step, idx) => (
-              <Reveal key={step.t} delay={0.03 * idx}>
+            {processSteps.map((step, idx) => (
+              <Reveal key={step.title} delay={0.03 * idx}>
                 <Card className="p-6 transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:border-indigo-200/55 motion-reduce:hover:translate-y-0">
-                  <div className="text-base font-semibold text-slate-900">
-                    {step.t}
-                  </div>
-
+                  <div className="text-base font-semibold text-slate-900">{step.title}</div>
                   <div className="mt-2 text-sm leading-relaxed text-slate-700">
-                    {step.d}
+                    {step.body}
                   </div>
                 </Card>
               </Reveal>
@@ -365,97 +345,38 @@ export default function Home() {
           </div>
         </Section>
 
-        <Section id="faq" eyebrow="FAQ" title="Straight answers">
+        <Section id="faq" eyebrow="FAQ" title="Straight answers before you inquire">
           <div className="max-w-3xl">
-            <Accordion
-              items={[
-                {
-                  q: "Are these prices fixed?",
-
-                  a: "The site shows starting points. One-Page Essentials (single HTML/CSS/JS page, domain + hosting only) often lands around $299–$449. Starter and simple brochure sites often land in the $400–$700 range; Business and Brand launches often land around $850–$1,100 depending on pages and content. Ecommerce depends on product count and platform. You get a clear written quote before any work starts.",
-                },
-
-                {
-                  q: "What is the bare minimum package?",
-
-                  a: "One-Page Essentials: one lightweight page, domain and hosting hooked up, and your contact details on the page — no contact form, no Google Analytics, no Business Profile, no custom email setup. It is for people who literally just need to be findable online.",
-                },
-
-                {
-                  q: "Is this a monthly marketing or IT retainer?",
-
-                  a: "No — the core offer is a one-time website launch with setup and handoff. If you want ongoing help afterward, we will scope it separately so expectations stay clear.",
-                },
-
-                {
-                  q: "Can you set up a full working ecommerce store?",
-
-                  a: "Yes — that is what the Ecommerce Store Launch package is for: a real storefront with products, cart, checkout, and payments — not just a brochure site with photos. We pick a stack that fits your size (often avoiding Shopify’s ~$49 CAD/month Basic plan when you do not need it), configure payments and shipping basics, and walk you through products and orders before handoff.",
-                },
-
-                {
-                  q: "Why not just use Shopify?",
-
-                  a: "Shopify is excellent when you want their ecosystem and do not mind the monthly plan (Basic is about $49 CAD/month, or ~$37/mo on annual billing, per Shopify Canada — plus apps and themes). Many Island shops only need a straightforward store. EuroDigital can launch on a one-time project fee with modest ongoing hosting instead of that recurring platform subscription. You still pay normal per-sale payment processing either way.",
-                },
-
-                {
-                  q: "Do you build big apps or SaaS products?",
-
-                  a: "That is not the main focus. EuroDigital is positioned around practical websites and small-business online stores. Larger custom software is only scoped under Custom Launch when it truly fits.",
-                },
-
-                {
-                  q: "Can you help with Google Business Profile and local SEO?",
-
-                  a: "Yes — the practical kind included in launch packages: profile setup or support when it fits, Analytics, Search Console, readable service-area copy, and metadata structure search engines can parse.",
-                },
-
-                {
-                  q: "What does handoff include?",
-
-                  a: "Access you need, hosting and domain notes, email forwarding setup, analytics accounts, a short launch checklist, and a walkthrough so you can update copy or hand things to someone else without guesswork.",
-                },
-
-                {
-                  q: "Where can I see more projects?",
-
-                  a: "This page highlights local service sites, creative brands, and ecommerce — plus more live builds in the portfolio, including side projects like NoteBill.",
-                },
-              ]}
-            />
+            <Accordion items={faqItems} />
           </div>
         </Section>
 
         <Section
           id="contact"
-          eyebrow="Contact"
-          title="Tell me about your business launch."
-          subtitle="No long RFP required — a short note about your business, preferred package, and timeline is enough for a reply with next steps."
+          eyebrow="Project estimate"
+          title="Tell me what your business needs to launch."
+          subtitle="A short note about your business, customers, current website, preferred package, and timing is enough to start. You will receive a fit response and the next information needed for a written estimate."
         >
           <Reveal>
             <Card className="p-8 sm:p-12">
               <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
                 <div>
                   <div className="text-sm font-medium text-slate-600">
-                    Fastest way to start
+                    Useful details to include
                   </div>
-
                   <div className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-                    Share what you do, which package feels close, and your
-                    timeline.
+                    What you do, who you serve, and what the website needs to help them do.
                   </div>
-
                   <p className="mt-3 text-slate-700">
-                    Service business, creative brand, or something in between —
-                    a few sentences about your customers and what “live” should
-                    look like is enough to start.
+                    Mention the current site or domain, likely pages, important features, target
+                    timing, and whether content or branding already exists. Rough notes are fine.
                   </p>
-
-                  <p className="mt-3 text-sm text-slate-600">
-                    {CONTACT_REPLY_NOTE}
+                  <p className="mt-3 text-sm text-slate-600">{CONTACT_REPLY_NOTE}</p>
+                  <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                    The current form prepares an email in your device&apos;s email app. A reliable
+                    server-side form is planned separately so its email and anti-spam requirements
+                    can be configured and reviewed properly.
                   </p>
-
                   <div className="mt-5 flex flex-wrap gap-3">
                     <ButtonA
                       href={`mailto:${CONTACT_EMAIL}`}
@@ -466,7 +387,6 @@ export default function Home() {
                     >
                       Email {CONTACT_EMAIL}
                     </ButtonA>
-
                     <ButtonLink href="/projects" variant="secondary">
                       Browse portfolio
                     </ButtonLink>

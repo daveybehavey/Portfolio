@@ -3,14 +3,14 @@ export const SITE_URL = "https://eurodigital.ca" as const;
 export const CONTACT_EMAIL = "contact@eurodigital.ca" as const;
 
 export const SITE_TAGLINE =
-  "Small business launches · Vancouver Island" as const;
+  "Professional websites for Vancouver Island businesses" as const;
 
 export const BRAND_LOGO_MARK = "/brand/logo-mark.webp" as const;
 
 export const BRAND_LOGO_SQUARE = "/brand/logo.png" as const;
 
 export const SITE_DESCRIPTION =
-  "EuroDigital builds clean, practical websites and working online stores for small businesses on Vancouver Island — lead sites, brand launches, and ecommerce setup with Google, email forwarding, analytics, basic SEO, and handoff." as const;
+  "EuroDigital designs and launches professional websites for Vancouver Island service businesses, makers, and small shops — clear scope, practical Google setup, strong customer paths, and a handoff you own." as const;
 
 export const defaultOpenGraph = {
   siteName: "EuroDigital",
@@ -20,4 +20,4 @@ export const defaultOpenGraph = {
 };
 
 export const CONTACT_REPLY_NOTE =
-  "I usually reply within 1–2 business days. One-off website launches — not ongoing IT or monthly marketing unless we agree otherwise." as const;
+  "I usually reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate." as const;

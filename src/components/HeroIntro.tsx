@@ -7,21 +7,21 @@ import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
 const badges = [
   "Vancouver Island",
-  "Websites & online stores",
-  "Website + Google setup + handoff",
+  "Websites for local businesses",
+  "Clear scope · practical handoff",
 ] as const;
 
 const titleLines = [
-  "We build your website,",
-  "set up the essentials,",
-  "and hand you the keys.",
+  "A professional website",
+  "that helps local customers",
+  "choose your business.",
 ] as const;
 
 const subtext =
-  "EuroDigital builds clean, practical websites and working online stores for service businesses, creators, and small shops — from lead-generation sites to full ecommerce with cart, checkout, and payments, plus Google setup, email forwarding, analytics, basic SEO, and handoff.";
+  "EuroDigital designs and launches fast, mobile-friendly websites for trades, service businesses, makers, and small shops — with a clear offer, practical Google setup, and accounts you control.";
 
 const footerLine =
-  "Not a big agency or monthly marketing shop — scoped website launches for trades, local services, makers, and small brands on Vancouver Island.";
+  "Direct local contact, fixed project scope, and no required monthly marketing retainer.";
 
 export function HeroIntro() {
   const reduced = usePrefersReducedMotion();
@@ -59,8 +59,8 @@ export function HeroIntro() {
     <div className="lg:col-span-7">
       <motion.div initial={false} animate="show" variants={outer}>
         <motion.div variants={item} className="flex flex-wrap gap-2">
-          {badges.map((b) => (
-            <Badge key={b}>{b}</Badge>
+          {badges.map((badge) => (
+            <Badge key={badge}>{badge}</Badge>
           ))}
         </motion.div>
 
@@ -68,8 +68,8 @@ export function HeroIntro() {
           variants={lineContainer}
           className="mt-4 text-balance text-4xl font-semibold leading-[1.1] tracking-tight text-slate-900 sm:mt-5 sm:text-6xl sm:leading-[1.05]"
         >
-          {titleLines.map((line, i) => (
-            <motion.span key={i} variants={item} className="block">
+          {titleLines.map((line) => (
+            <motion.span key={line} variants={item} className="block">
               {line}
             </motion.span>
           ))}
@@ -87,28 +87,20 @@ export function HeroIntro() {
           className="mt-6 flex flex-wrap items-center gap-3"
         >
           <ButtonLink
-            href="#packages"
+            href="#contact"
             magnetic
             analyticsLocation="hero"
-            analyticsLabel="View packages"
+            analyticsLabel="Request a project estimate"
           >
-            View packages
+            Request a project estimate
           </ButtonLink>
           <ButtonLink
             href="#examples"
             variant="secondary"
             analyticsLocation="hero"
-            analyticsLabel="See example types"
+            analyticsLabel="See live work"
           >
-            See example types
-          </ButtonLink>
-          <ButtonLink
-            href="#contact"
-            variant="secondary"
-            analyticsLocation="hero"
-            analyticsLabel="Get a quote"
-          >
-            Get a quote
+            See live work
           </ButtonLink>
         </motion.div>
 

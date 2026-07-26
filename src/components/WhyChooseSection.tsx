@@ -2,8 +2,7 @@ import { Card } from "@/components/Card";
 import { Reveal } from "@/components/Reveal";
 import { Section } from "@/components/Section";
 import {
-  COST_SNAPSHOT,
-  SHOPIFY_BASIC_CAD,
+  WHY_CHOOSE_HIGHLIGHT,
   WHY_CHOOSE_INTRO,
   WHY_CHOOSE_POINTS,
 } from "@/lib/why-choose";
@@ -13,51 +12,30 @@ export function WhyChooseSection() {
     <Section
       id="why-us"
       eyebrow="Why EuroDigital"
-      title="A store that sells — without a Shopify-sized monthly bill."
+      title="A professional launch without the agency maze."
       subtitle={WHY_CHOOSE_INTRO}
     >
       <Reveal>
         <Card className="border-indigo-200/60 bg-gradient-to-br from-indigo-50/40 via-white to-teal-50/30 p-6 sm:p-8">
-          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
             <div>
-              <div className="text-sm font-semibold text-slate-900">
-                {COST_SNAPSHOT.headline}
+              <div className="text-xl font-semibold tracking-tight text-slate-900">
+                {WHY_CHOOSE_HIGHLIGHT.headline}
               </div>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                {COST_SNAPSHOT.shopifyNote}
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                {COST_SNAPSHOT.eurodigitalNote}
+              <p className="mt-3 text-sm leading-relaxed text-slate-700 sm:text-base">
+                {WHY_CHOOSE_HIGHLIGHT.body}
               </p>
             </div>
             <div className="rounded-2xl border border-slate-200/90 bg-white/90 p-5 text-sm text-slate-700">
-              <div className="font-medium text-slate-900">Quick reference</div>
-              <ul className="mt-3 grid gap-2">
-                <li>
-                  <span className="font-medium text-slate-800">Shopify Basic (CAD):</span>{" "}
-                  ${SHOPIFY_BASIC_CAD.monthly}/mo monthly · ~${SHOPIFY_BASIC_CAD.yearlyPerMonth}
-                  /mo yearly
-                </li>
-                <li>
-                  <span className="font-medium text-slate-800">EuroDigital:</span> one-time
-                  launch + lower ongoing hosting (typical small shop)
-                </li>
-                <li>
-                  <span className="font-medium text-slate-800">Both:</span> payment processing
-                  per sale (Stripe, Square, etc.)
-                </li>
+              <div className="font-medium text-slate-900">What that means</div>
+              <ul className="mt-3 grid gap-2.5">
+                {WHY_CHOOSE_HIGHLIGHT.bullets.map((bullet) => (
+                  <li key={bullet} className="flex gap-2">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" />
+                    <span>{bullet}</span>
+                  </li>
+                ))}
               </ul>
-              <p className="mt-4 text-xs leading-relaxed text-slate-500">
-                {COST_SNAPSHOT.disclaimer}{" "}
-                <a
-                  href={SHOPIFY_BASIC_CAD.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-indigo-600 hover:text-indigo-700"
-                >
-                  {SHOPIFY_BASIC_CAD.sourceLabel}
-                </a>
-              </p>
             </div>
           </div>
         </Card>

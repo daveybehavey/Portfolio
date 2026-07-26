@@ -7,7 +7,7 @@ import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 export function Accordion({
   items,
 }: {
-  items: Array<{ q: string; a: string }>;
+  items: ReadonlyArray<{ q: string; a: string }>;
 }) {
   const [open, setOpen] = useState<number | null>(0);
   const reduced = usePrefersReducedMotion();
@@ -27,11 +27,9 @@ export function Accordion({
             }}
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl px-5 py-4 text-left outline-offset-2 transition hover:bg-slate-50/90 group-open:rounded-b-none group-open:bg-slate-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white">
-              <span className="text-sm font-semibold text-slate-900">
-                {it.q}
-              </span>
+              <span className="text-sm font-semibold text-slate-900">{it.q}</span>
               <span className="text-slate-500 group-open:hidden">+</span>
-              <span className="text-slate-500 hidden group-open:inline">–</span>
+              <span className="hidden text-slate-500 group-open:inline">–</span>
             </summary>
 
             <AnimatePresence initial={false}>
