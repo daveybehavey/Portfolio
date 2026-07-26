@@ -4,6 +4,7 @@ import {
   loadEnvironmentFiles,
   validateActivationConfig,
 } from "./contact-activation-lib.mjs";
+import { applyEuroDigitalProductionPolicy } from "./contact-project-policy.mjs";
 
 function usage() {
   return [
@@ -42,7 +43,8 @@ try {
   const environment = options.envFiles.length
     ? await loadEnvironmentFiles(options.envFiles)
     : process.env;
-  const report = validateActivationConfig(environment, { mode: options.mode });
+  const baseReport = validateActivationConfig(environment, { mode: options.mode });
+  const report = applyEuroDigitalProductionPolicy(baseReport, environment);
   console.log(formatPreflightReport(report));
   process.exitCode = report.ok ? 0 : 1;
 } catch (error) {
