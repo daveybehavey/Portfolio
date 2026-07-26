@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Script from "next/script";
 import {
   type FormEvent,
@@ -402,12 +403,12 @@ export function ContactForm({ email }: { email: string }) {
         <p id={hintId} className="text-xs leading-relaxed text-slate-500">
           The online form uses Cloudflare Turnstile for spam protection and a
           server-side email provider for delivery. Read the{" "}
-          <a
+          <Link
             href="/privacy"
             className="font-medium text-indigo-600 hover:text-indigo-700"
           >
             privacy notice
-          </a>
+          </Link>
           . The direct email link remains available as a fallback.
         </p>
         <p
