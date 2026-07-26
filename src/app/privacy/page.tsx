@@ -127,4 +127,55 @@ export default function PrivacyPage() {
                       >
                         Cloudflare Web Analytics
                       </a>{" "}
-                      for lightweight, cookie-free visit counts.{" 
+                      for lightweight, cookie-free visit counts.
+                    </>
+                  ) : null}
+                  You can block these scripts with a browser extension or privacy
+                  settings if you prefer.
+                </>
+              ) : (
+                "This deployment does not load third-party analytics scripts."
+              )}
+            </p>
+
+            <h2 className="mt-10 text-xl font-semibold text-slate-900">
+              Hosting and security
+            </h2>
+            <p className="mt-3 leading-relaxed text-slate-700">
+              The site is hosted on Cloudflare Pages. Cloudflare may process
+              technical request data, such as an IP address and user agent, while
+              delivering the site and protecting it from abuse. Contact endpoint
+              responses are marked not to be cached.
+            </p>
+
+            <h2 className="mt-10 text-xl font-semibold text-slate-900">
+              Questions or deletion requests
+            </h2>
+            <p className="mt-3 leading-relaxed text-slate-700">
+              Email{" "}
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="font-medium text-indigo-600 hover:text-indigo-700"
+              >
+                {CONTACT_EMAIL}
+              </a>{" "}
+              to ask what information is held in the receiving mailbox, request
+              deletion when applicable, or ask for clarification.
+            </p>
+
+            <p className="mt-10 text-sm text-slate-500">
+              <Link
+                href="/"
+                className="font-medium text-slate-700 hover:text-slate-900"
+              >
+                ← Back to home
+              </Link>
+            </p>
+          </article>
+        </Container>
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}
