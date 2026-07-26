@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   buildEmailPayload,
@@ -70,7 +71,7 @@ async function json(response) {
   return response.json();
 }
 
-test("valid payload is delivered with server-side verification and idempotency", async () => {
+test("valid payload is delivered with server-side verification and delivery idempotency", async () => {
   const mock = fetchMock();
   const response = await handleContactRequest(request(), env, mock);
   assert.equal(response.status, 200);
@@ -78,7 +79,8 @@ test("valid payload is delivered with server-side verification and idempotency",
   assert.equal(mock.calls.length, 2);
   assert.match(mock.calls[0].url, /siteverify/);
   const verificationBody = JSON.parse(mock.calls[0].init.body);
-  assert.equal(verificationBody.idempotency_key, validBody.submissionId);
+  assert.equal(verificationBody.response, validBody.turnstileToken);
+  assert.equal(verificationBody.idempotency_key, undefined);
   assert.equal(
     mock.calls[1].init.headers["Idempotency-Key"],
     `contact/${validBody.submissionId}`,
@@ -222,4 +224,33 @@ test("payload validator enforces UUID, project type, and token limits", () => {
   assert.ok(result.errors.projectType);
   assert.ok(result.errors.submissionId);
   assert.ok(result.errors.turnstileToken);
+});
+
+test("client records a lead only after a confirmed successful response", async () => {
+  const source = await readFile(
+    new URL("../src/components/ContactForm.tsx", import.meta.url),
+    "utf8",
+  );
+  const failureGuard = source.indexOf("if (!response.ok || !result.ok)");
+  const analyticsCall = source.indexOf(
+    'trackGenerateLead({ method: "contact_form", location: "contact" })',
+  );
+  assert.ok(failureGuard >= 0);
+  assert.ok(analyticsCall > failureGuard);
+  assert.equal(
+    source.indexOf(
+      'trackGenerateLead({ method: "contact_form", location: "contact" })',
+      analyticsCall + 1,
+    ),
+    -1,
+  );
+});
+
+test("client keeps the direct email fallback", async () => {
+  const source = await readFile(
+    new URL("../src/components/ContactForm.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /mailto:\$\{email\}/);
+  assert.match(source, /Email directly/);
 });
