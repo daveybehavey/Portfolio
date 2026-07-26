@@ -1,0 +1,303 @@
+# Contact form activation runbook
+
+This runbook activates the source merged in PR #9 without weakening the repository's deployment boundary.
+
+## Safety boundary
+
+The contact form remains disabled unless both the public Turnstile sitekey is included in the static build and the Pages Function receives all required runtime configuration.
+
+Do not perform any of these actions without explicit authorization immediately before the action:
+
+- create or change DNS records
+- authorize Resend to change Cloudflare DNS through Domain Connect
+- create or rotate production Turnstile credentials
+- create or change Cloudflare Pages variables or secrets
+- deploy a preview or production build
+- change Cloudflare email routing
+
+Never paste secret values into GitHub, issue comments, pull requests, CI, screenshots, browser JavaScript, or build logs.
+
+## Official references
+
+- [Cloudflare Pages environment variables and secrets](https://developers.cloudflare.com/pages/functions/bindings/)
+- [Cloudflare Pages local development](https://developers.cloudflare.com/pages/functions/local-development/)
+- [Cloudflare Turnstile testing credentials](https://developers.cloudflare.com/turnstile/troubleshooting/testing/)
+- [Cloudflare Turnstile server-side validation](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/)
+- [Resend domain management](https://resend.com/docs/dashboard/domains/introduction)
+- [Resend domain setup with Cloudflare](https://resend.com/docs/knowledge-base/cloudflare)
+- [Resend safe testing addresses](https://resend.com/docs/knowledge-base/what-email-addresses-to-use-for-testing)
+
+## Phase 1 — confirm current state
+
+Record the following before any provider or Cloudflare change:
+
+- current `main` SHA
+- current production deployment identifier and timestamp
+- current Pages project name and production branch
+- current custom domains attached to the Pages project
+- current build command and output directory
+- current production and preview variables by **name only**
+- current Cloudflare Email Routing status for `contact@eurodigital.ca`
+- rollback deployment identifier
+
+Do not record secret values. Cloudflare secrets cannot be read after creation and should be treated as write-only.
+
+## Phase 2 — prepare a Resend testing path
+
+1. Create or confirm the Resend account.
+2. Create a narrowly scoped API key for this form.
+3. Do not verify or modify DNS yet.
+4. For preview testing, use Resend's testing sender and delivery event addresses:
+   - sender: `EuroDigital Preview <onboarding@resend.dev>`
+   - recipient: `delivered@resend.dev`
+5. Keep the API key only in approved secret storage or a temporary ignored local environment file.
+
+The `delivered@resend.dev` address simulates delivery without sending to a real inbox. It is used only for preview validation.
+
+## Phase 3 — prepare Turnstile testing credentials
+
+Use Cloudflare's documented always-pass testing pair for local and preview testing:
+
+```text
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+```
+
+These are public testing credentials, not production credentials. Never use them in production.
+
+Production requires a separate Turnstile widget restricted to the exact production hostnames. Do not add `localhost` or preview hosts to the production widget.
+
+## Phase 4 — local configuration preflight
+
+Create ignored local files from the safe examples. Do not commit them.
+
+Example `.env.local`:
+
+```env
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA
+```
+
+Example `.dev.vars`:
+
+```env
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+RESEND_API_KEY=<approved-preview-api-key>
+CONTACT_FROM_EMAIL=EuroDigital Preview <onboarding@resend.dev>
+CONTACT_TO_EMAIL=delivered@resend.dev
+CONTACT_ALLOWED_ORIGINS=http://127.0.0.1:8788
+TURNSTILE_ALLOWED_HOSTNAMES=127.0.0.1
+```
+
+Run the preflight without printing values:
+
+```powershell
+npm run contact:preflight -- --mode test --env-file .env.local --env-file .dev.vars
+```
+
+Expected result: zero failed checks.
+
+Build and start Pages locally:
+
+```powershell
+npm run build
+npm run pages:preview
+```
+
+Wrangler serves static assets and Pages Functions together, normally at `http://127.0.0.1:8788` or the URL it prints.
+
+Run non-delivery smoke checks using the exact host and port Wrangler printed:
+
+```powershell
+npm run contact:smoke -- --url http://127.0.0.1:8788 --allow-host 127.0.0.1:8788
+```
+
+The smoke command sends deliberately invalid requests only. It never supplies a valid Turnstile token or a valid delivery payload.
+
+## Phase 5 — local browser checks
+
+Using the official test credentials and Resend testing recipient:
+
+1. Load the contact section with JavaScript enabled.
+2. Confirm all fields have visible labels and keyboard focus indicators.
+3. Complete the Turnstile test widget using keyboard navigation.
+4. Submit one test inquiry.
+5. Confirm the pending state is announced.
+6. Confirm the success message is announced only after the server returns success.
+7. Confirm Resend records the `delivered@resend.dev` test event.
+8. Confirm no real mailbox receives a message.
+9. Confirm a second click during the pending state cannot create another request.
+10. Test expiry, script blocking, offline mode, malformed input, and provider failure behavior.
+11. Confirm the direct email fallback remains visible and usable.
+12. Confirm browser and Function logs contain no message body, email address, token, or secret.
+
+## Phase 6 — approved preview environment
+
+A preview deployment changes the Cloudflare Pages project and therefore requires explicit authorization immediately before configuration or deployment.
+
+For the **Preview** environment only, configure:
+
+| Name | Type | Preview value |
+|---|---|---|
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | build/runtime variable | official always-pass test sitekey |
+| `TURNSTILE_SECRET_KEY` | encrypted secret | official always-pass test secret key |
+| `RESEND_API_KEY` | encrypted secret | narrowly scoped Resend API key |
+| `CONTACT_FROM_EMAIL` | variable | `EuroDigital Preview <onboarding@resend.dev>` |
+| `CONTACT_TO_EMAIL` | variable | `delivered@resend.dev` |
+| `CONTACT_ALLOWED_ORIGINS` | variable | exact approved preview origin |
+| `TURNSTILE_ALLOWED_HOSTNAMES` | variable | exact approved preview hostname |
+
+Run the test-mode preflight against a temporary ignored file containing the intended names and values before entering them into Cloudflare.
+
+After an explicitly authorized preview deployment, run:
+
+```powershell
+npm run contact:smoke -- --url https://<exact-preview-host> --allow-host <exact-preview-host>
+```
+
+Then repeat the browser checks from Phase 5.
+
+Do not move to production if any expected status, header, browser state, Resend event, or privacy behavior differs from the reviewed implementation.
+
+## Phase 7 — production provider preparation
+
+### Resend domain
+
+Resend recommends a dedicated sending subdomain to separate sending reputation. Choose an approved project-controlled subdomain, then use only the DNS records displayed by Resend.
+
+Before changing DNS:
+
+1. Record every proposed record, name, type, target, priority, and proxy state.
+2. Check for conflicts with existing Cloudflare Email Routing and MX records.
+3. Confirm the sending setup does not change receipt of `contact@eurodigital.ca`.
+4. Obtain explicit authorization for the exact DNS mutations.
+5. Prefer DNS-only status where Resend requires it.
+6. Wait for SPF and DKIM verification in Resend.
+7. Add DMARC only through a separately reviewed DNS change when appropriate.
+
+Do not enable Resend inbound email for the sending subdomain unless a separate inbound-mail design is approved.
+
+### Production Turnstile widget
+
+Create a separate production widget with only the required hostnames:
+
+- `eurodigital.ca`
+- `www.eurodigital.ca` only if that hostname serves the form directly
+
+Use the reviewed `contact` action. Record the widget name and allowed hostnames, but never record the secret key in GitHub.
+
+## Phase 8 — production configuration preflight
+
+Before entering production values into Cloudflare, assemble them through an approved local secret method or a temporary ignored file with restrictive local permissions.
+
+Run:
+
+```powershell
+npm run contact:preflight -- --mode production --env-file <temporary-ignored-file>
+```
+
+Production preflight requires:
+
+- no documented Turnstile testing key
+- a plausible Resend API key
+- a sender on a project-controlled domain, not `resend.dev`
+- recipient exactly `contact@eurodigital.ca`
+- exact HTTPS production origins
+- Turnstile hostname alignment with every allowed origin
+
+Delete the temporary file after configuration and verification.
+
+## Phase 9 — production Pages variables and secrets
+
+With explicit authorization immediately before the change, configure the **Production** environment:
+
+| Name | Type | Requirement |
+|---|---|---|
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | build/runtime variable | production widget sitekey |
+| `TURNSTILE_SECRET_KEY` | encrypted secret | production widget secret |
+| `RESEND_API_KEY` | encrypted secret | narrowly scoped production API key |
+| `CONTACT_FROM_EMAIL` | variable | verified production sender |
+| `CONTACT_TO_EMAIL` | variable | `contact@eurodigital.ca` |
+| `CONTACT_ALLOWED_ORIGINS` | variable | `https://eurodigital.ca` and any separately approved direct form origin |
+| `TURNSTILE_ALLOWED_HOSTNAMES` | variable | exact production hostnames |
+
+Cloudflare requires a redeployment for changed Pages variables and secrets to take effect.
+
+Do not add secrets to a Wrangler configuration file, GitHub Actions, or repository settings for this manual activation.
+
+## Phase 10 — final deployment gate
+
+Immediately before production deployment, record:
+
+- exact `main` SHA
+- passing CI run for that SHA
+- exact source diff since the current production deployment
+- Pages project and branch
+- production variable names present
+- Resend domain verification status
+- Turnstile widget hostname list
+- preview test evidence
+- rollback deployment identifier
+- explicit authorization for the production deployment
+
+Then use only the existing reviewed manual deployment path. Do not improvise a new deployment command or workflow.
+
+## Phase 11 — production verification
+
+After deployment:
+
+1. Run non-delivery smoke checks against the exact production host:
+
+   ```powershell
+   npm run contact:smoke -- --url https://eurodigital.ca --allow-host eurodigital.ca
+   ```
+
+2. Load the production form in a normal browser and a private window.
+3. Submit one controlled inquiry with a unique non-sensitive marker.
+4. Confirm the message reaches `contact@eurodigital.ca` once.
+5. Confirm the trusted sender uses the verified production domain.
+6. Confirm the visitor address appears only as `reply_to`.
+7. Reply to confirm normal reply behavior.
+8. Confirm success analytics occurs once and only after delivery.
+9. Test blocked Turnstile, expired token, offline mode, and provider-error presentation.
+10. Confirm static pages and assets remain outside Function execution.
+11. Inspect logs for status and provider health only; do not add personal-data logging.
+
+Keep issue #8 open until this evidence is recorded.
+
+## Rollback
+
+Use the fastest safe rollback appropriate to the failure:
+
+### Disable online submission while preserving contact
+
+Remove or blank `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in the production build environment and redeploy the last reviewed source. The form will fail closed and retain the direct email link.
+
+### Revert the deployment
+
+Restore the recorded prior Cloudflare Pages deployment. Verify the homepage, projects, privacy page, and mailto fallback afterward.
+
+### Revoke provider access
+
+If credentials may be exposed:
+
+1. Rotate or revoke the Resend API key.
+2. Rotate the Turnstile secret key.
+3. Update Cloudflare secrets only after new credentials are ready.
+4. Redeploy and verify.
+
+Do not delete DNS records during an incident unless the exact effect on SPF, DKIM, email routing, and rollback is understood and separately authorized.
+
+## Completion evidence for issue #8
+
+Record only non-secret evidence:
+
+- source and deployment SHAs
+- CI run URL and result
+- provider/domain verification status
+- Turnstile widget name and hostname list
+- variable and secret **names** configured
+- preview URL and smoke result
+- production smoke result
+- controlled delivery timestamp and non-sensitive marker
+- rollback identifier
+- confirmation that no secret value entered GitHub or logs

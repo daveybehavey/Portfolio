@@ -1,0 +1,8 @@
+# Safe local/preview example only. Copy to .dev.vars and replace RESEND_API_KEY locally.
+# Cloudflare's documented Turnstile testing secret is public and must never be used in production.
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+RESEND_API_KEY=
+CONTACT_FROM_EMAIL=EuroDigital Preview <onboarding@resend.dev>
+CONTACT_TO_EMAIL=delivered@resend.dev
+CONTACT_ALLOWED_ORIGINS=http://127.0.0.1:8788
+TURNSTILE_ALLOWED_HOSTNAMES=127.0.0.1

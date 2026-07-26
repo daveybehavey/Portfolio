@@ -52,26 +52,46 @@ Brand source files default to `../EuroDigital Invoices/ASSETS` (`logo1254x1254.p
 ## Scripts
 
 ```powershell
-npm run dev            # local dev → http://127.0.0.1:3011
-npm run dev:clean      # clear .next + dev (fixes missing CSS)
-npm run build          # static export → out/
-npm run sync:brand     # favicon + OG from EuroDigital ASSETS
-npm run capture:screens # refresh public/projects/*.webp from live URLs
-npm run assets:refresh # sync:brand + capture:screens
-npm run lighthouse     # build + Lighthouse scores (see lighthouse-reports/)
-npm run lint           # ESLint
-npm run typecheck      # tsc --noEmit
-npm run pages:deploy   # PRODUCTION-CHANGING — only after explicit authorization
+npm run dev              # local dev → http://127.0.0.1:3011
+npm run dev:clean        # clear .next + dev (fixes missing CSS)
+npm run build            # static export → out/
+npm test                 # contact Function and activation-readiness tests
+npm run contact:preflight -- --mode test --env-file .env.local --env-file .dev.vars
+npm run contact:smoke -- --url <approved-url> --allow-host <exact-host>
+npm run sync:brand       # favicon + OG from EuroDigital ASSETS
+npm run capture:screens  # refresh public/projects/*.webp from live URLs
+npm run assets:refresh   # sync:brand + capture:screens
+npm run lighthouse       # build + Lighthouse scores (see lighthouse-reports/)
+npm run lint             # ESLint
+npm run typecheck        # tsc --noEmit
+npm run pages:deploy     # PRODUCTION-CHANGING — only after explicit authorization
 npm run pages:preview
 ```
+
+`contact:preflight` validates names and formats without printing configuration values. `contact:smoke` requires an exact target-host allowlist and sends only invalid requests that cannot trigger email delivery.
 
 ## Deploy
 
 **Current production:** eurodigital.ca remains the previous **manual** Cloudflare Pages deploy. Merging source to GitHub does **not** change production by itself.
 
-**GitHub Actions:** there is **no** active deployment workflow in this repository yet. A future, separately reviewed PR will establish CI and controlled deployment.
+**GitHub Actions:** there is **no** active deployment workflow in this repository. CI is verification-only and does not deploy.
 
 **Manual deploy:** `npm run pages:deploy` builds and pushes to Cloudflare Pages (`eurodigital-ca`). That is **production-changing**. Run it only after explicit authorization (requires `wrangler login` or an API token).
+
+## Contact-form activation
+
+The source contains a narrow `/api/contact` Pages Function, but online submission is disabled until reviewed Turnstile, Resend, and Cloudflare Pages configuration is supplied.
+
+Follow [`docs/contact-form-activation.md`](docs/contact-form-activation.md) for:
+
+- official test credentials and safe Resend test destinations
+- local and preview configuration preflight
+- non-delivery endpoint smoke checks
+- browser and accessibility verification
+- production domain and Turnstile preparation
+- final deployment gates and rollback
+
+`.dev.vars*` and `.env*` local files are ignored. Only `.dev.vars.example` and `.env.example` are intended for source control.
 
 ## Optional: Google Analytics 4 (conversion tracking)
 
@@ -90,7 +110,7 @@ npm run pages:preview
 | Event | When |
 |-------|------|
 | `cta_click` | Quote buttons, nav, hero CTAs (`cta_location`, `cta_text`) |
-| `generate_lead` | Contact form submit or `mailto:` click |
+| `generate_lead` | Confirmed contact-form delivery or a direct `mailto:` contact action |
 
 In GA4: **Admin → Events → Mark as key event** on `generate_lead` (and optionally `cta_click`) for reporting.
 
