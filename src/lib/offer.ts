@@ -1,17 +1,16 @@
-/** Site positioning — small-business website launches (not agency / SaaS / monthly marketing). */
+/** Site positioning — focused small-business website launches, not broad agency retainers. */
 
 export const CORE_OFFER =
-  "Professional websites and working online stores for small businesses — design, Google setup, email forwarding, analytics, and handoff." as const;
+  "Professional websites that help Vancouver Island businesses earn trust, calls, quote requests, and online sales — with clear scope, practical setup, and a handoff you own." as const;
 
-/** Bundled on Starter and up — not One-Page Essentials. */
+/** Bundled on Business Website and Online Store projects. */
 export const FULL_LAUNCH_INCLUDES = [
-  "Professional, mobile-friendly website or storefront",
-  "Lead sites, brand showcases, or full ecommerce (scoped to your package)",
-  "Custom email forwarding",
+  "Professional, mobile-first design",
+  "Clear pages and calls to action for your customers",
+  "Contact or inquiry flow suited to the project",
   "Google Analytics + Search Console",
-  "Google Business Profile help when it fits",
-  "Basic SEO, domain & hosting setup",
-  "Clear handoff — you own it",
+  "Basic SEO, domain, and hosting setup",
+  "Clear handoff — your accounts and files",
 ] as const;
 
 /** @deprecated Use FULL_LAUNCH_INCLUDES */
@@ -22,23 +21,23 @@ export const PROJECT_ARCHETYPES = [
     id: "service",
     title: "Local service business",
     example: "MaestrosServices",
-    body: "Trades, contractors, landscapers, cleaners, repair businesses, and consultants who need to look professional, explain services, and turn visitors into calls or quote requests.",
+    body: "For trades, contractors, landscapers, cleaners, repair businesses, and consultants that need to look credible, explain services clearly, and make calls or quote requests easy.",
     imageSrc: "/projects/maestrosservices.webp",
     url: "https://maestrosservices.com",
   },
   {
     id: "creative",
-    title: "Creative brand or small shop",
+    title: "Creative brand or maker",
     example: "AnglKissCreations",
-    body: "Makers, artists, and handmade sellers who need a polished story, product showcase, and a simple way for people to inquire — upgrade to a full store when you are ready to sell online.",
+    body: "For makers, artists, and small brands that need a polished story, a strong product or service showcase, and a simple inquiry path without pretending they need a large agency build.",
     imageSrc: "/projects/angelkisscreations.webp",
     url: "https://angelkisscreations.com",
   },
   {
     id: "ecommerce",
-    title: "Online store (ecommerce)",
+    title: "Working online store",
     example: "StarMapCo",
-    body: "Small shops that need a real storefront — product pages, cart, checkout, and payments — without a Shopify-style monthly platform bill when a simpler stack fits (e.g. WooCommerce, Square, Stripe checkout), plus launch support and handoff.",
+    body: "For small shops ready for a real storefront with product pages, cart, checkout, payments, and a practical operating handoff — not just a gallery of products.",
     imageSrc: "/projects/starmapco.webp",
     url: "https://starmapco.com",
   },
@@ -46,92 +45,67 @@ export const PROJECT_ARCHETYPES = [
 
 export const PACKAGES = [
   {
-    name: "One-Page Essentials",
-    price: "From $299 CAD",
-    badge: "Bare minimum",
+    name: "One-Page Launch",
+    price: "From $499 CAD",
+    badge: "Lean starting point",
     essentialsOnly: true,
     bestFor:
-      "You only need to exist online — what you do, how to reach you — with no extras.",
+      "A new or very small business that needs one credible page with a clear offer and contact path.",
     includes: [
-      "Single-page site (HTML, CSS, and JavaScript — lightweight and fast)",
-      "Domain + hosting connection (e.g. Cloudflare Pages)",
-      "Mobile-friendly layout",
-      "Phone, email, or social links on the page (no contact form)",
-      "You own the files — simple handoff",
+      "One focused, mobile-friendly page",
+      "Services or offer summary",
+      "Phone, email, or social contact links",
+      "Domain + hosting connection",
+      "Basic metadata and search-friendly structure",
+      "Simple ownership handoff",
     ],
     excludesNote:
-      "Does not include Google Analytics, Search Console, Business Profile, custom email forwarding, contact forms, or multi-page builds.",
+      "Best for a narrow scope. Multi-page content, analytics, Business Profile work, advanced forms, and integrations belong in a larger package.",
   },
   {
-    name: "Starter Website",
-    price: "Private quote · typically $399–$699 CAD",
+    name: "Business Website",
+    price: "From $1,250 CAD",
     bestFor:
-      "A small brochure site (not a bare landing page) with contact form, basic SEO, and email forwarding.",
-    includes: [
-      "1–3 page website",
-      "Mobile-friendly design",
-      "Contact form",
-      "Basic SEO",
-      "Domain & hosting connection",
-      "Custom email forwarding",
-      "Basic handoff",
-    ],
-  },
-  {
-    name: "Business Launch",
-    price: "From $849 CAD",
-    bestFor: "Service businesses that need a proper online presence.",
+      "Local service businesses, professionals, and growing brands that need a complete website built to earn trust and inquiries.",
     highlight: true,
-    badge: "Most popular",
+    badge: "Recommended",
     includes: [
       "3–6 page professional website",
-      "Services overview + contact form",
-      "Google Business Profile setup/support",
-      "Custom email forwarding",
-      "Google Analytics + Search Console",
-      "Basic SEO",
-      "Domain & hosting setup",
-      "Launch checklist + handoff docs",
+      "Home, services, trust, and contact structure",
+      "Contact or quote-request flow",
+      "Google Business Profile support when it fits",
+      "Analytics + Search Console",
+      "Basic local SEO structure",
+      "Domain, hosting, and email-forwarding setup",
+      "Launch checklist + handoff documentation",
     ],
   },
   {
-    name: "Creative / Brand Launch",
-    price: "From $849 CAD",
-    bestFor: "Creators and brands that need showcase pages and inquiries (catalog-style, not full cart/checkout).",
+    name: "Online Store",
+    price: "From $2,000 CAD",
+    bestFor:
+      "Small shops ready to sell through a working storefront with products, checkout, payments, and day-to-day handoff.",
     includes: [
-      "Brand-focused website",
-      "About + product/service showcase",
-      "Contact or inquiry form",
-      "Social links",
-      "Basic SEO",
-      "Custom email forwarding",
-      "Domain, hosting, analytics & Search Console",
-      "Handoff documentation",
+      "Storefront and key commerce pages",
+      "Product catalog and collections",
+      "Cart, checkout, and payment connection",
+      "Shipping, tax, and notification basics as scoped",
+      "Mobile-first design + basic SEO",
+      "Analytics, domain, and hosting setup",
+      "Walkthrough for products, orders, and fulfillment",
     ],
   },
   {
-    name: "Ecommerce Store Launch",
-    price: "From $999 CAD",
-    bestFor: "Small shops ready to sell online with a working store — not just product photos on a brochure site.",
-    includes: [
-      "Full storefront setup (platform chosen to fit your needs)",
-      "Product catalog, collections, and key store pages",
-      "Cart, checkout, and payment processing connection",
-      "Shipping, tax, and email notifications configured (as needed)",
-      "Mobile-friendly design + basic SEO",
-      "Domain, hosting, Analytics & Search Console",
-      "Walkthrough: add products, fulfill orders, day-to-day basics",
-    ],
-  },
-  {
-    name: "Custom Launch",
+    name: "Custom Project",
     price: "Quoted per project",
-    bestFor: "When you need a mix of features — extra pages, booking, subscriptions, migrations, or integrations beyond a standard package.",
+    bestFor:
+      "Booking, subscriptions, migrations, multi-location content, integrations, or a mix that does not fit a standard launch.",
     span: "full" as const,
     includes: [
-      "Scoped after a short discovery call",
-      "Examples: multi-location sites, complex forms, CRM hooks, automations, payment links, headless setups",
-      "Can combine brochure pages + store features when it makes sense",
+      "Scoped after a short discovery conversation",
+      "Written deliverables, assumptions, and exclusions",
+      "Examples: booking, advanced forms, CRM hooks, automations, migrations, or mixed brochure/store work",
+      "Milestones and acceptance checks matched to the project",
     ],
   },
 ] as const;
