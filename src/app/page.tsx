@@ -373,9 +373,9 @@ export default function Home() {
                   </p>
                   <p className="mt-3 text-sm text-slate-600">{CONTACT_REPLY_NOTE}</p>
                   <p className="mt-3 text-xs leading-relaxed text-slate-500">
-                    The current form prepares an email in your device&apos;s email app. A reliable
-                    server-side form is planned separately so its email and anti-spam requirements
-                    can be configured and reviewed properly.
+                    Online inquiries are sent through a narrow server endpoint with Turnstile spam
+                    protection and email delivery. If online submission is unavailable, the direct
+                    email link remains available as a fallback.
                   </p>
                   <div className="mt-5 flex flex-wrap gap-3">
                     <ButtonA
