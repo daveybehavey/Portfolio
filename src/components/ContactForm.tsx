@@ -33,6 +33,7 @@ type TurnstileOptions = {
   callback: (token: string) => void;
   "expired-callback": () => void;
   "error-callback": () => void;
+  "timeout-callback": () => void;
 };
 
 type TurnstileApi = {
@@ -153,6 +154,13 @@ export function ContactForm({ email }: { email: string }) {
               "Spam protection could not load. Use the email link or try again.",
           });
         },
+        "timeout-callback": () => {
+          setTurnstileToken("");
+          setStatus({
+            state: "error",
+            message: "Spam protection timed out. Complete it again.",
+          });
+        },
       },
     );
 
@@ -248,6 +256,13 @@ export function ContactForm({ email }: { email: string }) {
           src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
           strategy="afterInteractive"
           onLoad={() => setTurnstileReady(true)}
+          onError={() =>
+            setStatus({
+              state: "error",
+              message:
+                "Spam protection could not load. Use the email link or try again.",
+            })
+          }
         />
       ) : null}
 
