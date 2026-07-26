@@ -9,7 +9,8 @@ const expectedFiles = [
   "out/robots.txt",
   "out/sitemap.xml",
   "out/manifest.webmanifest",
-  "out/_headers"
+  "out/_headers",
+  "out/_routes.json"
 ];
 
 const failures = [];
