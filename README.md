@@ -64,8 +64,12 @@ npm run assets:refresh   # sync:brand + capture:screens
 npm run lighthouse       # build + Lighthouse scores (see lighthouse-reports/)
 npm run lint             # ESLint
 npm run typecheck        # tsc --noEmit
-npm run pages:deploy     # PRODUCTION-CHANGING — only after explicit authorization
-npm run pages:preview
+npm run pages:preview            # local Wrangler Pages dev server for out/
+npm run pages:preview:build      # build + verify with Turnstile test sitekey
+npm run pages:preview:deploy     # guarded Preview deploy (branch contact-preview)
+npm run pages:production:build   # build + verify with production sitekey
+npm run pages:production:preflight
+npm run pages:production:deploy  # PRODUCTION-CHANGING — requires --expected-sha and --authorize-production-deploy
 ```
 
 `contact:preflight` validates names and formats without printing configuration values. `contact:smoke` requires an exact target-host allowlist and sends only invalid requests that cannot trigger email delivery.
@@ -76,7 +80,21 @@ npm run pages:preview
 
 **GitHub Actions:** there is **no** active deployment workflow in this repository. CI is verification-only and does not deploy.
 
-**Manual deploy:** `npm run pages:deploy` builds and pushes to Cloudflare Pages (`eurodigital-ca`). That is **production-changing**. Run it only after explicit authorization (requires `wrangler login` or an API token).
+**Committed Wrangler configuration:** [`wrangler.jsonc`](wrangler.jsonc) is the source of truth for non-secret Pages settings (project name, output directory, compatibility date, and Preview/Production plain-text variables). Encrypted secrets (`TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`) remain dashboard/provider-managed and must never be committed.
+
+A Pages direct-upload deploy can replace project configuration. Deploying `out/` with `wrangler pages deploy` **without** this committed configuration is prohibited because it can silently drop required plain-text variables.
+
+**Preview deploy:** `npm run pages:preview:build` then `npm run pages:preview:deploy` (optionally `-- --dry-run`). Uses branch `contact-preview` only.
+
+**Production deploy:** still requires explicit authorization immediately before setting Production secrets and immediately before deployment:
+
+```powershell
+npm run pages:production:preflight
+npm run pages:production:build
+npm run pages:production:deploy -- --expected-sha <exact-main-sha> --authorize-production-deploy
+```
+
+That path is **production-changing**. Do not run it without authorization. Rollback uses the recorded prior production deployment ID documented in the contact-form activation runbook (currently `f0ddd72c-3740-4340-a9f7-4e98b63cf807`).
 
 ## Contact-form activation
 

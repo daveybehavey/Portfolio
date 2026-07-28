@@ -1,7 +1,0 @@
-# Cloudflare Pages — Next.js static export output (`npm run build` → `out/`)
-# Deploy: `npm run pages:deploy` (after `wrangler login` or CLOUDFLARE_API_TOKEN).
-# Custom domain: Cloudflare dashboard → Workers & Pages → your project → Custom domains.
-
-name = "eurodigital-ca"
-compatibility_date = "2025-05-13"
-pages_build_output_dir = "out"

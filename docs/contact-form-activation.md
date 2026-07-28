@@ -145,24 +145,43 @@ Using the official test credentials and Resend testing recipient:
 
 A preview deployment changes the Cloudflare Pages project and therefore requires explicit authorization immediately before configuration or deployment.
 
-For the **Preview** environment only, configure:
+### Committed non-secret Preview variables
+
+[`wrangler.jsonc`](../wrangler.jsonc) is the source of truth for non-secret Pages settings. Preview plain-text variables are versioned there:
 
 | Name | Type | Preview value |
 |---|---|---|
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | build/runtime variable | official always-pass test sitekey |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | plain text (committed) | `1x00000000000000000000AA` |
+| `CONTACT_FROM_EMAIL` | plain text (committed) | `EuroDigital Preview <onboarding@resend.dev>` |
+| `CONTACT_TO_EMAIL` | plain text (committed) | `delivered@resend.dev` |
+| `CONTACT_ALLOWED_ORIGINS` | plain text (committed) | `https://contact-preview.eurodigital-ca.pages.dev` |
+| `TURNSTILE_ALLOWED_HOSTNAMES` | plain text (committed) | `contact-preview.eurodigital-ca.pages.dev` |
+
+Encrypted secrets remain dashboard-managed only:
+
+| Name | Type | Preview value |
+|---|---|---|
 | `TURNSTILE_SECRET_KEY` | encrypted secret | official always-pass test secret key |
 | `RESEND_API_KEY` | encrypted secret | narrowly scoped Resend API key |
-| `CONTACT_FROM_EMAIL` | variable | `EuroDigital Preview <onboarding@resend.dev>` |
-| `CONTACT_TO_EMAIL` | variable | `delivered@resend.dev` |
-| `CONTACT_ALLOWED_ORIGINS` | variable | exact approved preview origin |
-| `TURNSTILE_ALLOWED_HOSTNAMES` | variable | exact approved preview hostname |
 
-Run the test-mode preflight against a temporary ignored file containing the intended names and values before entering them into Cloudflare.
+Do not commit secret values. Do not deploy with a bare `wrangler pages deploy out` command that omits the committed configuration — a direct upload can replace Pages configuration and silently drop required plain-text variables.
+
+Authorized Preview commands:
+
+```powershell
+npm run pages:preview:build
+npm run pages:preview:deploy -- --dry-run
+npm run pages:preview:deploy
+```
+
+The deploy guard requires project `eurodigital-ca`, environment `preview`, and branch `contact-preview`.
+
+Run the test-mode preflight against a temporary ignored file containing the intended names and values before entering secrets into Cloudflare.
 
 After an explicitly authorized preview deployment, run:
 
 ```powershell
-npm run contact:smoke -- --url https://<exact-preview-host> --allow-host <exact-preview-host>
+npm run contact:smoke -- --url https://contact-preview.eurodigital-ca.pages.dev --allow-host contact-preview.eurodigital-ca.pages.dev
 ```
 
 Then repeat the browser checks from Phase 5.
@@ -219,19 +238,24 @@ Delete the temporary file after configuration and verification.
 
 ## Phase 9 — production Pages variables and secrets
 
-With explicit authorization immediately before the change, configure the **Production** environment:
+Committed Production plain-text variables live in [`wrangler.jsonc`](../wrangler.jsonc):
 
 | Name | Type | Requirement |
 |---|---|---|
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | build/runtime variable | production widget sitekey |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | plain text (committed) | `0x4AAAAAAEAJbd2XaAk7ZRBR` |
+| `CONTACT_FROM_EMAIL` | plain text (committed) | `EuroDigital <website@send.eurodigital.ca>` |
+| `CONTACT_TO_EMAIL` | plain text (committed) | `contact@eurodigital.ca` |
+| `CONTACT_ALLOWED_ORIGINS` | plain text (committed) | `https://eurodigital.ca,https://www.eurodigital.ca` |
+| `TURNSTILE_ALLOWED_HOSTNAMES` | plain text (committed) | `eurodigital.ca,www.eurodigital.ca` |
+
+With explicit authorization immediately before the change, configure **only** the encrypted Production secrets in the Cloudflare dashboard:
+
+| Name | Type | Requirement |
+|---|---|---|
 | `TURNSTILE_SECRET_KEY` | encrypted secret | production widget secret |
 | `RESEND_API_KEY` | encrypted secret | narrowly scoped production API key |
-| `CONTACT_FROM_EMAIL` | variable | verified production sender |
-| `CONTACT_TO_EMAIL` | variable | `contact@eurodigital.ca` |
-| `CONTACT_ALLOWED_ORIGINS` | variable | `https://eurodigital.ca` and any separately approved direct form origin |
-| `TURNSTILE_ALLOWED_HOSTNAMES` | variable | exact production hostnames |
 
-Cloudflare requires a redeployment for changed Pages variables and secrets to take effect.
+Cloudflare requires a redeployment for changed Pages variables and secrets to take effect. Deploy only through the guarded package commands that use the committed Wrangler configuration.
 
 Do not add secrets to a Wrangler configuration file, GitHub Actions, or repository settings for this manual activation.
 
@@ -250,7 +274,17 @@ Immediately before production deployment, record:
 - rollback deployment identifier
 - explicit authorization for the production deployment
 
-Then use only the existing reviewed manual deployment path. Do not improvise a new deployment command or workflow.
+Then use only the guarded production path:
+
+```powershell
+npm run pages:production:preflight
+npm run pages:production:build
+npm run pages:production:deploy -- --expected-sha <exact-main-sha> --authorize-production-deploy
+```
+
+The production deploy guard requires: branch `main`, clean tracked tree, `HEAD == origin/main`, matching `--expected-sha`, project `eurodigital-ca`, and the one-time `--authorize-production-deploy` flag. Do not improvise a bare `wrangler pages deploy out` command.
+
+This repository does **not** claim Production secrets are already configured or that Production has been redeployed with the contact form.
 
 ## Phase 11 — production verification
 
@@ -285,7 +319,13 @@ Remove or blank `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in the production build environ
 
 ### Revert the deployment
 
-Restore the recorded prior Cloudflare Pages deployment. Verify the homepage, projects, privacy page, and mailto fallback afterward.
+Restore the recorded prior Cloudflare Pages deployment. Current rollback baseline:
+
+```text
+f0ddd72c-3740-4340-a9f7-4e98b63cf807
+```
+
+Verify the homepage, projects, privacy page, and mailto fallback afterward.
 
 ### Revoke provider access
 

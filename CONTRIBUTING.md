@@ -65,7 +65,7 @@ The CI workflow is verification-only:
 - no `pull_request_target` or manual deployment trigger is present
 - no artifacts are uploaded
 - no Wrangler deploy, Cloudflare API, DNS, email-routing, or Pages mutation command is executed
-- `npm run pages:deploy` is never invoked
+- `npm run pages:preview:deploy` and `npm run pages:production:deploy` are never invoked
 - action dependencies are pinned to immutable full commit SHAs
 - superseded runs for the same pull request or branch are cancelled
 

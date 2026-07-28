@@ -21,8 +21,12 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "pages:deploy": "npm run build && wrangler pages deploy out --project-name=eurodigital-ca --branch=main --commit-dirty=true",
-    "pages:preview": "npm run build && wrangler pages dev out"
+    "pages:preview": "npm run build && wrangler pages dev out",
+    "pages:preview:build": "node scripts/pages-build.mjs --target preview",
+    "pages:preview:deploy": "node scripts/pages-deploy.mjs --target preview",
+    "pages:production:build": "node scripts/pages-build.mjs --target production",
+    "pages:production:preflight": "node scripts/pages-production-preflight.mjs",
+    "pages:production:deploy": "node scripts/pages-deploy.mjs --target production"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",

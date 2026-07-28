@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "eurodigital-ca",
+  "pages_build_output_dir": "./out",
+  "compatibility_date": "2026-04-25",
+  "env": {
+    "preview": {
+      "compatibility_date": "2026-04-25",
+      "vars": {
+        "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+        "CONTACT_FROM_EMAIL": "EuroDigital Preview <onboarding@resend.dev>",
+        "CONTACT_TO_EMAIL": "delivered@resend.dev",
+        "CONTACT_ALLOWED_ORIGINS": "https://contact-preview.eurodigital-ca.pages.dev",
+        "TURNSTILE_ALLOWED_HOSTNAMES": "contact-preview.eurodigital-ca.pages.dev"
+      }
+    },
+    "production": {
+      "compatibility_date": "2026-04-25",
+      "vars": {
+        "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAEAJbd2XaAk7ZRBR",
+        "CONTACT_FROM_EMAIL": "EuroDigital <website@send.eurodigital.ca>",
+        "CONTACT_TO_EMAIL": "contact@eurodigital.ca",
+        "CONTACT_ALLOWED_ORIGINS": "https://eurodigital.ca,https://www.eurodigital.ca",
+        "TURNSTILE_ALLOWED_HOSTNAMES": "eurodigital.ca,www.eurodigital.ca"
+      }
+    }
+  }
+}
