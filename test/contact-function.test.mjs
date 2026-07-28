@@ -169,10 +169,129 @@ test("rejects failed, duplicate, wrong-host, and wrong-action Turnstile results"
     { success: false, "error-codes": ["timeout-or-duplicate"] },
     { success: true, hostname: "attacker.example", action: "contact" },
     { success: true, hostname: "eurodigital.ca", action: "login" },
+    { success: true, hostname: "example.com", action: null },
+    { success: true, hostname: "", action: "contact" },
   ]) {
     const mock = fetchMock({ turnstile });
     const response = await handleContactRequest(request(), env, mock);
     assert.equal(response.status, 400);
+    assert.equal((await json(response)).code, "verification_failed");
+    assert.equal(mock.calls.length, 1);
+    assert.match(mock.calls[0].url, /siteverify/);
+  }
+});
+
+const dummyTurnstileMetadata = {
+  success: true,
+  hostname: "example.com",
+  action: null,
+};
+
+const officialDummyTestEnv = {
+  TURNSTILE_SECRET_KEY: "1x0000000000000000000000000000000AA",
+  RESEND_API_KEY: "resend-test-key-not-real",
+  CONTACT_FROM_EMAIL: "EuroDigital Preview <onboarding@resend.dev>",
+  CONTACT_TO_EMAIL: "delivered@resend.dev",
+  CONTACT_ALLOWED_ORIGINS: "http://127.0.0.1:8788",
+  TURNSTILE_ALLOWED_HOSTNAMES: "127.0.0.1",
+};
+
+const officialDummyBody = {
+  ...validBody,
+  turnstileToken: "XXXX.DUMMY.TOKEN.XXXX",
+};
+
+function dummyRequest(body = officialDummyBody, options = {}) {
+  return request(body, {
+    origin: "http://127.0.0.1:8788",
+    ...options,
+  });
+}
+
+test("official safe Turnstile dummy path succeeds after Siteverify", async () => {
+  const mock = fetchMock({ turnstile: dummyTurnstileMetadata });
+  const response = await handleContactRequest(
+    dummyRequest(),
+    officialDummyTestEnv,
+    mock,
+  );
+  assert.equal(response.status, 200);
+  assert.equal((await json(response)).code, "delivered");
+  assert.equal(mock.calls.length, 2);
+  assert.match(mock.calls[0].url, /siteverify/);
+  assert.match(mock.calls[1].url, /api\.resend\.com\/emails/);
+  const verificationBody = JSON.parse(mock.calls[0].init.body);
+  assert.equal(verificationBody.response, "XXXX.DUMMY.TOKEN.XXXX");
+  assert.equal(
+    verificationBody.secret,
+    "1x0000000000000000000000000000000AA",
+  );
+  const emailBody = JSON.parse(mock.calls[1].init.body);
+  assert.deepEqual(emailBody.to, ["delivered@resend.dev"]);
+  assert.equal(
+    emailBody.from,
+    "EuroDigital Preview <onboarding@resend.dev>",
+  );
+});
+
+test("real recipient prevents Turnstile dummy metadata bypass", async () => {
+  const mock = fetchMock({ turnstile: dummyTurnstileMetadata });
+  const response = await handleContactRequest(
+    dummyRequest(),
+    {
+      ...officialDummyTestEnv,
+      CONTACT_TO_EMAIL: "contact@eurodigital.ca",
+    },
+    mock,
+  );
+  assert.equal(response.status, 400);
+  assert.equal((await json(response)).code, "verification_failed");
+  assert.equal(mock.calls.length, 1);
+  assert.match(mock.calls[0].url, /siteverify/);
+});
+
+test("non-test sender prevents Turnstile dummy metadata bypass", async () => {
+  const mock = fetchMock({ turnstile: dummyTurnstileMetadata });
+  const response = await handleContactRequest(
+    dummyRequest(),
+    {
+      ...officialDummyTestEnv,
+      CONTACT_FROM_EMAIL: "EuroDigital <website@send.eurodigital.ca>",
+    },
+    mock,
+  );
+  assert.equal(response.status, 400);
+  assert.equal((await json(response)).code, "verification_failed");
+  assert.equal(mock.calls.length, 1);
+  assert.match(mock.calls[0].url, /siteverify/);
+});
+
+test("non-dummy token prevents Turnstile dummy metadata bypass", async () => {
+  const mock = fetchMock({ turnstile: dummyTurnstileMetadata });
+  const response = await handleContactRequest(
+    dummyRequest({
+      ...officialDummyBody,
+      turnstileToken: "not-the-official-dummy-token",
+    }),
+    officialDummyTestEnv,
+    mock,
+  );
+  assert.equal(response.status, 400);
+  assert.equal((await json(response)).code, "verification_failed");
+  assert.equal(mock.calls.length, 1);
+  assert.match(mock.calls[0].url, /siteverify/);
+});
+
+test("production credentials retain strict hostname and action validation", async () => {
+  for (const turnstile of [
+    { success: true, hostname: "example.com", action: "contact" },
+    { success: true, hostname: "eurodigital.ca", action: null },
+    { success: true, hostname: "eurodigital.ca", action: "test" },
+  ]) {
+    const mock = fetchMock({ turnstile });
+    const response = await handleContactRequest(request(), env, mock);
+    assert.equal(response.status, 400);
+    assert.equal((await json(response)).code, "verification_failed");
     assert.equal(mock.calls.length, 1);
   }
 });
