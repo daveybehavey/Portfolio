@@ -174,7 +174,7 @@ npm run pages:preview:deploy -- --dry-run
 npm run pages:preview:deploy
 ```
 
-The deploy guard requires project `eurodigital-ca`, environment `preview`, and branch `contact-preview`.
+The deploy guard requires project `eurodigital-ca`, environment `preview`, current git branch `contact-preview`, and Wrangler deploy branch `contact-preview`. It uses committed `wrangler.jsonc` (`--config=wrangler.jsonc`).
 
 Run the test-mode preflight against a temporary ignored file containing the intended names and values before entering secrets into Cloudflare.
 

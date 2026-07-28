@@ -84,19 +84,11 @@ async function main() {
   if (options.target === "preview") {
     const guards = assertPreviewDeployGuards({
       projectName: PROJECT_NAME,
-      branch: deployBranch,
+      gitBranch: git.branch,
+      deployBranch,
       environment,
       productionBranch: PRODUCTION_BRANCH,
     });
-    // Preview also refuses if caller somehow asks to deploy main via wrong target.
-    if (git.branch === PRODUCTION_BRANCH && options.forceMainPreview !== true) {
-      // Deploying preview assets while on main is allowed (source SHA on main),
-      // but the Wrangler --branch must remain contact-preview. Enforce branch arg only.
-    }
-    if (deployBranch === PRODUCTION_BRANCH) {
-      guards.ok = false;
-      guards.errors.push("Preview deploy must not use branch main.");
-    }
     if (!guards.ok) {
       console.error("Preview deploy guards failed:");
       for (const error of guards.errors) console.error(`- ${error}`);

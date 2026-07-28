@@ -136,19 +136,33 @@ test("validator rejects production sender/recipient mismatches", () => {
 test("preview deploy guards refuse production branch", () => {
   const ok = assertPreviewDeployGuards({
     projectName: PROJECT_NAME,
-    branch: PREVIEW_BRANCH,
+    gitBranch: PREVIEW_BRANCH,
+    deployBranch: PREVIEW_BRANCH,
     environment: "preview",
     productionBranch: PRODUCTION_BRANCH,
   });
   assert.equal(ok.ok, true);
 
-  const bad = assertPreviewDeployGuards({
+  const badMain = assertPreviewDeployGuards({
     projectName: PROJECT_NAME,
-    branch: PRODUCTION_BRANCH,
+    gitBranch: PRODUCTION_BRANCH,
+    deployBranch: PREVIEW_BRANCH,
     environment: "preview",
     productionBranch: PRODUCTION_BRANCH,
   });
-  assert.equal(bad.ok, false);
+  assert.equal(badMain.ok, false);
+  assert.ok(
+    badMain.errors.some((error) => error.includes("git branch must be")),
+  );
+
+  const badDeploy = assertPreviewDeployGuards({
+    projectName: PROJECT_NAME,
+    gitBranch: PREVIEW_BRANCH,
+    deployBranch: PRODUCTION_BRANCH,
+    environment: "preview",
+    productionBranch: PRODUCTION_BRANCH,
+  });
+  assert.equal(badDeploy.ok, false);
 });
 
 test("production deploy guards refuse preview branch and missing authorization", () => {
@@ -199,6 +213,7 @@ test("wrangler deploy args pin project and branch", () => {
   });
   assert.ok(previewArgs.includes("--branch=contact-preview"));
   assert.ok(previewArgs.includes("--project-name=eurodigital-ca"));
+  assert.ok(previewArgs.includes("--config=wrangler.jsonc"));
   assert.ok(previewArgs.includes("--commit-dirty=false"));
 
   const productionArgs = buildWranglerDeployArgs({
@@ -207,5 +222,6 @@ test("wrangler deploy args pin project and branch", () => {
     commitMessage: "production",
   });
   assert.ok(productionArgs.includes("--branch=main"));
+  assert.ok(productionArgs.includes("--config=wrangler.jsonc"));
   assert.ok(!productionArgs.includes("--branch=contact-preview"));
 });

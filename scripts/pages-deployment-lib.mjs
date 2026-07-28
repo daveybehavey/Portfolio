@@ -649,7 +649,10 @@ export function assertPreviewDeployGuards(input) {
   if (input.projectName !== PROJECT_NAME) {
     errors.push(`Project must be ${PROJECT_NAME}.`);
   }
-  if (input.branch !== PREVIEW_BRANCH) {
+  if (input.gitBranch !== PREVIEW_BRANCH) {
+    errors.push(`Current git branch must be ${PREVIEW_BRANCH}.`);
+  }
+  if (input.deployBranch !== PREVIEW_BRANCH) {
     errors.push(`Preview deploy branch must be ${PREVIEW_BRANCH}.`);
   }
   if (input.environment !== "preview") {
@@ -704,12 +707,14 @@ export function buildWranglerDeployArgs({
   commitHash,
   commitMessage,
   commitDirty = false,
+  configPath = "wrangler.jsonc",
 }) {
   const branch = target === "production" ? PRODUCTION_BRANCH : PREVIEW_BRANCH;
   const args = [
     "pages",
     "deploy",
     "out",
+    `--config=${configPath}`,
     `--project-name=${PROJECT_NAME}`,
     `--branch=${branch}`,
   ];

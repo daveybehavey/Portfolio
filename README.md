@@ -84,7 +84,7 @@ npm run pages:production:deploy  # PRODUCTION-CHANGING — requires --expected-s
 
 A Pages direct-upload deploy can replace project configuration. Deploying `out/` with `wrangler pages deploy` **without** this committed configuration is prohibited because it can silently drop required plain-text variables.
 
-**Preview deploy:** `npm run pages:preview:build` then `npm run pages:preview:deploy` (optionally `-- --dry-run`). Uses branch `contact-preview` only.
+**Preview deploy:** `npm run pages:preview:build` then `npm run pages:preview:deploy` (optionally `-- --dry-run`). Requires current git branch and Wrangler `--branch` both `contact-preview`, and committed `wrangler.jsonc`.
 
 **Production deploy:** still requires explicit authorization immediately before setting Production secrets and immediately before deployment:
 
