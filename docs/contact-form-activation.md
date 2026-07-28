@@ -278,11 +278,14 @@ Then use only the guarded production path:
 
 ```powershell
 npm run pages:production:preflight
-npm run pages:production:build
 npm run pages:production:deploy -- --expected-sha <exact-main-sha> --authorize-production-deploy
 ```
 
-The production deploy guard requires: branch `main`, clean tracked tree, `HEAD == origin/main`, matching `--expected-sha`, project `eurodigital-ca`, and the one-time `--authorize-production-deploy` flag. Do not improvise a bare `wrangler pages deploy out` command.
+`npm run pages:production:build` remains available for local inspection, but it is **not** authorization or integrity evidence for deployment. Production deploy always creates and verifies its own artifact before Wrangler: validate `wrangler.jsonc`, enforce a clean working tree (no tracked changes and no non-ignored untracked files), run the production build, rescan `out/` (production sitekey present; test sitekeys and secret-shaped values absent; `_routes.json` includes `/api/contact`), re-check Git state, then invoke Wrangler. Ignored build output such as `out/` is permitted because Git omits it from porcelain status. Do not add broad production-guard exceptions for local evidence directories — move them outside the repo or use a narrow local `.git/info/exclude` entry.
+
+The production deploy guard requires: branch `main`, clean working tree under that strengthened definition, `HEAD == origin/main`, matching `--expected-sha`, project `eurodigital-ca`, and the one-time `--authorize-production-deploy` flag. Do not improvise a bare `wrangler pages deploy out` command.
+
+A production `--dry-run` exercises the full artifact preparation and verification path and stops before any Cloudflare request.
 
 This repository does **not** claim Production secrets are already configured or that Production has been redeployed with the contact form.
 

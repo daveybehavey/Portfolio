@@ -90,9 +90,10 @@ A Pages direct-upload deploy can replace project configuration. Deploying `out/`
 
 ```powershell
 npm run pages:production:preflight
-npm run pages:production:build
 npm run pages:production:deploy -- --expected-sha <exact-main-sha> --authorize-production-deploy
 ```
+
+Production deploy creates and verifies its own artifact (`pages-build` + `scanBuildAssets`) and rejects any non-ignored untracked files. A separately run `pages:production:build` is useful for inspection only — it is not sufficient authorization or integrity evidence. Ignored `out/` is fine because Git omits it from status. Do not weaken production guards with broad exceptions for local evidence directories.
 
 That path is **production-changing**. Do not run it without authorization. Rollback uses the recorded prior production deployment ID documented in the contact-form activation runbook (currently `f0ddd72c-3740-4340-a9f7-4e98b63cf807`).
 

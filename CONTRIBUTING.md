@@ -66,10 +66,11 @@ The CI workflow is verification-only:
 - no artifacts are uploaded
 - no Wrangler deploy, Cloudflare API, DNS, email-routing, or Pages mutation command is executed
 - `npm run pages:preview:deploy` and `npm run pages:production:deploy` are never invoked
+- production deploy guards in source require an in-command production artifact build/rescan and reject non-ignored untracked files; CI still never executes those deploy commands
 - action dependencies are pinned to immutable full commit SHAs
 - superseded runs for the same pull request or branch are cancelled
 
-A successful CI run does **not** deploy the website or activate the inquiry endpoint. Production changes require a separate reviewed process and explicit authorization immediately before execution.
+A successful CI run does **not** deploy the website or activate the inquiry endpoint. Production changes require a separate reviewed process and explicit authorization immediately before execution. A separately run production build is not authorization or integrity evidence for deployment.
 
 ## Review sequence
 

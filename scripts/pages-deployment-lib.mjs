@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,6 +9,7 @@ export const PRODUCTION_BRANCH = "main";
 export const PREVIEW_BRANCH = "contact-preview";
 export const COMPATIBILITY_DATE = "2026-04-25";
 export const ROLLBACK_DEPLOYMENT_ID = "f0ddd72c-3740-4340-a9f7-4e98b63cf807";
+export const CONTACT_FUNCTION_ROUTE = "/api/contact";
 
 export const PRODUCTION_SITE_KEY = "0x4AAAAAAEAJbd2XaAk7ZRBR";
 export const PREVIEW_SITE_KEY = "1x00000000000000000000AA";
@@ -516,11 +517,41 @@ export function formatValidationReport(report, title = "Pages configuration") {
 
 export function runGit(args, options = {}) {
   const cwd = options.cwd || process.cwd();
-  return execFileSync("git", args, {
+  const output = execFileSync("git", args, {
     cwd,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
-  }).trim();
+  });
+  // Preserve leading spaces required by `git status --porcelain` XY codes.
+  return String(output).replace(/[\r\n]+$/, "");
+}
+
+export function parsePorcelainStatus(porcelain) {
+  const trackedChanges = [];
+  const untrackedFiles = [];
+  for (const raw of String(porcelain || "").split(/\r?\n/)) {
+    if (!raw) continue;
+    if (raw.startsWith("??")) {
+      untrackedFiles.push(stripPorcelainPath(raw.slice(3)));
+      continue;
+    }
+    const pathPart = raw.length >= 3 ? raw.slice(3) : raw;
+    if (pathPart.includes(" -> ")) {
+      const [from, to] = pathPart.split(" -> ");
+      trackedChanges.push(stripPorcelainPath(from), stripPorcelainPath(to));
+    } else {
+      trackedChanges.push(stripPorcelainPath(pathPart));
+    }
+  }
+  return { trackedChanges, untrackedFiles };
+}
+
+function stripPorcelainPath(value) {
+  const trimmed = String(value || "").trim();
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
 }
 
 export function getGitStatus(options = {}) {
@@ -533,11 +564,35 @@ export function getGitStatus(options = {}) {
     originMain = "";
   }
   const porcelain = runGit(["status", "--porcelain"], options);
-  const trackedDirty = porcelain
-    .split(/\r?\n/)
-    .filter(Boolean)
-    .some((line) => !line.startsWith("??"));
-  return { branch, head, originMain, porcelain, trackedDirty };
+  const { trackedChanges, untrackedFiles } = parsePorcelainStatus(porcelain);
+  const trackedDirty = trackedChanges.length > 0;
+  const workingTreeDirty = trackedDirty || untrackedFiles.length > 0;
+  return {
+    branch,
+    head,
+    originMain,
+    porcelain,
+    trackedChanges,
+    untrackedFiles,
+    trackedDirty,
+    workingTreeDirty,
+  };
+}
+
+export function defaultRunProcess(command, args, options = {}) {
+  const result = spawnSync(command, args, {
+    cwd: options.cwd || process.cwd(),
+    env: options.env || process.env,
+    encoding: "utf8",
+    shell: options.shell ?? process.platform === "win32",
+    stdio: options.stdio ?? "inherit",
+  });
+  return {
+    status: result.status === null ? 1 : result.status,
+    signal: result.signal,
+    stdout: result.stdout || "",
+    stderr: result.stderr || "",
+  };
 }
 
 export async function collectTextFiles(rootDir) {
@@ -584,7 +639,12 @@ export async function scanBuildAssets(outDir, expectations) {
       continue;
     }
     const relative = path.relative(absoluteOut, filePath);
-    if (text.includes(PREVIEW_SITE_KEY)) findings.testSiteKeyFiles.push(relative);
+    for (const testKey of TURNSTILE_TEST_SITE_KEYS) {
+      if (text.includes(testKey)) {
+        findings.testSiteKeyFiles.push(relative);
+        break;
+      }
+    }
     if (text.includes(PRODUCTION_SITE_KEY)) {
       findings.productionSiteKeyFiles.push(relative);
     }
@@ -632,16 +692,32 @@ export async function scanBuildAssets(outDir, expectations) {
   }
 
   const routesPath = path.join(absoluteOut, "_routes.json");
+  let routesOk = false;
   try {
     const routesStat = await stat(routesPath);
     if (!routesStat.isFile() || routesStat.size === 0) {
       errors.push("_routes.json is missing or empty.");
+    } else {
+      routesOk = true;
+      if (expectations.requireContactRoute !== false) {
+        try {
+          const routes = JSON.parse(await readFile(routesPath, "utf8"));
+          const include = Array.isArray(routes?.include) ? routes.include : [];
+          if (!include.includes(CONTACT_FUNCTION_ROUTE)) {
+            errors.push(
+              `_routes.json must include the ${CONTACT_FUNCTION_ROUTE} Function route.`,
+            );
+          }
+        } catch {
+          errors.push("_routes.json is not valid JSON.");
+        }
+      }
     }
   } catch {
     errors.push("_routes.json is missing from the build output.");
   }
 
-  return { ok: errors.length === 0, errors, findings };
+  return { ok: errors.length === 0, errors, findings, routesOk };
 }
 
 export function assertPreviewDeployGuards(input) {
@@ -678,8 +754,14 @@ export function assertProductionDeployGuards(input) {
   if (input.environment !== "production") {
     errors.push('Production deploy environment must be "production".');
   }
-  if (input.trackedDirty) {
-    errors.push("Tracked working tree must be clean.");
+  const workingTreeDirty =
+    typeof input.workingTreeDirty === "boolean"
+      ? input.workingTreeDirty
+      : Boolean(input.trackedDirty);
+  if (workingTreeDirty) {
+    errors.push(
+      "Working tree must be clean (no tracked changes or non-ignored untracked files).",
+    );
   }
   if (!input.originMain) {
     errors.push("origin/main must be available.");
@@ -700,6 +782,281 @@ export function assertProductionDeployGuards(input) {
     errors.push("Committed Pages configuration validation must pass.");
   }
   return { ok: errors.length === 0, errors };
+}
+
+export function productionScanExpectations() {
+  return {
+    requireTestSiteKey: false,
+    forbidTestSiteKey: true,
+    requireProductionSiteKey: true,
+    forbidProductionSiteKey: false,
+    requireContactRoute: true,
+  };
+}
+
+export function previewScanExpectations() {
+  return {
+    requireTestSiteKey: true,
+    forbidTestSiteKey: false,
+    requireProductionSiteKey: false,
+    forbidProductionSiteKey: true,
+    requireContactRoute: true,
+  };
+}
+
+/**
+ * Build and verify the Pages static export for preview or production.
+ * Shared by pages-build.mjs and the production deploy flow.
+ */
+export async function buildPagesStaticExport({
+  target,
+  root,
+  runProcess = defaultRunProcess,
+  getStatus = getGitStatus,
+  loadConfig = loadPagesConfig,
+  validateConfig = validatePagesConfig,
+  scanAssets = scanBuildAssets,
+  skipConfigValidation = false,
+  requireCleanWorkingTree = target === "production",
+  log = console.log,
+}) {
+  if (!["preview", "production"].includes(target)) {
+    return {
+      ok: false,
+      errors: ['target must be "preview" or "production".'],
+    };
+  }
+
+  if (!skipConfigValidation) {
+    const config = await loadConfig(path.join(root, "wrangler.jsonc"));
+    const configReport = validateConfig(config);
+    log(formatValidationReport(configReport, "Pages configuration validation"));
+    if (!configReport.ok) {
+      return { ok: false, errors: ["Committed Pages configuration validation failed."] };
+    }
+  }
+
+  if (requireCleanWorkingTree) {
+    const git = getStatus({ cwd: root });
+    if (git.workingTreeDirty) {
+      return {
+        ok: false,
+        errors: [
+          "Production build requires a clean working tree (no tracked changes or non-ignored untracked files).",
+        ],
+      };
+    }
+  }
+
+  const siteKey = target === "preview" ? PREVIEW_SITE_KEY : PRODUCTION_SITE_KEY;
+  const env = {
+    ...process.env,
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: siteKey,
+  };
+
+  log(`Building static export for ${target}...`);
+  const buildResult = runProcess("npm", ["run", "build"], {
+    cwd: root,
+    env,
+  });
+  if (buildResult.status !== 0) {
+    return {
+      ok: false,
+      errors: [`npm run build failed with exit ${buildResult.status}.`],
+    };
+  }
+
+  const verifyResult = runProcess(
+    "node",
+    ["scripts/verify-static-export.mjs"],
+    { cwd: root, env },
+  );
+  if (verifyResult.status !== 0) {
+    return {
+      ok: false,
+      errors: [
+        `verify-static-export failed with exit ${verifyResult.status}.`,
+      ],
+    };
+  }
+
+  const expectations =
+    target === "preview"
+      ? previewScanExpectations()
+      : productionScanExpectations();
+  const scan = await scanAssets(path.join(root, "out"), expectations);
+  if (!scan.ok) {
+    return { ok: false, errors: scan.errors, scan };
+  }
+
+  log(
+    `Pages ${target} build verification passed (sitekey embedded; secrets absent).`,
+  );
+  return { ok: true, errors: [], scan };
+}
+
+/**
+ * Production deploy orchestration: git guards → build → rescan → post-build git → Wrangler.
+ * Injectable runners keep regression tests free of Cloudflare/network side effects.
+ */
+export async function runGuardedProductionDeploy({
+  root,
+  expectedSha,
+  authorizeProductionDeploy = false,
+  dryRun = false,
+  commitMessage = "EuroDigital production Pages deploy",
+  configPath,
+  loadConfig = loadPagesConfig,
+  validateConfig = validatePagesConfig,
+  getStatus = getGitStatus,
+  buildTarget = buildPagesStaticExport,
+  scanAssets = scanBuildAssets,
+  runProcess = defaultRunProcess,
+  log = console.log,
+  logError = console.error,
+}) {
+  const resolvedConfigPath = configPath || path.join(root, "wrangler.jsonc");
+  const config = await loadConfig(resolvedConfigPath);
+  const configReport = validateConfig(config);
+  log(formatValidationReport(configReport, "Pages configuration validation"));
+  if (!configReport.ok) {
+    return {
+      ok: false,
+      stage: "config",
+      wranglerInvoked: false,
+      errors: ["Committed Pages configuration validation failed."],
+    };
+  }
+
+  const initialGit = getStatus({ cwd: root });
+  const initialGuards = assertProductionDeployGuards({
+    projectName: PROJECT_NAME,
+    gitBranch: initialGit.branch,
+    deployBranch: PRODUCTION_BRANCH,
+    environment: "production",
+    workingTreeDirty: initialGit.workingTreeDirty,
+    head: initialGit.head,
+    originMain: initialGit.originMain,
+    expectedSha,
+    authorizeProductionDeploy,
+    configOk: true,
+  });
+  if (!initialGuards.ok) {
+    for (const error of initialGuards.errors) logError(`- ${error}`);
+    return {
+      ok: false,
+      stage: "initial-git",
+      wranglerInvoked: false,
+      errors: initialGuards.errors,
+    };
+  }
+
+  const buildResult = await buildTarget({
+    target: "production",
+    root,
+    runProcess,
+    getStatus,
+    loadConfig,
+    validateConfig,
+    scanAssets,
+    skipConfigValidation: true,
+    requireCleanWorkingTree: true,
+    log,
+  });
+  if (!buildResult.ok) {
+    for (const error of buildResult.errors || []) logError(`- ${error}`);
+    return {
+      ok: false,
+      stage: "build",
+      wranglerInvoked: false,
+      errors: buildResult.errors || ["Production build failed."],
+    };
+  }
+
+  const scan = await scanAssets(
+    path.join(root, "out"),
+    productionScanExpectations(),
+  );
+  if (!scan.ok) {
+    for (const error of scan.errors) logError(`- ${error}`);
+    return {
+      ok: false,
+      stage: "scan",
+      wranglerInvoked: false,
+      errors: scan.errors,
+    };
+  }
+
+  const postGit = getStatus({ cwd: root });
+  const postGuards = assertProductionDeployGuards({
+    projectName: PROJECT_NAME,
+    gitBranch: postGit.branch,
+    deployBranch: PRODUCTION_BRANCH,
+    environment: "production",
+    workingTreeDirty: postGit.workingTreeDirty,
+    head: postGit.head,
+    originMain: postGit.originMain,
+    expectedSha,
+    authorizeProductionDeploy,
+    configOk: true,
+  });
+  if (!postGuards.ok) {
+    for (const error of postGuards.errors) logError(`- ${error}`);
+    return {
+      ok: false,
+      stage: "post-build-git",
+      wranglerInvoked: false,
+      errors: postGuards.errors,
+    };
+  }
+
+  log("Production artifact built and verified.");
+
+  const wranglerArgs = buildWranglerDeployArgs({
+    target: "production",
+    commitHash: expectedSha,
+    commitMessage,
+    commitDirty: false,
+  });
+  log(`Prepared Wrangler command: wrangler ${wranglerArgs.join(" ")}`);
+  log(`Target environment: production`);
+  log(`Deploy branch: ${PRODUCTION_BRANCH}`);
+  log(`Commit hash: ${expectedSha}`);
+  log(`Rollback baseline deployment: ${ROLLBACK_DEPLOYMENT_ID}`);
+
+  if (dryRun) {
+    log("Dry run complete. No Cloudflare request was made.");
+    return {
+      ok: true,
+      stage: "dry-run",
+      wranglerInvoked: false,
+      wranglerArgs,
+      errors: [],
+    };
+  }
+
+  const result = runProcess("npx", ["wrangler", ...wranglerArgs], {
+    cwd: root,
+    env: process.env,
+  });
+  if (result.status !== 0) {
+    return {
+      ok: false,
+      stage: "wrangler",
+      wranglerInvoked: true,
+      wranglerArgs,
+      status: result.status,
+      errors: [`Wrangler exited with status ${result.status}.`],
+    };
+  }
+  return {
+    ok: true,
+    stage: "wrangler",
+    wranglerInvoked: true,
+    wranglerArgs,
+    status: result.status,
+    errors: [],
+  };
 }
 
 export function buildWranglerDeployArgs({
