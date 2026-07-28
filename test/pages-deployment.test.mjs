@@ -19,6 +19,7 @@ import {
   PRODUCTION_SITE_KEY,
   PRODUCTION_VARS,
   PROJECT_NAME,
+  runGuardedPreviewDeploy,
   runGuardedProductionDeploy,
   scanBuildAssets,
   validatePagesConfig,
@@ -206,6 +207,7 @@ test("preview deploy guards refuse production branch", () => {
     deployBranch: PREVIEW_BRANCH,
     environment: "preview",
     productionBranch: PRODUCTION_BRANCH,
+    workingTreeDirty: false,
   });
   assert.equal(ok.ok, true);
 
@@ -215,6 +217,7 @@ test("preview deploy guards refuse production branch", () => {
     deployBranch: PREVIEW_BRANCH,
     environment: "preview",
     productionBranch: PRODUCTION_BRANCH,
+    workingTreeDirty: false,
   });
   assert.equal(badMain.ok, false);
   assert.ok(
@@ -227,8 +230,19 @@ test("preview deploy guards refuse production branch", () => {
     deployBranch: PRODUCTION_BRANCH,
     environment: "preview",
     productionBranch: PRODUCTION_BRANCH,
+    workingTreeDirty: false,
   });
   assert.equal(badDeploy.ok, false);
+
+  const dirty = assertPreviewDeployGuards({
+    projectName: PROJECT_NAME,
+    gitBranch: PREVIEW_BRANCH,
+    deployBranch: PREVIEW_BRANCH,
+    environment: "preview",
+    productionBranch: PRODUCTION_BRANCH,
+    workingTreeDirty: true,
+  });
+  assert.equal(dirty.ok, false);
 });
 
 test("production deploy guards refuse preview branch and missing authorization", () => {
@@ -699,4 +713,327 @@ test("mismatched expected SHA blocks production before Wrangler", async () => {
   assert.equal(result.stage, "initial-git");
   assert.equal(result.wranglerInvoked, false);
   assert.equal(harness.calls.process.length, 0);
+});
+
+function cleanPreviewGitStatus(overrides = {}) {
+  return {
+    branch: PREVIEW_BRANCH,
+    head: "previewsha",
+    originMain: "abc123",
+    porcelain: "",
+    trackedChanges: [],
+    untrackedFiles: [],
+    trackedDirty: false,
+    workingTreeDirty: false,
+    ...overrides,
+  };
+}
+
+function previewDeployHarness(overrides = {}) {
+  const order = [];
+  const calls = { build: 0, scan: 0, process: [], statusReads: 0 };
+  let git = cleanPreviewGitStatus(overrides.initialGit);
+  const logs = [];
+
+  return {
+    calls,
+    order,
+    logs,
+    setGit(next) {
+      git = { ...git, ...next };
+    },
+    deps: {
+      loadConfig: async () => {
+        order.push("config");
+        return baseConfig();
+      },
+      validateConfig: (config) => {
+        order.push("validate");
+        return validatePagesConfig(config);
+      },
+      getStatus: () => {
+        calls.statusReads += 1;
+        order.push(`git-${calls.statusReads}`);
+        return { ...git };
+      },
+      buildTarget: async () => {
+        calls.build += 1;
+        order.push("build");
+        if (overrides.buildResult) return overrides.buildResult;
+        return { ok: true, errors: [] };
+      },
+      scanAssets: async () => {
+        calls.scan += 1;
+        order.push("scan");
+        if (overrides.scanResult) return overrides.scanResult;
+        return { ok: true, errors: [], findings: {} };
+      },
+      runProcess: (command, args) => {
+        calls.process.push({ command, args });
+        order.push("wrangler");
+        return { status: 0, stdout: "", stderr: "" };
+      },
+      log: (message) => logs.push(String(message)),
+      logError: silentLog,
+    },
+  };
+}
+
+test("preview deploy rebuilds rather than trusting stale out/", async () => {
+  const harness = previewDeployHarness();
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(harness.calls.build, 1);
+  assert.ok(harness.calls.scan >= 1);
+  assert.ok(harness.order.indexOf("build") < harness.order.indexOf("scan"));
+  assert.equal(result.wranglerInvoked, false);
+});
+
+test("production-keyed artifact cannot be uploaded as Preview", async () => {
+  const harness = previewDeployHarness({
+    scanResult: {
+      ok: false,
+      errors: ["Built assets contain the production Turnstile sitekey."],
+      findings: {},
+    },
+  });
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "scan");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.build, 1);
+  assert.equal(harness.calls.process.length, 0);
+  assert.ok(!harness.order.includes("wrangler"));
+});
+
+test("missing Preview test sitekey stops before Wrangler", async () => {
+  const harness = previewDeployHarness({
+    scanResult: {
+      ok: false,
+      errors: ["Built assets do not contain the official Turnstile test sitekey."],
+      findings: {},
+    },
+  });
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "scan");
+  assert.equal(result.wranglerInvoked, false);
+});
+
+test("production sitekey in Preview output stops before Wrangler", async () => {
+  const harness = previewDeployHarness({
+    scanResult: {
+      ok: false,
+      errors: ["Built assets contain the production Turnstile sitekey."],
+      findings: {},
+    },
+  });
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.process.length, 0);
+});
+
+test("preview build failure stops before Wrangler", async () => {
+  const harness = previewDeployHarness({
+    buildResult: { ok: false, errors: ["npm run build failed with exit 1."] },
+  });
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "build");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.scan, 0);
+  assert.equal(harness.calls.process.length, 0);
+});
+
+test("preview asset-scan failure stops before Wrangler", async () => {
+  const harness = previewDeployHarness({
+    scanResult: {
+      ok: false,
+      errors: ["Built assets contain a Resend API key pattern."],
+      findings: {},
+    },
+  });
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "scan");
+  assert.equal(result.wranglerInvoked, false);
+});
+
+test("preview missing _routes.json stops before Wrangler", async () => {
+  const harness = previewDeployHarness({
+    scanResult: {
+      ok: false,
+      errors: ["_routes.json is missing from the build output."],
+      findings: {},
+    },
+  });
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "scan");
+  assert.equal(result.wranglerInvoked, false);
+});
+
+test("preview missing /api/contact route stops before Wrangler", async () => {
+  const harness = previewDeployHarness({
+    scanResult: {
+      ok: false,
+      errors: ["_routes.json must include the /api/contact Function route."],
+      findings: {},
+    },
+  });
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "scan");
+  assert.equal(result.wranglerInvoked, false);
+});
+
+test("dirty tracked tree blocks Preview before Wrangler", async () => {
+  const harness = previewDeployHarness({
+    initialGit: cleanPreviewGitStatus({
+      workingTreeDirty: true,
+      trackedChanges: ["README.md"],
+      trackedDirty: true,
+    }),
+  });
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "initial-git");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.build, 0);
+  assert.equal(harness.calls.process.length, 0);
+});
+
+test("non-ignored untracked file blocks Preview before Wrangler", async () => {
+  const harness = previewDeployHarness({
+    initialGit: cleanPreviewGitStatus({
+      workingTreeDirty: true,
+      untrackedFiles: ["functions/rogue.js"],
+    }),
+  });
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "initial-git");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.build, 0);
+});
+
+test("HEAD changing during Preview build blocks before Wrangler", async () => {
+  const harness = previewDeployHarness();
+  let reads = 0;
+  harness.deps.getStatus = () => {
+    reads += 1;
+    harness.order.push(`git-${reads}`);
+    if (reads === 1) return cleanPreviewGitStatus();
+    return cleanPreviewGitStatus({ head: "drifted" });
+  };
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "post-build-git");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.process.length, 0);
+  assert.ok(harness.order.indexOf("build") < harness.order.lastIndexOf("git-2"));
+});
+
+test("branch changing during Preview build blocks before Wrangler", async () => {
+  const harness = previewDeployHarness();
+  let reads = 0;
+  harness.deps.getStatus = () => {
+    reads += 1;
+    if (reads === 1) return cleanPreviewGitStatus();
+    return cleanPreviewGitStatus({ branch: PRODUCTION_BRANCH });
+  };
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "post-build-git");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.process.length, 0);
+});
+
+test("preview dry-run builds and verifies but never invokes Wrangler", async () => {
+  const harness = previewDeployHarness();
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.stage, "dry-run");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.build, 1);
+  assert.ok(harness.calls.scan >= 1);
+  assert.equal(harness.calls.process.length, 0);
+  assert.ok(
+    harness.logs.some((line) =>
+      line.includes("Preview artifact built and verified."),
+    ),
+  );
+  assert.ok(
+    harness.logs.some((line) =>
+      line.includes("Dry run complete. No Cloudflare request was made."),
+    ),
+  );
+  assert.deepEqual(
+    harness.order.filter((step) =>
+      ["build", "scan", "wrangler"].includes(step),
+    ),
+    ["build", "scan"],
+  );
+});
+
+test("successful Preview execution invokes Wrangler only after build scan and git verification", async () => {
+  const harness = previewDeployHarness();
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    dryRun: false,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.wranglerInvoked, true);
+  assert.equal(harness.calls.build, 1);
+  assert.ok(harness.calls.scan >= 1);
+  assert.equal(harness.calls.process.length, 1);
+  assert.equal(harness.calls.process[0].command, "npx");
+  assert.equal(harness.calls.process[0].args[0], "wrangler");
+  const buildIdx = harness.order.indexOf("build");
+  const scanIdx = harness.order.indexOf("scan");
+  const wranglerIdx = harness.order.indexOf("wrangler");
+  assert.ok(buildIdx >= 0 && scanIdx > buildIdx && wranglerIdx > scanIdx);
 });

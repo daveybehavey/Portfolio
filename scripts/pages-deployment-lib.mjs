@@ -737,6 +737,21 @@ export function assertPreviewDeployGuards(input) {
   if (input.productionBranch === PREVIEW_BRANCH) {
     errors.push("Preview branch must not be the Pages production branch.");
   }
+  const workingTreeDirty =
+    typeof input.workingTreeDirty === "boolean"
+      ? input.workingTreeDirty
+      : Boolean(input.trackedDirty);
+  if (workingTreeDirty) {
+    errors.push(
+      "Working tree must be clean (no tracked changes or non-ignored untracked files).",
+    );
+  }
+  if (input.expectedHead && input.head !== input.expectedHead) {
+    errors.push("Git HEAD must remain unchanged during the Preview deploy.");
+  }
+  if (input.configOk === false) {
+    errors.push("Committed Pages configuration validation must pass.");
+  }
   return { ok: errors.length === 0, errors };
 }
 
@@ -842,7 +857,7 @@ export async function buildPagesStaticExport({
       return {
         ok: false,
         errors: [
-          "Production build requires a clean working tree (no tracked changes or non-ignored untracked files).",
+          "Build requires a clean working tree (no tracked changes or non-ignored untracked files).",
         ],
       };
     }
@@ -893,6 +908,165 @@ export async function buildPagesStaticExport({
     `Pages ${target} build verification passed (sitekey embedded; secrets absent).`,
   );
   return { ok: true, errors: [], scan };
+}
+
+/**
+ * Preview deploy orchestration: git guards → build → rescan → post-build git → Wrangler.
+ * Injectable runners keep regression tests free of Cloudflare/network side effects.
+ */
+export async function runGuardedPreviewDeploy({
+  root,
+  dryRun = false,
+  commitMessage = "EuroDigital contact activation preview",
+  configPath,
+  loadConfig = loadPagesConfig,
+  validateConfig = validatePagesConfig,
+  getStatus = getGitStatus,
+  buildTarget = buildPagesStaticExport,
+  scanAssets = scanBuildAssets,
+  runProcess = defaultRunProcess,
+  log = console.log,
+  logError = console.error,
+}) {
+  const resolvedConfigPath = configPath || path.join(root, "wrangler.jsonc");
+  const config = await loadConfig(resolvedConfigPath);
+  const configReport = validateConfig(config);
+  log(formatValidationReport(configReport, "Pages configuration validation"));
+  if (!configReport.ok) {
+    return {
+      ok: false,
+      stage: "config",
+      wranglerInvoked: false,
+      errors: ["Committed Pages configuration validation failed."],
+    };
+  }
+
+  const initialGit = getStatus({ cwd: root });
+  const initialHead = initialGit.head;
+  const initialGuards = assertPreviewDeployGuards({
+    projectName: PROJECT_NAME,
+    gitBranch: initialGit.branch,
+    deployBranch: PREVIEW_BRANCH,
+    environment: "preview",
+    productionBranch: PRODUCTION_BRANCH,
+    workingTreeDirty: initialGit.workingTreeDirty,
+    head: initialGit.head,
+    configOk: true,
+  });
+  if (!initialGuards.ok) {
+    for (const error of initialGuards.errors) logError(`- ${error}`);
+    return {
+      ok: false,
+      stage: "initial-git",
+      wranglerInvoked: false,
+      errors: initialGuards.errors,
+    };
+  }
+
+  const buildResult = await buildTarget({
+    target: "preview",
+    root,
+    runProcess,
+    getStatus,
+    loadConfig,
+    validateConfig,
+    scanAssets,
+    skipConfigValidation: true,
+    requireCleanWorkingTree: true,
+    log,
+  });
+  if (!buildResult.ok) {
+    for (const error of buildResult.errors || []) logError(`- ${error}`);
+    return {
+      ok: false,
+      stage: "build",
+      wranglerInvoked: false,
+      errors: buildResult.errors || ["Preview build failed."],
+    };
+  }
+
+  const scan = await scanAssets(
+    path.join(root, "out"),
+    previewScanExpectations(),
+  );
+  if (!scan.ok) {
+    for (const error of scan.errors) logError(`- ${error}`);
+    return {
+      ok: false,
+      stage: "scan",
+      wranglerInvoked: false,
+      errors: scan.errors,
+    };
+  }
+
+  const postGit = getStatus({ cwd: root });
+  const postGuards = assertPreviewDeployGuards({
+    projectName: PROJECT_NAME,
+    gitBranch: postGit.branch,
+    deployBranch: PREVIEW_BRANCH,
+    environment: "preview",
+    productionBranch: PRODUCTION_BRANCH,
+    workingTreeDirty: postGit.workingTreeDirty,
+    head: postGit.head,
+    expectedHead: initialHead,
+    configOk: true,
+  });
+  if (!postGuards.ok) {
+    for (const error of postGuards.errors) logError(`- ${error}`);
+    return {
+      ok: false,
+      stage: "post-build-git",
+      wranglerInvoked: false,
+      errors: postGuards.errors,
+    };
+  }
+
+  log("Preview artifact built and verified.");
+
+  const wranglerArgs = buildWranglerDeployArgs({
+    target: "preview",
+    commitHash: initialHead,
+    commitMessage,
+    commitDirty: false,
+  });
+  log(`Prepared Wrangler command: wrangler ${wranglerArgs.join(" ")}`);
+  log("Target environment: preview");
+  log(`Deploy branch: ${PREVIEW_BRANCH}`);
+  log(`Commit hash: ${initialHead}`);
+
+  if (dryRun) {
+    log("Dry run complete. No Cloudflare request was made.");
+    return {
+      ok: true,
+      stage: "dry-run",
+      wranglerInvoked: false,
+      wranglerArgs,
+      errors: [],
+    };
+  }
+
+  const result = runProcess("npx", ["wrangler", ...wranglerArgs], {
+    cwd: root,
+    env: process.env,
+  });
+  if (result.status !== 0) {
+    return {
+      ok: false,
+      stage: "wrangler",
+      wranglerInvoked: true,
+      wranglerArgs,
+      status: result.status,
+      errors: [`Wrangler exited with status ${result.status}.`],
+    };
+  }
+  return {
+    ok: true,
+    stage: "wrangler",
+    wranglerInvoked: true,
+    wranglerArgs,
+    status: result.status,
+    errors: [],
+  };
 }
 
 /**
