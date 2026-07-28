@@ -65,6 +65,17 @@ TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
 
 These are public testing credentials, not production credentials. Never use them in production.
 
+The official always-pass test sitekey produces Cloudflare’s documented dummy token (`XXXX.DUMMY.TOKEN.XXXX`). The contact handler still sends that token to Cloudflare Siteverify and requires `success: true`. Dummy Siteverify responses may return non-production hostname/action metadata (for example `hostname: "example.com"` and a missing or non-`contact` action). Those metadata fields are **not** guaranteed to equal `127.0.0.1` / `contact`.
+
+The application skips **only** the hostname and action metadata checks when **all four** safeguards match:
+
+1. exact official always-pass test secret;
+2. exact official dummy token;
+3. sender mailbox `onboarding@resend.dev`;
+4. recipient mailbox `delivered@resend.dev`.
+
+Any other combination keeps the strict production rules: non-empty hostname, hostname in `TURNSTILE_ALLOWED_HOSTNAMES`, and action exactly `contact`. Production preflight rejects all documented Cloudflare test credentials.
+
 Production requires a separate Turnstile widget restricted to the exact production hostnames. Do not add `localhost` or preview hosts to the production widget.
 
 ## Phase 4 — local configuration preflight

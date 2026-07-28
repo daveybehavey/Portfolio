@@ -3,6 +3,11 @@ const TURNSTILE_ENDPOINT = "https://challenges.cloudflare.com/turnstile/v0/sitev
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const CONTACT_ACTION = "contact";
 const EXTERNAL_REQUEST_TIMEOUT_MS = 8_000;
+const TURNSTILE_ALWAYS_PASS_TEST_SECRET =
+  "1x0000000000000000000000000000000AA";
+const TURNSTILE_DUMMY_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
+const RESEND_TEST_SENDER = "onboarding@resend.dev";
+const RESEND_TEST_RECIPIENT = "delivered@resend.dev";
 
 const PROJECT_TYPES = new Map([
   ["one-page", "One-Page Launch"],
@@ -88,6 +93,29 @@ function getConfig(env) {
 
 function cleanText(value) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function extractMailbox(value) {
+  const text = cleanText(value);
+  if (!text || /[\r\n]/.test(text)) {
+    return "";
+  }
+
+  const angleMatch = text.match(/<([^<>]+)>\s*$/);
+  const mailbox = cleanText(angleMatch ? angleMatch[1] : text).toLowerCase();
+  if (!mailbox || /[\r\n<>]/.test(mailbox) || !isEmail(mailbox)) {
+    return "";
+  }
+  return mailbox;
+}
+
+function isSafeTurnstileDummyTest({ token, config }) {
+  return (
+    token === TURNSTILE_DUMMY_TOKEN &&
+    config.turnstileSecret === TURNSTILE_ALWAYS_PASS_TEST_SECRET &&
+    extractMailbox(config.fromEmail) === RESEND_TEST_SENDER &&
+    extractMailbox(config.toEmail) === RESEND_TEST_RECIPIENT
+  );
 }
 
 function isEmail(value) {
@@ -279,6 +307,14 @@ async function verifyTurnstile({ token, remoteIp, config, fetchImpl }) {
       ok: false,
       codes: Array.isArray(result?.["error-codes"]) ? result["error-codes"] : [],
     };
+  }
+
+  // Official Cloudflare dummy tokens still pass Siteverify, but their returned
+  // hostname/action metadata does not match production widget configuration.
+  // Skip only those metadata checks when the exact documented non-inbox test
+  // configuration is in use. Siteverify success remains mandatory.
+  if (isSafeTurnstileDummyTest({ token, config })) {
+    return { ok: true, dummyTestPath: true };
   }
 
   const hostname = cleanText(result.hostname).toLowerCase();
