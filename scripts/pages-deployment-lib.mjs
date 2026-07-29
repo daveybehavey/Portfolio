@@ -9,12 +9,24 @@ export const OUTPUT_DIR = "./out";
 export const PRODUCTION_BRANCH = "main";
 export const PREVIEW_BRANCH = "contact-preview";
 export const COMPATIBILITY_DATE = "2026-04-25";
-export const ROLLBACK_DEPLOYMENT_ID = "f0ddd72c-3740-4340-a9f7-4e98b63cf807";
 export const CONTACT_FUNCTION_ROUTE = "/api/contact";
+export const CONTACT_MAILTO_HREF = "mailto:contact@eurodigital.ca";
+export const ONLINE_FORM_DISABLED_MESSAGE =
+  "The online form is not configured in this build. Use the email link instead.";
 export const DEFAULT_PREVIEW_COMMIT_MESSAGE =
   "EuroDigital contact activation preview";
 export const DEFAULT_PRODUCTION_COMMIT_MESSAGE =
   "EuroDigital production Pages deploy";
+export const DEFAULT_PRODUCTION_DISABLE_COMMIT_MESSAGE =
+  "EuroDigital production contact form disable";
+
+/** Cloudflare Pages deployment UUID shape (hex groups). */
+export const DEPLOYMENT_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isValidDeploymentId(value) {
+  return typeof value === "string" && DEPLOYMENT_ID_PATTERN.test(value);
+}
 
 export const PRODUCTION_SITE_KEY = "0x4AAAAAAEAJbd2XaAk7ZRBR";
 export const PREVIEW_SITE_KEY = "1x00000000000000000000AA";
@@ -122,6 +134,9 @@ export function parsePagesDeployArgs(argv) {
     expectedSha: null,
     authorizeProductionDeploy: false,
     commitMessage: null,
+    rollbackDeploymentId: null,
+    disableContactForm: false,
+    authorizeContactFormDisable: false,
     help: false,
   };
 
@@ -159,6 +174,23 @@ export function parsePagesDeployArgs(argv) {
         throw new Error("--commit-message requires a value.");
       }
       options.commitMessage = value;
+    } else if (arg === "--rollback-deployment-id") {
+      options.rollbackDeploymentId = requireOptionValue(
+        list,
+        i,
+        "--rollback-deployment-id",
+      );
+      i += 1;
+    } else if (arg.startsWith("--rollback-deployment-id=")) {
+      const value = arg.slice("--rollback-deployment-id=".length);
+      if (typeof value !== "string" || value.trim() === "") {
+        throw new Error("--rollback-deployment-id requires a value.");
+      }
+      options.rollbackDeploymentId = value;
+    } else if (arg === "--disable-contact-form") {
+      options.disableContactForm = true;
+    } else if (arg === "--authorize-contact-form-disable") {
+      options.authorizeContactFormDisable = true;
     } else if (arg === "--help" || arg === "-h") {
       options.help = true;
     } else {
@@ -166,7 +198,65 @@ export function parsePagesDeployArgs(argv) {
     }
   }
 
-  return options;
+  return finalizePagesDeployArgs(options);
+}
+
+/**
+ * Cross-option validation for deploy CLI args. Fail closed before any
+ * repository, Git, build, Wrangler, or provider work.
+ */
+export function finalizePagesDeployArgs(options) {
+  const next = { ...options };
+
+  if (next.help) {
+    return next;
+  }
+
+  if (next.target === "preview") {
+    if (next.rollbackDeploymentId) {
+      throw new Error(
+        "--rollback-deployment-id is only valid for Production deployments.",
+      );
+    }
+    if (next.disableContactForm || next.authorizeContactFormDisable) {
+      throw new Error(
+        "Contact-form disable mode is only valid for Production deployments.",
+      );
+    }
+    return next;
+  }
+
+  if (next.target === "production") {
+    if (!next.rollbackDeploymentId) {
+      throw new Error("--rollback-deployment-id is required for Production.");
+    }
+    if (!isValidDeploymentId(next.rollbackDeploymentId)) {
+      throw new Error(
+        "--rollback-deployment-id must be a Cloudflare deployment UUID.",
+      );
+    }
+    if (next.disableContactForm !== next.authorizeContactFormDisable) {
+      throw new Error(
+        "--disable-contact-form and --authorize-contact-form-disable must be supplied together.",
+      );
+    }
+    return next;
+  }
+
+  if (next.rollbackDeploymentId) {
+    if (!isValidDeploymentId(next.rollbackDeploymentId)) {
+      throw new Error(
+        "--rollback-deployment-id must be a Cloudflare deployment UUID.",
+      );
+    }
+  }
+  if (next.disableContactForm !== next.authorizeContactFormDisable) {
+    throw new Error(
+      "--disable-contact-form and --authorize-contact-form-disable must be supplied together.",
+    );
+  }
+
+  return next;
 }
 
 function check(name, status, message) {
@@ -934,6 +1024,8 @@ export async function scanBuildAssets(outDir, expectations) {
     productionSiteKeyFiles: [],
     resendKeyFiles: [],
     turnstileSecretShapedFiles: [],
+    mailtoFallbackFiles: [],
+    onlineFormDisabledMessageFiles: [],
   };
 
   for (const filePath of files) {
@@ -965,6 +1057,12 @@ export async function scanBuildAssets(outDir, expectations) {
         break;
       }
     }
+    if (text.includes(CONTACT_MAILTO_HREF)) {
+      findings.mailtoFallbackFiles.push(relative);
+    }
+    if (text.includes(ONLINE_FORM_DISABLED_MESSAGE)) {
+      findings.onlineFormDisabledMessageFiles.push(relative);
+    }
   }
 
   const errors = [];
@@ -994,6 +1092,22 @@ export async function scanBuildAssets(outDir, expectations) {
   }
   if (findings.turnstileSecretShapedFiles.length > 0) {
     errors.push("Built assets contain a Turnstile secret test value.");
+  }
+  if (
+    expectations.requireMailtoFallback &&
+    findings.mailtoFallbackFiles.length < 1
+  ) {
+    errors.push(
+      `Built assets must retain the direct ${CONTACT_MAILTO_HREF} fallback.`,
+    );
+  }
+  if (
+    expectations.requireOnlineFormDisabledMessaging &&
+    findings.onlineFormDisabledMessageFiles.length < 1
+  ) {
+    errors.push(
+      "Built assets must retain fail-closed messaging when the online form is disabled.",
+    );
   }
 
   const routesPath = path.join(absoluteOut, "_routes.json");
@@ -1111,6 +1225,20 @@ export function productionScanExpectations() {
     requireProductionSiteKey: true,
     forbidProductionSiteKey: false,
     requireContactRoute: true,
+    requireMailtoFallback: true,
+    requireOnlineFormDisabledMessaging: false,
+  };
+}
+
+export function productionDisabledScanExpectations() {
+  return {
+    requireTestSiteKey: false,
+    forbidTestSiteKey: true,
+    requireProductionSiteKey: false,
+    forbidProductionSiteKey: true,
+    requireContactRoute: true,
+    requireMailtoFallback: true,
+    requireOnlineFormDisabledMessaging: true,
   };
 }
 
@@ -1121,16 +1249,21 @@ export function previewScanExpectations() {
     requireProductionSiteKey: false,
     forbidProductionSiteKey: true,
     requireContactRoute: true,
+    requireMailtoFallback: true,
+    requireOnlineFormDisabledMessaging: false,
   };
 }
 
 /**
  * Build and verify the Pages static export for preview or production.
  * Shared by pages-build.mjs and the production deploy flow.
+ * Disable mode blanks NEXT_PUBLIC_TURNSTILE_SITE_KEY only for the build process;
+ * committed wrangler.jsonc Production bindings are never modified.
  */
 export async function buildPagesStaticExport({
   target,
   root,
+  contactFormMode = "enabled",
   runProcess = defaultRunProcess,
   getStatus = getGitStatus,
   loadConfig = loadPagesConfig,
@@ -1144,6 +1277,18 @@ export async function buildPagesStaticExport({
     return {
       ok: false,
       errors: ['target must be "preview" or "production".'],
+    };
+  }
+  if (!["enabled", "disabled"].includes(contactFormMode)) {
+    return {
+      ok: false,
+      errors: ['contactFormMode must be "enabled" or "disabled".'],
+    };
+  }
+  if (contactFormMode === "disabled" && target !== "production") {
+    return {
+      ok: false,
+      errors: ["Contact-form disable mode is only valid for Production builds."],
     };
   }
 
@@ -1168,13 +1313,24 @@ export async function buildPagesStaticExport({
     }
   }
 
-  const siteKey = target === "preview" ? PREVIEW_SITE_KEY : PRODUCTION_SITE_KEY;
+  let siteKey;
+  if (target === "preview") {
+    siteKey = PREVIEW_SITE_KEY;
+  } else if (contactFormMode === "disabled") {
+    siteKey = "";
+  } else {
+    siteKey = PRODUCTION_SITE_KEY;
+  }
   const env = {
     ...process.env,
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: siteKey,
   };
 
-  log(`Building static export for ${target}...`);
+  const buildLabel =
+    target === "production" && contactFormMode === "disabled"
+      ? "production (contact form disabled)"
+      : target;
+  log(`Building static export for ${buildLabel}...`);
   const buildResult = runProcess("npm", ["run", "build"], {
     cwd: root,
     env,
@@ -1183,6 +1339,7 @@ export async function buildPagesStaticExport({
     return {
       ok: false,
       errors: [`npm run build failed with exit ${buildResult.status}.`],
+      contactFormMode,
     };
   }
 
@@ -1197,22 +1354,27 @@ export async function buildPagesStaticExport({
       errors: [
         `verify-static-export failed with exit ${verifyResult.status}.`,
       ],
+      contactFormMode,
     };
   }
 
   const expectations =
     target === "preview"
       ? previewScanExpectations()
-      : productionScanExpectations();
+      : contactFormMode === "disabled"
+        ? productionDisabledScanExpectations()
+        : productionScanExpectations();
   const scan = await scanAssets(path.join(root, "out"), expectations);
   if (!scan.ok) {
-    return { ok: false, errors: scan.errors, scan };
+    return { ok: false, errors: scan.errors, scan, contactFormMode };
   }
 
   log(
-    `Pages ${target} build verification passed (sitekey embedded; secrets absent).`,
+    contactFormMode === "disabled"
+      ? "Pages production disable build verification passed (sitekey absent; mailto retained; secrets absent)."
+      : `Pages ${target} build verification passed (sitekey embedded; secrets absent).`,
   );
-  return { ok: true, errors: [], scan };
+  return { ok: true, errors: [], scan, contactFormMode };
 }
 
 /**
@@ -1379,13 +1541,19 @@ export async function runGuardedPreviewDeploy({
  * config → refresh origin/main → git guards → build → scan → refresh origin/main →
  * post-build git guards → Wrangler.
  * Injectable runners keep regression tests free of Cloudflare/network side effects.
+ *
+ * contactFormMode "disabled" blanks NEXT_PUBLIC_TURNSTILE_SITE_KEY only for the
+ * generated artifact; committed wrangler.jsonc Production bindings stay unchanged.
  */
 export async function runGuardedProductionDeploy({
   root,
   expectedSha,
   authorizeProductionDeploy = false,
   dryRun = false,
-  commitMessage = DEFAULT_PRODUCTION_COMMIT_MESSAGE,
+  commitMessage,
+  rollbackDeploymentId,
+  disableContactForm = false,
+  authorizeContactFormDisable = false,
   configPath,
   loadConfig = loadPagesConfig,
   validateConfig = validatePagesConfig,
@@ -1397,6 +1565,41 @@ export async function runGuardedProductionDeploy({
   log = console.log,
   logError = console.error,
 }) {
+  const contactFormMode =
+    disableContactForm && authorizeContactFormDisable ? "disabled" : "enabled";
+  const resolvedCommitMessage =
+    commitMessage ||
+    (contactFormMode === "disabled"
+      ? DEFAULT_PRODUCTION_DISABLE_COMMIT_MESSAGE
+      : DEFAULT_PRODUCTION_COMMIT_MESSAGE);
+
+  if (disableContactForm !== authorizeContactFormDisable) {
+    return {
+      ok: false,
+      stage: "config",
+      wranglerInvoked: false,
+      remoteRefreshCount: 0,
+      contactFormMode,
+      rollbackDeploymentId: rollbackDeploymentId || null,
+      errors: [
+        "--disable-contact-form and --authorize-contact-form-disable must be supplied together.",
+      ],
+    };
+  }
+  if (!rollbackDeploymentId || !isValidDeploymentId(rollbackDeploymentId)) {
+    return {
+      ok: false,
+      stage: "config",
+      wranglerInvoked: false,
+      remoteRefreshCount: 0,
+      contactFormMode,
+      rollbackDeploymentId: rollbackDeploymentId || null,
+      errors: [
+        "A valid operator-supplied --rollback-deployment-id is required for Production.",
+      ],
+    };
+  }
+
   const resolvedConfigPath = configPath || path.join(root, "wrangler.jsonc");
   const config = await loadConfig(resolvedConfigPath);
   const configReport = validateConfig(config);
@@ -1407,6 +1610,8 @@ export async function runGuardedProductionDeploy({
       stage: "config",
       wranglerInvoked: false,
       remoteRefreshCount: 0,
+      contactFormMode,
+      rollbackDeploymentId,
       errors: ["Committed Pages configuration validation failed."],
     };
   }
@@ -1419,6 +1624,8 @@ export async function runGuardedProductionDeploy({
       stage: "initial-fetch",
       wranglerInvoked: false,
       remoteRefreshCount: 1,
+      contactFormMode,
+      rollbackDeploymentId,
       errors: initialFetch.errors || ["Unable to refresh origin/main."],
     };
   }
@@ -1443,6 +1650,8 @@ export async function runGuardedProductionDeploy({
       stage: "initial-git",
       wranglerInvoked: false,
       remoteRefreshCount: 1,
+      contactFormMode,
+      rollbackDeploymentId,
       errors: initialGuards.errors,
     };
   }
@@ -1450,6 +1659,7 @@ export async function runGuardedProductionDeploy({
   const buildResult = await buildTarget({
     target: "production",
     root,
+    contactFormMode,
     runProcess,
     getStatus,
     loadConfig,
@@ -1466,14 +1676,17 @@ export async function runGuardedProductionDeploy({
       stage: "build",
       wranglerInvoked: false,
       remoteRefreshCount: 1,
+      contactFormMode,
+      rollbackDeploymentId,
       errors: buildResult.errors || ["Production build failed."],
     };
   }
 
-  const scan = await scanAssets(
-    path.join(root, "out"),
-    productionScanExpectations(),
-  );
+  const scanExpectations =
+    contactFormMode === "disabled"
+      ? productionDisabledScanExpectations()
+      : productionScanExpectations();
+  const scan = await scanAssets(path.join(root, "out"), scanExpectations);
   if (!scan.ok) {
     for (const error of scan.errors) logError(`- ${error}`);
     return {
@@ -1481,6 +1694,8 @@ export async function runGuardedProductionDeploy({
       stage: "scan",
       wranglerInvoked: false,
       remoteRefreshCount: 1,
+      contactFormMode,
+      rollbackDeploymentId,
       errors: scan.errors,
     };
   }
@@ -1493,6 +1708,8 @@ export async function runGuardedProductionDeploy({
       stage: "post-build-fetch",
       wranglerInvoked: false,
       remoteRefreshCount: 2,
+      contactFormMode,
+      rollbackDeploymentId,
       errors: postFetch.errors || ["Unable to refresh origin/main."],
     };
   }
@@ -1517,23 +1734,30 @@ export async function runGuardedProductionDeploy({
       stage: "post-build-git",
       wranglerInvoked: false,
       remoteRefreshCount: 2,
+      contactFormMode,
+      rollbackDeploymentId,
       errors: postGuards.errors,
     };
   }
 
-  log("Production artifact built and verified.");
+  if (contactFormMode === "disabled") {
+    log("Production contact form disable artifact built and verified.");
+  } else {
+    log("Production artifact built and verified.");
+  }
 
   const wranglerArgs = buildWranglerDeployArgs({
     target: "production",
     commitHash: expectedSha,
-    commitMessage,
+    commitMessage: resolvedCommitMessage,
     commitDirty: false,
   });
   log(`Prepared Wrangler command: wrangler ${wranglerArgs.join(" ")}`);
   log(`Target environment: production`);
   log(`Deploy branch: ${PRODUCTION_BRANCH}`);
   log(`Commit hash: ${expectedSha}`);
-  log(`Rollback baseline deployment: ${ROLLBACK_DEPLOYMENT_ID}`);
+  log(`Contact form mode: ${contactFormMode}`);
+  log(`Operator-supplied rollback deployment: ${rollbackDeploymentId}`);
 
   if (dryRun) {
     log("Dry run complete. No Cloudflare request was made.");
@@ -1542,6 +1766,8 @@ export async function runGuardedProductionDeploy({
       stage: "dry-run",
       wranglerInvoked: false,
       remoteRefreshCount: 2,
+      contactFormMode,
+      rollbackDeploymentId,
       wranglerArgs,
       errors: [],
     };
@@ -1557,6 +1783,8 @@ export async function runGuardedProductionDeploy({
       stage: "wrangler",
       wranglerInvoked: true,
       remoteRefreshCount: 2,
+      contactFormMode,
+      rollbackDeploymentId,
       wranglerArgs,
       status: result.status,
       errors: [`Wrangler exited with status ${result.status}.`],
@@ -1567,6 +1795,8 @@ export async function runGuardedProductionDeploy({
     stage: "wrangler",
     wranglerInvoked: true,
     remoteRefreshCount: 2,
+    contactFormMode,
+    rollbackDeploymentId,
     wranglerArgs,
     status: result.status,
     errors: [],

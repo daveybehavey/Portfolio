@@ -276,18 +276,20 @@ Immediately before production deployment, record:
 - rollback deployment identifier
 - explicit authorization for the production deployment
 
-Then use only the guarded production path:
+Then use only the guarded production path. Immediately before the run: read the current Production deployment ID from Cloudflare, record it in the provider audit, confirm it is the deployment to restore if the new deployment fails, then pass it as `--rollback-deployment-id`. Obtain immediate authorization, then:
 
 ```powershell
-npm run pages:production:preflight
-npm run pages:production:deploy -- --expected-sha <exact-main-sha> --authorize-production-deploy
+npm run pages:production:preflight -- --expected-sha <exact-main-sha> --rollback-deployment-id <current-production-deployment-id> --authorize-production-deploy
+npm run pages:production:deploy -- --expected-sha <exact-main-sha> --rollback-deployment-id <current-production-deployment-id> --authorize-production-deploy
 ```
 
-`npm run pages:production:build` remains available for local inspection, but it is **not** authorization or integrity evidence for deployment. Production deploy always creates and verifies its own artifact before Wrangler: validate `wrangler.jsonc`, refresh live `origin/main` (read-only fetch that updates only `refs/remotes/origin/main`; cached remote-tracking state is not accepted), enforce a clean working tree (no tracked changes and no non-ignored untracked files) with `HEAD` equal to the freshly fetched `origin/main` and `--expected-sha`, run the production build, rescan `out/` (production sitekey present; test sitekeys and secret-shaped values absent; `_routes.json` includes `/api/contact`), refresh live `origin/main` again, re-check Git state (remote advancement or force-push during preparation fails closed), then invoke Wrangler. Ignored build output such as `out/` is permitted because Git omits it from porcelain status. Do not add broad production-guard exceptions for local evidence directories — move them outside the repo or use a narrow local `.git/info/exclude` entry.
+`npm run pages:production:build` remains available for local inspection, but it is **not** authorization or integrity evidence for deployment. Production deploy always creates and verifies its own artifact before Wrangler: validate `wrangler.jsonc`, refresh live `origin/main` (read-only fetch that updates only `refs/remotes/origin/main`; cached remote-tracking state is not accepted), enforce a clean working tree (no tracked changes and no non-ignored untracked files) with `HEAD` equal to the freshly fetched `origin/main` and `--expected-sha`, run the production build, rescan `out/` (production sitekey present; test sitekeys and secret-shaped values absent; `_routes.json` includes `/api/contact`; mailto fallback retained), refresh live `origin/main` again, re-check Git state (remote advancement or force-push during preparation fails closed), then invoke Wrangler. Ignored build output such as `out/` is permitted because Git omits it from porcelain status. Do not add broad production-guard exceptions for local evidence directories — move them outside the repo or use a narrow local `.git/info/exclude` entry.
 
-The production deploy guard requires: branch `main`, clean working tree under that strengthened definition, live-refreshed `HEAD == origin/main`, matching `--expected-sha`, project `eurodigital-ca`, and the one-time `--authorize-production-deploy` flag. Preview deployment does not use the Production remote-main gate. Do not improvise a bare `wrangler pages deploy out` command.
+The production deploy guard requires: branch `main`, clean working tree under that strengthened definition, live-refreshed `HEAD == origin/main`, matching `--expected-sha`, operator-supplied `--rollback-deployment-id`, project `eurodigital-ca`, and the one-time `--authorize-production-deploy` flag. Preview deployment does not use the Production remote-main gate. Do not improvise a bare `wrangler pages deploy out` command.
 
-A production `--dry-run` exercises both live `origin/main` refreshes plus full artifact preparation and verification, and stops before any Cloudflare request. If remote `main` advances during the build, the dry-run fails rather than reporting success.
+A production `--dry-run` exercises both live `origin/main` refreshes plus full artifact preparation and verification, and stops before any Cloudflare request. If remote `main` advances during the build, the dry-run fails rather than reporting success. Dry-runs still require `--rollback-deployment-id`.
+
+After a successful deployment, the previous rollback ID is no longer the default for the next release. The next release must repeat the Cloudflare lookup.
 
 This repository does **not** claim Production secrets are already configured or that Production has been redeployed with the contact form.
 
@@ -320,15 +322,29 @@ Use the fastest safe rollback appropriate to the failure:
 
 ### Disable online submission while preserving contact
 
-Remove or blank `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in the production build environment and redeploy the last reviewed source. The form will fail closed and retain the direct email link.
+Do **not** edit committed `wrangler.jsonc` or manually blank Production bindings during an incident. Use the guarded emergency disable mode, which blanks `NEXT_PUBLIC_TURNSTILE_SITE_KEY` only for the generated artifact while keeping the direct email fallback:
+
+```powershell
+npm run pages:production:preflight -- `
+  --expected-sha <exact-main-sha> `
+  --rollback-deployment-id <current-production-deployment-id> `
+  --disable-contact-form `
+  --authorize-contact-form-disable `
+  --authorize-production-deploy
+
+npm run pages:production:deploy -- `
+  --expected-sha <exact-main-sha> `
+  --rollback-deployment-id <current-production-deployment-id> `
+  --disable-contact-form `
+  --authorize-contact-form-disable `
+  --authorize-production-deploy
+```
+
+Both `--disable-contact-form` and `--authorize-contact-form-disable` are required together. Disable mode still requires reviewed `main`, the exact SHA, live `origin/main` refreshes, a clean working tree, the operator-supplied rollback deployment ID, and `--authorize-production-deploy`. Preview cannot use disable mode.
 
 ### Revert the deployment
 
-Restore the recorded prior Cloudflare Pages deployment. Current rollback baseline:
-
-```text
-f0ddd72c-3740-4340-a9f7-4e98b63cf807
-```
+Restore the operator-supplied prior Cloudflare Pages deployment recorded for that run via `--rollback-deployment-id`. Capture the current Production deployment ID from Cloudflare immediately before each Production deployment; do not treat any source constant as a permanent rollback baseline. The initial activation may use `f0ddd72c-3740-4340-a9f7-4e98b63cf807` only when that ID is confirmed to be the current Production deployment immediately before the run.
 
 Verify the homepage, projects, privacy page, and mailto fallback afterward.
 

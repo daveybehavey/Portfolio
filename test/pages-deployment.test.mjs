@@ -25,12 +25,22 @@ import {
   PROJECT_NAME,
   refreshOriginMain,
   isValidCommitSha,
+  isValidDeploymentId,
+  productionDisabledScanExpectations,
+  productionScanExpectations,
+  previewScanExpectations,
   resolveExecutable,
   runGuardedPreviewDeploy,
   runGuardedProductionDeploy,
   scanBuildAssets,
   validatePagesConfig,
+  CONTACT_MAILTO_HREF,
+  ONLINE_FORM_DISABLED_MESSAGE,
+  buildPagesStaticExport,
 } from "../scripts/pages-deployment-lib.mjs";
+
+const SAMPLE_ROLLBACK_DEPLOYMENT_ID = "f0ddd72c-3740-4340-a9f7-4e98b63cf807";
+const OTHER_ROLLBACK_DEPLOYMENT_ID = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
 
 function baseConfig(overrides = {}) {
   const base = {
@@ -90,12 +100,24 @@ function cleanGitStatus(overrides = {}) {
 
 function silentLog() {}
 
-async function writeMinimalOut(root, { siteKey, includeRoutes = true, includeContact = true }) {
+async function writeMinimalOut(
+  root,
+  {
+    siteKey,
+    includeRoutes = true,
+    includeContact = true,
+    includeMailto = true,
+    includeDisabledMessage = false,
+  },
+) {
   const outDir = path.join(root, "out");
   await mkdir(outDir, { recursive: true });
+  const extras = [];
+  if (includeMailto) extras.push(`<a href="${CONTACT_MAILTO_HREF}">email</a>`);
+  if (includeDisabledMessage) extras.push(`<p>${ONLINE_FORM_DISABLED_MESSAGE}</p>`);
   await writeFile(
     path.join(outDir, "index.html"),
-    `<html><body data-sitekey="${siteKey}"></body></html>\n`,
+    `<html><body data-sitekey="${siteKey}">${extras.join("")}</body></html>\n`,
     "utf8",
   );
   if (includeRoutes) {
@@ -497,13 +519,10 @@ test("scanBuildAssets rejects preview sitekey and missing contact route for prod
   const root = await mkdtemp(path.join(tmpdir(), "pages-scan-"));
   try {
     await writeMinimalOut(root, { siteKey: PREVIEW_SITE_KEY });
-    const previewAsProd = await scanBuildAssets(path.join(root, "out"), {
-      requireTestSiteKey: false,
-      forbidTestSiteKey: true,
-      requireProductionSiteKey: true,
-      forbidProductionSiteKey: false,
-      requireContactRoute: true,
-    });
+    const previewAsProd = await scanBuildAssets(
+      path.join(root, "out"),
+      productionScanExpectations(),
+    );
     assert.equal(previewAsProd.ok, false);
     assert.ok(
       previewAsProd.errors.some((error) => error.includes("test sitekey")),
@@ -513,13 +532,10 @@ test("scanBuildAssets rejects preview sitekey and missing contact route for prod
       siteKey: PRODUCTION_SITE_KEY,
       includeContact: false,
     });
-    const missingContact = await scanBuildAssets(path.join(root, "out"), {
-      requireTestSiteKey: false,
-      forbidTestSiteKey: true,
-      requireProductionSiteKey: true,
-      forbidProductionSiteKey: false,
-      requireContactRoute: true,
-    });
+    const missingContact = await scanBuildAssets(
+      path.join(root, "out"),
+      productionScanExpectations(),
+    );
     assert.equal(missingContact.ok, false);
     assert.ok(
       missingContact.errors.some((error) => error.includes("/api/contact")),
@@ -571,18 +587,22 @@ function productionDeployHarness(overrides = {}) {
         order.push(`git-${calls.statusReads}`);
         return { ...git };
       },
-      buildTarget: async () => {
+      buildTarget: async (options = {}) => {
         calls.build += 1;
         order.push("build");
+        calls.buildModes = calls.buildModes || [];
+        calls.buildModes.push(options.contactFormMode || "enabled");
         if (typeof overrides.onBuild === "function") {
-          overrides.onBuild(harness);
+          overrides.onBuild(harness, options);
         }
         if (overrides.buildResult) return overrides.buildResult;
-        return { ok: true, errors: [] };
+        return { ok: true, errors: [], contactFormMode: options.contactFormMode || "enabled" };
       },
-      scanAssets: async () => {
+      scanAssets: async (outDir, expectations) => {
         calls.scan += 1;
         order.push("scan");
+        calls.scanExpectations = calls.scanExpectations || [];
+        calls.scanExpectations.push(expectations);
         if (overrides.scanResult) return overrides.scanResult;
         return { ok: true, errors: [], findings: {} };
       },
@@ -611,7 +631,8 @@ test("production deploy refuses preview-style out artifact before Wrangler", asy
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: false,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "scan");
@@ -627,7 +648,8 @@ test("production deploy rebuilds instead of trusting stale out/", async () => {
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, true);
   assert.equal(harness.calls.build, 1);
@@ -645,7 +667,8 @@ test("production build failure stops before Wrangler", async () => {
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "build");
@@ -665,7 +688,8 @@ test("production asset-scan failure stops before Wrangler", async () => {
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "scan");
@@ -684,7 +708,8 @@ test("missing _routes.json stops before Wrangler", async () => {
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "scan");
@@ -703,7 +728,8 @@ test("test Turnstile sitekey in production output stops before Wrangler", async 
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.wranglerInvoked, false);
@@ -721,7 +747,8 @@ test("missing production sitekey stops before Wrangler", async () => {
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.wranglerInvoked, false);
@@ -746,7 +773,8 @@ test("git HEAD changing between guards stops before Wrangler", async () => {
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "post-build-git");
@@ -761,7 +789,8 @@ test("production dry-run prepares artifact but makes no Cloudflare call", async 
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, true);
   assert.equal(result.stage, "dry-run");
@@ -788,7 +817,8 @@ test("successful guarded execution invokes Wrangler only after build scan and gi
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: false,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, true);
   assert.equal(result.wranglerInvoked, true);
@@ -819,7 +849,8 @@ test("untracked functions/rogue.js blocks production before Wrangler", async () 
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "initial-git");
@@ -839,7 +870,8 @@ test("arbitrary non-ignored untracked file blocks production before Wrangler", a
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.wranglerInvoked, false);
@@ -858,7 +890,8 @@ test("tracked modification blocks production before Wrangler", async () => {
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.wranglerInvoked, false);
@@ -870,7 +903,8 @@ test("missing authorization blocks production before Wrangler", async () => {
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: false,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "initial-git");
@@ -884,7 +918,8 @@ test("mismatched expected SHA blocks production before Wrangler", async () => {
     root: "/tmp/unused",
     expectedSha: "deadbeef",
     authorizeProductionDeploy: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "initial-git");
@@ -1392,7 +1427,8 @@ test("guarded dry-runs preserve process order and never invoke Wrangler", async 
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: true,
-    ...production.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...production.deps,
   });
   assert.equal(productionResult.ok, true);
   assert.equal(productionResult.wranglerInvoked, false);
@@ -1504,6 +1540,9 @@ test("parsePagesDeployArgs accepts valid Preview and Production dry-run shapes",
     expectedSha: null,
     authorizeProductionDeploy: false,
     commitMessage: null,
+    rollbackDeploymentId: null,
+    disableContactForm: false,
+    authorizeContactFormDisable: false,
     help: false,
   });
 
@@ -1513,6 +1552,8 @@ test("parsePagesDeployArgs accepts valid Preview and Production dry-run shapes",
     "production",
     "--expected-sha",
     sha,
+    "--rollback-deployment-id",
+    SAMPLE_ROLLBACK_DEPLOYMENT_ID,
     "--authorize-production-deploy",
     "--dry-run",
   ]);
@@ -1520,6 +1561,8 @@ test("parsePagesDeployArgs accepts valid Preview and Production dry-run shapes",
   assert.equal(production.expectedSha, sha);
   assert.equal(production.authorizeProductionDeploy, true);
   assert.equal(production.dryRun, true);
+  assert.equal(production.rollbackDeploymentId, SAMPLE_ROLLBACK_DEPLOYMENT_ID);
+  assert.equal(production.disableContactForm, false);
 });
 
 test("dangerous production argv with missing commit-message fails before build or Wrangler", async () => {
@@ -1557,8 +1600,9 @@ test("dangerous production argv with missing commit-message fails before build o
       authorizeProductionDeploy: options.authorizeProductionDeploy,
       dryRun: options.dryRun,
       commitMessage: options.commitMessage,
+          rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
       ...harness.deps,
-    });
+  });
   } catch (error) {
     parserRejected = /--commit-message requires a value/.test(
       error instanceof Error ? error.message : String(error),
@@ -1591,7 +1635,8 @@ test("initial live remote refresh happens before the first Production Git guard"
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, true);
   const fetchIdx = harness.order.indexOf("fetch-1");
@@ -1607,7 +1652,8 @@ test("second live remote refresh happens after build and scan", async () => {
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   const buildIdx = harness.order.indexOf("build");
   const scanIdx = harness.order.indexOf("scan");
@@ -1637,7 +1683,8 @@ test("initial fetch failure stops before build and Wrangler", async () => {
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: false,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "initial-fetch");
@@ -1659,7 +1706,8 @@ test("post-build fetch failure stops before Wrangler", async () => {
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: false,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "post-build-fetch");
@@ -1678,7 +1726,8 @@ test("missing origin stops before build", async () => {
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "initial-fetch");
@@ -1695,7 +1744,8 @@ test("missing remote main stops before build", async () => {
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "initial-fetch");
@@ -1725,7 +1775,8 @@ test("stale local origin/main that refreshes to another SHA blocks deployment", 
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: false,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "initial-git");
@@ -1746,7 +1797,8 @@ test("remote main advancing during the Production build blocks deployment", asyn
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "post-build-git");
@@ -1767,7 +1819,8 @@ test("remote force-push to another SHA blocks deployment", async () => {
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: false,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, false);
   assert.equal(result.stage, "post-build-git");
@@ -1882,7 +1935,8 @@ test("HEAD, refreshed origin/main, and --expected-sha must all match", async () 
     expectedSha: "different-expected",
     authorizeProductionDeploy: true,
     dryRun: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(mismatch.ok, false);
   assert.equal(mismatch.stage, "initial-git");
@@ -1896,7 +1950,8 @@ test("successful dry-run performs two refreshes and no Wrangler call", async () 
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: true,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, true);
   assert.equal(result.remoteRefreshCount, 2);
@@ -1922,7 +1977,8 @@ test("successful non-dry mocked flow invokes Wrangler only after fetch → guard
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
     dryRun: false,
-    ...harness.deps,
+        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      ...harness.deps,
   });
   assert.equal(result.ok, true);
   assert.equal(result.wranglerInvoked, true);
@@ -2034,4 +2090,519 @@ test("refreshOriginMain integration against local bare remotes without internet"
   } finally {
     await rm(base, { recursive: true, force: true });
   }
+});
+
+test("Production rejects missing --rollback-deployment-id", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "production",
+        "--expected-sha",
+        "a".repeat(40),
+        "--authorize-production-deploy",
+        "--dry-run",
+      ]),
+    /--rollback-deployment-id is required/,
+  );
+});
+
+test("parsePagesDeployArgs rejects --rollback-deployment-id --dry-run", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "production",
+        "--expected-sha",
+        "a".repeat(40),
+        "--rollback-deployment-id",
+        "--dry-run",
+        "--authorize-production-deploy",
+      ]),
+    /--rollback-deployment-id requires a value/,
+  );
+});
+
+test("parsePagesDeployArgs rejects empty --rollback-deployment-id=", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "production",
+        "--expected-sha",
+        "a".repeat(40),
+        "--rollback-deployment-id=",
+        "--authorize-production-deploy",
+      ]),
+    /--rollback-deployment-id requires a value/,
+  );
+});
+
+test("parsePagesDeployArgs rejects malformed rollback deployment IDs", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "production",
+        "--expected-sha",
+        "a".repeat(40),
+        "--rollback-deployment-id",
+        "not-a-uuid",
+        "--authorize-production-deploy",
+      ]),
+    /Cloudflare deployment UUID/,
+  );
+  assert.equal(isValidDeploymentId("not-a-uuid"), false);
+  assert.equal(isValidDeploymentId(SAMPLE_ROLLBACK_DEPLOYMENT_ID), true);
+});
+
+test("parsePagesDeployArgs accepts canonical and future rollback UUIDs", () => {
+  const first = parsePagesDeployArgs([
+    "--target",
+    "production",
+    "--expected-sha",
+    "a".repeat(40),
+    "--rollback-deployment-id",
+    SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+    "--authorize-production-deploy",
+  ]);
+  assert.equal(first.rollbackDeploymentId, SAMPLE_ROLLBACK_DEPLOYMENT_ID);
+
+  const second = parsePagesDeployArgs([
+    "--target",
+    "production",
+    "--expected-sha",
+    "a".repeat(40),
+    `--rollback-deployment-id=${OTHER_ROLLBACK_DEPLOYMENT_ID}`,
+    "--authorize-production-deploy",
+  ]);
+  assert.equal(second.rollbackDeploymentId, OTHER_ROLLBACK_DEPLOYMENT_ID);
+  assert.notEqual(second.rollbackDeploymentId, SAMPLE_ROLLBACK_DEPLOYMENT_ID);
+});
+
+test("Preview rejects --rollback-deployment-id", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "preview",
+        "--rollback-deployment-id",
+        SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+        "--dry-run",
+      ]),
+    /only valid for Production/,
+  );
+});
+
+test("disable mode requires --authorize-contact-form-disable", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "production",
+        "--expected-sha",
+        "a".repeat(40),
+        "--rollback-deployment-id",
+        SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+        "--disable-contact-form",
+        "--authorize-production-deploy",
+      ]),
+    /must be supplied together/,
+  );
+});
+
+test("disable authorization without disable mode fails", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "production",
+        "--expected-sha",
+        "a".repeat(40),
+        "--rollback-deployment-id",
+        SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+        "--authorize-contact-form-disable",
+        "--authorize-production-deploy",
+      ]),
+    /must be supplied together/,
+  );
+});
+
+test("disable mode is rejected for Preview", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "preview",
+        "--disable-contact-form",
+        "--authorize-contact-form-disable",
+        "--dry-run",
+      ]),
+    /only valid for Production/,
+  );
+});
+
+test("parser failure for rollback ID invokes no Git build or Wrangler", async () => {
+  let buildInvoked = false;
+  let wranglerInvoked = false;
+  let parserRejected = false;
+  try {
+    const options = parsePagesDeployArgs([
+      "--target",
+      "production",
+      "--expected-sha",
+      "a".repeat(40),
+      "--rollback-deployment-id",
+      "--dry-run",
+      "--authorize-production-deploy",
+    ]);
+    const harness = productionDeployHarness();
+    harness.deps.buildTarget = async () => {
+      buildInvoked = true;
+      return { ok: true, errors: [] };
+    };
+    harness.deps.runProcess = () => {
+      wranglerInvoked = true;
+      return { status: 0, stdout: "", stderr: "" };
+    };
+    await runGuardedProductionDeploy({
+      root: "/tmp/unused",
+      expectedSha: options.expectedSha,
+      authorizeProductionDeploy: options.authorizeProductionDeploy,
+      rollbackDeploymentId: options.rollbackDeploymentId,
+      dryRun: options.dryRun,
+      ...harness.deps,
+    });
+  } catch (error) {
+    parserRejected = /--rollback-deployment-id requires a value/.test(
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+  assert.equal(parserRejected, true);
+  assert.equal(buildInvoked, false);
+  assert.equal(wranglerInvoked, false);
+});
+
+test("disabled production scan rejects production and test sitekeys", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "pages-disabled-scan-"));
+  try {
+    await writeMinimalOut(root, {
+      siteKey: PRODUCTION_SITE_KEY,
+      includeMailto: true,
+      includeDisabledMessage: true,
+    });
+    const withProd = await scanBuildAssets(
+      path.join(root, "out"),
+      productionDisabledScanExpectations(),
+    );
+    assert.equal(withProd.ok, false);
+    assert.ok(withProd.errors.some((e) => e.includes("production Turnstile")));
+
+    await writeMinimalOut(root, {
+      siteKey: PREVIEW_SITE_KEY,
+      includeMailto: true,
+      includeDisabledMessage: true,
+    });
+    const withTest = await scanBuildAssets(
+      path.join(root, "out"),
+      productionDisabledScanExpectations(),
+    );
+    assert.equal(withTest.ok, false);
+    assert.ok(withTest.errors.some((e) => e.includes("test sitekey")));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("disabled production scan requires mailto fallback and disabled messaging", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "pages-disabled-mail-"));
+  try {
+    await writeMinimalOut(root, {
+      siteKey: "",
+      includeMailto: true,
+      includeDisabledMessage: true,
+    });
+    const okScan = await scanBuildAssets(
+      path.join(root, "out"),
+      productionDisabledScanExpectations(),
+    );
+    assert.equal(okScan.ok, true, JSON.stringify(okScan.errors));
+    assert.ok(okScan.findings.mailtoFallbackFiles.length > 0);
+    assert.ok(okScan.findings.onlineFormDisabledMessageFiles.length > 0);
+    assert.equal(okScan.findings.productionSiteKeyFiles.length, 0);
+    assert.equal(okScan.findings.testSiteKeyFiles.length, 0);
+
+    await writeMinimalOut(root, {
+      siteKey: "",
+      includeMailto: false,
+      includeDisabledMessage: true,
+    });
+    const noMail = await scanBuildAssets(
+      path.join(root, "out"),
+      productionDisabledScanExpectations(),
+    );
+    assert.equal(noMail.ok, false);
+    assert.ok(noMail.errors.some((e) => e.includes("mailto:")));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("normal Production builds request enabled sitekey mode", async () => {
+  const harness = productionDeployHarness();
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    rollbackDeploymentId: SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.contactFormMode, "enabled");
+  assert.deepEqual(harness.calls.buildModes, ["enabled"]);
+  assert.equal(
+    harness.calls.scanExpectations.at(-1).requireProductionSiteKey,
+    true,
+  );
+});
+
+test("disabled Production builds request blank sitekey mode and disabled scan", async () => {
+  const harness = productionDeployHarness();
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    rollbackDeploymentId: SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+    disableContactForm: true,
+    authorizeContactFormDisable: true,
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.contactFormMode, "disabled");
+  assert.deepEqual(harness.calls.buildModes, ["disabled"]);
+  assert.equal(
+    harness.calls.scanExpectations.at(-1).forbidProductionSiteKey,
+    true,
+  );
+  assert.equal(
+    harness.calls.scanExpectations.at(-1).requireMailtoFallback,
+    true,
+  );
+  assert.ok(
+    harness.logs.some((line) =>
+      line.includes("Production contact form disable artifact built and verified."),
+    ),
+  );
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(result.remoteRefreshCount, 2);
+});
+
+test("stale enabled artifact is rebuilt for disable mode", async () => {
+  const harness = productionDeployHarness();
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    rollbackDeploymentId: SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+    disableContactForm: true,
+    authorizeContactFormDisable: true,
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(harness.calls.build, 1);
+  assert.deepEqual(harness.calls.buildModes, ["disabled"]);
+});
+
+test("stale disabled artifact is rebuilt for normal mode", async () => {
+  const harness = productionDeployHarness();
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    rollbackDeploymentId: SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(harness.calls.build, 1);
+  assert.deepEqual(harness.calls.buildModes, ["enabled"]);
+});
+
+test("disabled build failure stops before Wrangler", async () => {
+  const harness = productionDeployHarness({
+    buildResult: { ok: false, errors: ["disable build failed"] },
+  });
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    rollbackDeploymentId: SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+    disableContactForm: true,
+    authorizeContactFormDisable: true,
+    dryRun: false,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "build");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.process.length, 0);
+});
+
+test("disabled scan failure stops before Wrangler", async () => {
+  const harness = productionDeployHarness({
+    scanResult: {
+      ok: false,
+      errors: ["Built assets contain the production Turnstile sitekey."],
+      findings: {},
+    },
+  });
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    rollbackDeploymentId: SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+    disableContactForm: true,
+    authorizeContactFormDisable: true,
+    dryRun: false,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "scan");
+  assert.equal(result.wranglerInvoked, false);
+});
+
+test("remote advancement blocks disable mode", async () => {
+  const harness = productionDeployHarness({
+    remoteSha: "abc123",
+    onBuild: (h) => {
+      h.setRemoteSha("advanced-sha");
+    },
+  });
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    rollbackDeploymentId: SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+    disableContactForm: true,
+    authorizeContactFormDisable: true,
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "post-build-git");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(result.contactFormMode, "disabled");
+});
+
+test("rollback ID reaches reporting unchanged", async () => {
+  const harness = productionDeployHarness();
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    rollbackDeploymentId: OTHER_ROLLBACK_DEPLOYMENT_ID,
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.rollbackDeploymentId, OTHER_ROLLBACK_DEPLOYMENT_ID);
+  assert.ok(
+    harness.logs.some(
+      (line) =>
+        line ===
+        `Operator-supplied rollback deployment: ${OTHER_ROLLBACK_DEPLOYMENT_ID}`,
+    ),
+  );
+});
+
+test("successful mocked disable deployment invokes Wrangler only after all guards", async () => {
+  const harness = productionDeployHarness();
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    rollbackDeploymentId: SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+    disableContactForm: true,
+    authorizeContactFormDisable: true,
+    dryRun: false,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.wranglerInvoked, true);
+  assert.equal(result.contactFormMode, "disabled");
+  assert.deepEqual(
+    harness.order.filter((step) =>
+      ["fetch-1", "git-1", "build", "scan", "fetch-2", "git-2", "wrangler"].includes(
+        step,
+      ),
+    ),
+    ["fetch-1", "git-1", "build", "scan", "fetch-2", "git-2", "wrangler"],
+  );
+});
+
+test("buildPagesStaticExport disable mode blanks sitekey only for the build env", async () => {
+  const envs = [];
+  const result = await buildPagesStaticExport({
+    target: "production",
+    root: "/tmp/unused",
+    contactFormMode: "disabled",
+    skipConfigValidation: true,
+    requireCleanWorkingTree: false,
+    runProcess: (command, args, options = {}) => {
+      envs.push(options.env || {});
+      return { status: 0, stdout: "", stderr: "" };
+    },
+    scanAssets: async (_out, expectations) => {
+      assert.equal(expectations.forbidProductionSiteKey, true);
+      assert.equal(expectations.requireMailtoFallback, true);
+      return { ok: true, errors: [], findings: {} };
+    },
+    log: silentLog,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.contactFormMode, "disabled");
+  assert.ok(envs.length >= 1);
+  assert.equal(envs[0].NEXT_PUBLIC_TURNSTILE_SITE_KEY, "");
+});
+
+test("buildPagesStaticExport normal production embeds production sitekey", async () => {
+  const envs = [];
+  const result = await buildPagesStaticExport({
+    target: "production",
+    root: "/tmp/unused",
+    contactFormMode: "enabled",
+    skipConfigValidation: true,
+    requireCleanWorkingTree: false,
+    runProcess: (command, args, options = {}) => {
+      envs.push(options.env || {});
+      return { status: 0, stdout: "", stderr: "" };
+    },
+    scanAssets: async (_out, expectations) => {
+      assert.equal(expectations.requireProductionSiteKey, true);
+      return { ok: true, errors: [], findings: {} };
+    },
+    log: silentLog,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(envs[0].NEXT_PUBLIC_TURNSTILE_SITE_KEY, PRODUCTION_SITE_KEY);
+});
+
+test("buildPagesStaticExport rejects disable mode for Preview", async () => {
+  const result = await buildPagesStaticExport({
+    target: "preview",
+    root: "/tmp/unused",
+    contactFormMode: "disabled",
+    skipConfigValidation: true,
+    requireCleanWorkingTree: false,
+    log: silentLog,
+  });
+  assert.equal(result.ok, false);
+  assert.ok(
+    result.errors.some((error) =>
+      error.includes("only valid for Production builds"),
+    ),
+  );
 });

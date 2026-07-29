@@ -2,7 +2,6 @@
 import {
   parsePagesDeployArgs,
   repoRootFrom,
-  ROLLBACK_DEPLOYMENT_ID,
   runGuardedPreviewDeploy,
   runGuardedProductionDeploy,
 } from "./pages-deployment-lib.mjs";
@@ -10,17 +9,23 @@ import {
 function usage() {
   return `Usage:
   node scripts/pages-deploy.mjs --target preview [--dry-run]
-  node scripts/pages-deploy.mjs --target production --expected-sha <sha> --authorize-production-deploy [--dry-run]
+  node scripts/pages-deploy.mjs --target production --expected-sha <sha> --rollback-deployment-id <uuid> --authorize-production-deploy [--dry-run]
+  node scripts/pages-deploy.mjs --target production --expected-sha <sha> --rollback-deployment-id <uuid> --disable-contact-form --authorize-contact-form-disable --authorize-production-deploy [--dry-run]
 
 Guarded Cloudflare Pages deployment. Requires the committed wrangler.jsonc.
 Preview and Production deploys always create and verify their own artifact before Wrangler.
 Does not invent provider mutations beyond the requested Wrangler deploy.
 
-Value-taking options (--target, --expected-sha, --commit-message) require an explicit
-non-empty value and must not consume another option as their value.
+Value-taking options (--target, --expected-sha, --commit-message, --rollback-deployment-id)
+require an explicit non-empty value and must not consume another option as their value.
 
-Production still requires an explicit one-time authorization flag.
-Rollback deployment ID (current production baseline): ${ROLLBACK_DEPLOYMENT_ID}`;
+Production requires an operator-supplied --rollback-deployment-id (current Production
+deployment UUID) with no source-code default. Capture it from Cloudflare immediately
+before the run; do not reuse a stale hardcoded baseline.
+
+Emergency contact-form disable mode blanks NEXT_PUBLIC_TURNSTILE_SITE_KEY only for the
+generated artifact. Committed Production wrangler.jsonc bindings are not modified.
+Disable mode requires both --disable-contact-form and --authorize-contact-form-disable.`;
 }
 
 async function main() {
@@ -57,6 +62,9 @@ async function main() {
     authorizeProductionDeploy: options.authorizeProductionDeploy,
     dryRun: options.dryRun,
     commitMessage: options.commitMessage,
+    rollbackDeploymentId: options.rollbackDeploymentId,
+    disableContactForm: options.disableContactForm,
+    authorizeContactFormDisable: options.authorizeContactFormDisable,
   });
 
   if (!result.ok) {

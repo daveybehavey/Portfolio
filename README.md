@@ -86,16 +86,27 @@ A Pages direct-upload deploy can replace project configuration. Deploying `out/`
 
 **Preview deploy:** `npm run pages:preview:deploy` (optionally `-- --dry-run`). Preview deploy creates and verifies its own artifact; a separately run `pages:preview:build` is useful for inspection only and is not artifact-integrity evidence. Requires git branch and Wrangler `--branch` both `contact-preview`, a clean working tree (no tracked changes or non-ignored untracked files), and committed `wrangler.jsonc`. Value-taking flags (`--target`, `--expected-sha`, `--commit-message`) require an explicit non-empty value and must not consume another option (for example `--commit-message --dry-run` is rejected). Neither Preview nor Production may upload an arbitrary pre-existing `out/`. Dry-runs perform full artifact preparation without a Cloudflare request. Preview deploy does **not** refresh or require live `origin/main`.
 
-**Production deploy:** still requires explicit authorization immediately before setting Production secrets and immediately before deployment:
+**Production deploy:** still requires explicit authorization immediately before setting Production secrets and immediately before deployment. Capture the current Production deployment ID from Cloudflare immediately before the run and pass it as `--rollback-deployment-id` (no source-code default):
 
 ```powershell
-npm run pages:production:preflight
-npm run pages:production:deploy -- --expected-sha <exact-main-sha> --authorize-production-deploy
+npm run pages:production:preflight -- --expected-sha <exact-main-sha> --rollback-deployment-id <current-production-deployment-id> --authorize-production-deploy
+npm run pages:production:deploy -- --expected-sha <exact-main-sha> --rollback-deployment-id <current-production-deployment-id> --authorize-production-deploy
 ```
 
 Production deploy refreshes live `origin/main` (read-only GitHub fetch that updates only the local remote-tracking ref) immediately before initial authorization checks, builds and verifies its own artifact (`pages-build` + `scanBuildAssets`), then refreshes `origin/main` again before Wrangler. Cached remote-tracking state is not accepted as deployment evidence. Remote advancement or a force-push during preparation blocks deployment. Production also rejects any non-ignored untracked files. A separately run `pages:production:build` is useful for inspection only — it is not sufficient authorization or integrity evidence. Ignored `out/` is fine because Git omits it from status. Do not weaken production guards with broad exceptions for local evidence directories.
 
-That path is **production-changing**. Do not run it without authorization. Rollback uses the recorded prior production deployment ID documented in the contact-form activation runbook (currently `f0ddd72c-3740-4340-a9f7-4e98b63cf807`).
+**Emergency contact-form disable:** to disable online submission while retaining the direct `mailto:contact@eurodigital.ca` fallback, use the guarded Production path with both disable flags. Committed `wrangler.jsonc` Production bindings stay unchanged; only the generated artifact blanks `NEXT_PUBLIC_TURNSTILE_SITE_KEY`:
+
+```powershell
+npm run pages:production:deploy -- `
+  --expected-sha <exact-main-sha> `
+  --rollback-deployment-id <current-production-deployment-id> `
+  --disable-contact-form `
+  --authorize-contact-form-disable `
+  --authorize-production-deploy
+```
+
+That path is **production-changing**. Do not run it without authorization. Rollback IDs are captured per deployment from Cloudflare and are never permanently hardcoded in source.
 
 ## Contact-form activation
 
