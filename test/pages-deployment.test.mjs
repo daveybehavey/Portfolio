@@ -26,22 +26,44 @@ import {
 } from "../scripts/pages-deployment-lib.mjs";
 
 function baseConfig(overrides = {}) {
-  return {
+  const base = {
     name: PROJECT_NAME,
     pages_build_output_dir: "./out",
     compatibility_date: COMPATIBILITY_DATE,
+    vars: { ...PRODUCTION_VARS },
     env: {
       preview: {
-        compatibility_date: COMPATIBILITY_DATE,
         vars: { ...PREVIEW_VARS },
       },
-      production: {
-        compatibility_date: COMPATIBILITY_DATE,
-        vars: { ...PRODUCTION_VARS },
-      },
-      ...overrides.env,
     },
+  };
+  return {
+    ...base,
     ...overrides,
+    vars:
+      overrides.vars === undefined
+        ? base.vars
+        : overrides.vars === null
+          ? null
+          : { ...overrides.vars },
+    env:
+      overrides.env === undefined
+        ? base.env
+        : {
+            ...base.env,
+            ...overrides.env,
+            preview:
+              overrides.env?.preview === undefined
+                ? base.env.preview
+                : {
+                    ...base.env.preview,
+                    ...overrides.env.preview,
+                    vars:
+                      overrides.env.preview?.vars === undefined
+                        ? base.env.preview.vars
+                        : { ...overrides.env.preview.vars },
+                  },
+          },
   };
 }
 
@@ -136,7 +158,7 @@ test("validator rejects missing preview plain-text vars", () => {
 test("validator rejects committed secrets", () => {
   const config = baseConfig();
   config.env.preview.vars.RESEND_API_KEY = "re_should_not_be_committed";
-  config.env.production.vars.TURNSTILE_SECRET_KEY = "0xsecret";
+  config.vars.TURNSTILE_SECRET_KEY = "0xsecret";
   const report = validatePagesConfig(config);
   assert.equal(report.ok, false);
   const failed = report.checks
@@ -148,7 +170,7 @@ test("validator rejects committed secrets", () => {
 
 test("validator rejects production test credentials", () => {
   const config = baseConfig();
-  config.env.production.vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY = PREVIEW_SITE_KEY;
+  config.vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY = PREVIEW_SITE_KEY;
   const report = validatePagesConfig(config);
   assert.equal(report.ok, false);
   assert.ok(
@@ -173,9 +195,9 @@ test("validator rejects production sitekey in preview", () => {
 
 test("validator rejects production localhost and wildcards", () => {
   const config = baseConfig();
-  config.env.production.vars.CONTACT_ALLOWED_ORIGINS =
+  config.vars.CONTACT_ALLOWED_ORIGINS =
     "https://eurodigital.ca,http://localhost:3000";
-  config.env.production.vars.TURNSTILE_ALLOWED_HOSTNAMES =
+  config.vars.TURNSTILE_ALLOWED_HOSTNAMES =
     "eurodigital.ca,*.eurodigital.ca,localhost";
   const report = validatePagesConfig(config);
   assert.equal(report.ok, false);
@@ -188,9 +210,9 @@ test("validator rejects production localhost and wildcards", () => {
 
 test("validator rejects production sender/recipient mismatches", () => {
   const config = baseConfig();
-  config.env.production.vars.CONTACT_FROM_EMAIL =
+  config.vars.CONTACT_FROM_EMAIL =
     "EuroDigital <onboarding@resend.dev>";
-  config.env.production.vars.CONTACT_TO_EMAIL = "delivered@resend.dev";
+  config.vars.CONTACT_TO_EMAIL = "delivered@resend.dev";
   const report = validatePagesConfig(config);
   assert.equal(report.ok, false);
   const failed = report.checks
@@ -200,6 +222,115 @@ test("validator rejects production sender/recipient mismatches", () => {
   assert.ok(failed.includes("PRODUCTION_RECIPIENT"));
 });
 
+test("canonical top-level Production plus env.preview passes", () => {
+  const report = validatePagesConfig(baseConfig());
+  assert.equal(report.ok, true);
+  assert.ok(
+    report.checks.some(
+      (item) => item.status === "pass" && item.name === "NO_ENV_PRODUCTION",
+    ),
+  );
+});
+
+test("legacy env.production-only shape fails validation", () => {
+  const legacy = {
+    name: PROJECT_NAME,
+    pages_build_output_dir: "./out",
+    compatibility_date: COMPATIBILITY_DATE,
+    env: {
+      preview: { vars: { ...PREVIEW_VARS } },
+      production: { vars: { ...PRODUCTION_VARS } },
+    },
+  };
+  const report = validatePagesConfig(legacy);
+  assert.equal(report.ok, false);
+  const failed = report.checks
+    .filter((item) => item.status === "fail")
+    .map((item) => item.name);
+  assert.ok(failed.includes("NO_ENV_PRODUCTION"));
+  assert.ok(failed.includes("PRODUCTION_VARS_PRESENT"));
+  assert.ok(failed.includes("PRODUCTION_TOP_LEVEL_VARS"));
+});
+
+test("missing top-level Production vars fails", () => {
+  const config = baseConfig({ vars: null });
+  delete config.vars;
+  const report = validatePagesConfig(config);
+  assert.equal(report.ok, false);
+  assert.ok(
+    report.checks.some(
+      (item) => item.status === "fail" && item.name === "PRODUCTION_VARS_PRESENT",
+    ),
+  );
+});
+
+test("env.production presence fails even with top-level vars", () => {
+  const config = baseConfig({
+    env: {
+      preview: { vars: { ...PREVIEW_VARS } },
+      production: { vars: { ...PRODUCTION_VARS } },
+    },
+  });
+  const report = validatePagesConfig(config);
+  assert.equal(report.ok, false);
+  assert.ok(
+    report.checks.some(
+      (item) => item.status === "fail" && item.name === "NO_ENV_PRODUCTION",
+    ),
+  );
+});
+
+test("Preview values accidentally placed at top level fail", () => {
+  const config = baseConfig({ vars: { ...PREVIEW_VARS } });
+  const report = validatePagesConfig(config);
+  assert.equal(report.ok, false);
+  assert.ok(
+    report.checks.some(
+      (item) => item.status === "fail" && item.name === "PRODUCTION_NO_TEST_SITEKEY",
+    ),
+  );
+});
+
+test("Production values accidentally placed in Preview fail", () => {
+  const config = baseConfig({
+    env: { preview: { vars: { ...PRODUCTION_VARS } } },
+  });
+  const report = validatePagesConfig(config);
+  assert.equal(report.ok, false);
+  assert.ok(
+    report.checks.some(
+      (item) =>
+        item.status === "fail" && item.name === "PREVIEW_NO_PRODUCTION_SITEKEY",
+    ),
+  );
+});
+
+test("secret names under top-level vars fail", () => {
+  const config = baseConfig();
+  config.vars.RESEND_API_KEY = "re_should_not_be_committed";
+  const report = validatePagesConfig(config);
+  assert.equal(report.ok, false);
+  assert.ok(
+    report.checks.some(
+      (item) =>
+        item.status === "fail" && item.name === "PRODUCTION_NO_SECRET_RESEND_API_KEY",
+    ),
+  );
+});
+
+test("secret names under Preview vars fail", () => {
+  const config = baseConfig();
+  config.env.preview.vars.TURNSTILE_SECRET_KEY = "0xsecret";
+  const report = validatePagesConfig(config);
+  assert.equal(report.ok, false);
+  assert.ok(
+    report.checks.some(
+      (item) =>
+        item.status === "fail" &&
+        item.name === "PREVIEW_NO_SECRET_TURNSTILE_SECRET_KEY",
+    ),
+  );
+});
 test("preview deploy guards refuse production branch", () => {
   const ok = assertPreviewDeployGuards({
     projectName: PROJECT_NAME,

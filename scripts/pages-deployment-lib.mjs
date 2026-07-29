@@ -116,8 +116,94 @@ function envVars(config, environment) {
   return config?.env?.[environment]?.vars || null;
 }
 
+function validatePlainTextVarsBlock(checks, label, vars, scopeLabel) {
+  if (!vars || typeof vars !== "object" || Array.isArray(vars)) {
+    checks.push(
+      check(
+        `${label}_VARS_PRESENT`,
+        "fail",
+        `${scopeLabel} must define the reviewed plain-text variables.`,
+      ),
+    );
+    return false;
+  }
+
+  checks.push(
+    check(
+      `${label}_VARS_PRESENT`,
+      "pass",
+      `${scopeLabel} defines a plain-text vars object.`,
+    ),
+  );
+
+  const names = Object.keys(vars);
+  for (const required of PLAIN_TEXT_VAR_NAMES) {
+    if (names.includes(required) && String(vars[required] || "").trim()) {
+      checks.push(
+        check(
+          `${label}_${required}`,
+          "pass",
+          `${scopeLabel} defines non-empty ${required}.`,
+        ),
+      );
+    } else {
+      checks.push(
+        check(
+          `${label}_${required}`,
+          "fail",
+          `${scopeLabel} is missing required plain-text variable ${required}.`,
+        ),
+      );
+    }
+  }
+
+  for (const secretName of SECRET_BINDING_NAMES) {
+    if (Object.prototype.hasOwnProperty.call(vars, secretName)) {
+      checks.push(
+        check(
+          `${label}_NO_SECRET_${secretName}`,
+          "fail",
+          `${secretName} must not be committed under ${scopeLabel}.`,
+        ),
+      );
+    } else {
+      checks.push(
+        check(
+          `${label}_NO_SECRET_${secretName}`,
+          "pass",
+          `${secretName} is not committed under ${scopeLabel}.`,
+        ),
+      );
+    }
+  }
+
+  const unexpected = names.filter(
+    (name) => !PLAIN_TEXT_VAR_NAMES.includes(name),
+  );
+  if (unexpected.length === 0) {
+    checks.push(
+      check(
+        `${label}_VARS_ONLY_PLAINTEXT`,
+        "pass",
+        `${scopeLabel} only declares the reviewed plain-text variables.`,
+      ),
+    );
+  } else {
+    checks.push(
+      check(
+        `${label}_VARS_ONLY_PLAINTEXT`,
+        "fail",
+        `${scopeLabel} has unexpected vars: ${unexpected.join(", ")}.`,
+      ),
+    );
+  }
+
+  return true;
+}
+
 /**
  * Validate committed Pages configuration for Preview and Production plain-text vars.
+ * Canonical shape: top-level `vars` = Production/local; `env.preview.vars` = Preview override.
  */
 export function validatePagesConfig(config, options = {}) {
   const checks = [];
@@ -155,95 +241,89 @@ export function validatePagesConfig(config, options = {}) {
     );
   }
 
-  for (const environment of ["preview", "production"]) {
-    const vars = envVars(config, environment);
-    const label = environment.toUpperCase();
-    if (!vars || typeof vars !== "object") {
-      fail(
-        `${label}_VARS_PRESENT`,
-        `${environment} must define env.${environment}.vars explicitly.`,
-      );
-      continue;
-    }
-
-    const names = Object.keys(vars);
-    for (const required of PLAIN_TEXT_VAR_NAMES) {
-      if (names.includes(required) && String(vars[required] || "").trim()) {
-        pass(
-          `${label}_${required}`,
-          `${environment} defines non-empty ${required}.`,
-        );
-      } else {
-        fail(
-          `${label}_${required}`,
-          `${environment} is missing required plain-text variable ${required}.`,
-        );
-      }
-    }
-
-    for (const secretName of SECRET_BINDING_NAMES) {
-      if (Object.prototype.hasOwnProperty.call(vars, secretName)) {
-        fail(
-          `${label}_NO_SECRET_${secretName}`,
-          `${secretName} must not be committed under env.${environment}.vars.`,
-        );
-      } else {
-        pass(
-          `${label}_NO_SECRET_${secretName}`,
-          `${secretName} is not committed for ${environment}.`,
-        );
-      }
-    }
-
-    const unexpected = names.filter(
-      (name) => !PLAIN_TEXT_VAR_NAMES.includes(name),
+  if (
+    config.env &&
+    Object.prototype.hasOwnProperty.call(config.env, "production")
+  ) {
+    fail(
+      "NO_ENV_PRODUCTION",
+      "env.production must not be present; Production bindings belong in top-level vars.",
     );
-    if (unexpected.length === 0) {
-      pass(
-        `${label}_VARS_ONLY_PLAINTEXT`,
-        `${environment} only declares the reviewed plain-text variables.`,
-      );
-    } else {
-      fail(
-        `${label}_VARS_ONLY_PLAINTEXT`,
-        `${environment} has unexpected vars: ${unexpected.join(", ")}.`,
-      );
-    }
+  } else {
+    pass(
+      "NO_ENV_PRODUCTION",
+      "env.production is absent; Production uses top-level vars.",
+    );
   }
 
-  const preview = envVars(config, "preview") || {};
-  const production = envVars(config, "production") || {};
-
-  validateEnvironmentSpecifics(checks, "preview", preview, {
-    expected: PREVIEW_VARS,
-    requireTestSiteKey: true,
-    forbidProductionSiteKey: true,
-    requireSenderMailbox: "onboarding@resend.dev",
-    requireRecipientMailbox: "delivered@resend.dev",
-    allowHttp: false,
-    forbidLocalhost: false,
-  });
-
-  validateEnvironmentSpecifics(checks, "production", production, {
-    expected: PRODUCTION_VARS,
-    requireTestSiteKey: false,
-    forbidProductionSiteKey: false,
-    requireSenderMailbox: "website@send.eurodigital.ca",
-    requireRecipientMailbox: "contact@eurodigital.ca",
-    allowHttp: false,
-    forbidLocalhost: true,
-    forbidTestCredentials: true,
-  });
+  const productionVars = config.vars;
+  const previewVars = config.env?.preview?.vars;
 
   if (
+    (!productionVars || typeof productionVars !== "object") &&
+    envVars(config, "production")
+  ) {
+    fail(
+      "PRODUCTION_TOP_LEVEL_VARS",
+      "Production values must live in top-level vars, not only under env.production.vars.",
+    );
+  }
+
+  const productionPresent = validatePlainTextVarsBlock(
+    checks,
+    "PRODUCTION",
+    productionVars,
+    "top-level vars (Production/local)",
+  );
+  const previewPresent = validatePlainTextVarsBlock(
+    checks,
+    "PREVIEW",
+    previewVars,
+    "env.preview.vars",
+  );
+
+  const production = productionPresent ? productionVars : {};
+  const preview = previewPresent ? previewVars : {};
+
+  if (productionPresent) {
+    validateEnvironmentSpecifics(checks, "production", production, {
+      expected: PRODUCTION_VARS,
+      requireTestSiteKey: false,
+      forbidProductionSiteKey: false,
+      requireSenderMailbox: "website@send.eurodigital.ca",
+      requireRecipientMailbox: "contact@eurodigital.ca",
+      allowHttp: false,
+      forbidLocalhost: true,
+      forbidTestCredentials: true,
+    });
+  }
+
+  if (previewPresent) {
+    validateEnvironmentSpecifics(checks, "preview", preview, {
+      expected: PREVIEW_VARS,
+      requireTestSiteKey: true,
+      forbidProductionSiteKey: true,
+      requireSenderMailbox: "onboarding@resend.dev",
+      requireRecipientMailbox: "delivered@resend.dev",
+      allowHttp: false,
+      forbidLocalhost: false,
+    });
+  }
+
+  if (
+    preview.NEXT_PUBLIC_TURNSTILE_SITE_KEY &&
+    production.NEXT_PUBLIC_TURNSTILE_SITE_KEY &&
     preview.NEXT_PUBLIC_TURNSTILE_SITE_KEY ===
-    production.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+      production.NEXT_PUBLIC_TURNSTILE_SITE_KEY
   ) {
     fail(
       "SITEKEY_ENV_SEPARATION",
       "Preview and Production must not share the same Turnstile sitekey.",
     );
-  } else {
+  } else if (
+    preview.NEXT_PUBLIC_TURNSTILE_SITE_KEY &&
+    production.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  ) {
     pass(
       "SITEKEY_ENV_SEPARATION",
       "Preview and Production use distinct Turnstile sitekeys.",

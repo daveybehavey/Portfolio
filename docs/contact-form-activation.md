@@ -147,7 +147,7 @@ A preview deployment changes the Cloudflare Pages project and therefore requires
 
 ### Committed non-secret Preview variables
 
-[`wrangler.jsonc`](../wrangler.jsonc) is the source of truth for non-secret Pages settings. Preview plain-text variables are versioned there:
+[`wrangler.jsonc`](../wrangler.jsonc) is the source of truth for non-secret Pages settings. Cloudflare Pages applies top-level `vars` to local and Production; `env.preview.vars` overrides Preview. Do not use an `env.production` block. Preview plain-text overrides are versioned under `env.preview.vars`:
 
 | Name | Type | Preview value |
 |---|---|---|
@@ -240,7 +240,7 @@ Delete the temporary file after configuration and verification.
 
 ## Phase 9 — production Pages variables and secrets
 
-Committed Production plain-text variables live in [`wrangler.jsonc`](../wrangler.jsonc):
+Committed Production plain-text variables live in top-level `vars` in [`wrangler.jsonc`](../wrangler.jsonc) (not under `env.production`):
 
 | Name | Type | Requirement |
 |---|---|---|

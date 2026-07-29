@@ -67,10 +67,11 @@ The CI workflow is verification-only:
 - no Wrangler deploy, Cloudflare API, DNS, email-routing, or Pages mutation command is executed
 - `npm run pages:preview:deploy` and `npm run pages:production:deploy` are never invoked
 - Preview and Production deploy guards in source require an in-command artifact build/rescan and reject dirty or non-ignored untracked working trees; CI still never executes those deploy commands
+- committed `wrangler.jsonc` uses top-level `vars` for Production/local and `env.preview.vars` for Preview (no `env.production`)
 - action dependencies are pinned to immutable full commit SHAs
 - superseded runs for the same pull request or branch are cancelled
 
-A successful CI run does **not** deploy the website or activate the inquiry endpoint. Production changes require a separate reviewed process and explicit authorization immediately before execution. Separately run Preview or Production builds are not authorization or integrity evidence for deployment. Dry-runs prepare and verify artifacts without a Cloudflare request.
+A successful CI run does **not** deploy the website or activate the inquiry endpoint. Production changes require a separate reviewed process and explicit authorization immediately before secret configuration and deployment. Separately run Preview or Production builds are not authorization or integrity evidence for deployment. Dry-runs prepare and verify artifacts without a Cloudflare request. Deploying without the committed Wrangler configuration is prohibited.
 
 ## Review sequence
 

@@ -16,8 +16,8 @@ async function main() {
   );
   if (!report.ok) process.exit(1);
 
-  const production = config.env?.production?.vars || {};
-  console.log("Production plain-text bindings present:");
+  const production = config.vars || {};
+  console.log("Production plain-text bindings present (top-level vars):");
   for (const [name, value] of Object.entries(production)) {
     const preview = String(value).length > 48 ? `${String(value).slice(0, 48)}…` : value;
     console.log(`- ${name}=${preview}`);
