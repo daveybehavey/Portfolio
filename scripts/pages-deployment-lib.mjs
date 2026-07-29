@@ -2,6 +2,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parse as parseJsoncDocument } from "jsonc-parser";
 
 export const PROJECT_NAME = "eurodigital-ca";
 export const OUTPUT_DIR = "./out";
@@ -10,6 +11,10 @@ export const PREVIEW_BRANCH = "contact-preview";
 export const COMPATIBILITY_DATE = "2026-04-25";
 export const ROLLBACK_DEPLOYMENT_ID = "f0ddd72c-3740-4340-a9f7-4e98b63cf807";
 export const CONTACT_FUNCTION_ROUTE = "/api/contact";
+export const DEFAULT_PREVIEW_COMMIT_MESSAGE =
+  "EuroDigital contact activation preview";
+export const DEFAULT_PRODUCTION_COMMIT_MESSAGE =
+  "EuroDigital production Pages deploy";
 
 export const PRODUCTION_SITE_KEY = "0x4AAAAAAEAJbd2XaAk7ZRBR";
 export const PREVIEW_SITE_KEY = "1x00000000000000000000AA";
@@ -72,11 +77,17 @@ export function repoRootFrom(importMetaUrl = import.meta.url) {
   return path.resolve(path.dirname(fileURLToPath(importMetaUrl)), "..");
 }
 
-/** Minimal JSONC parser for Wrangler config (// and /* comments). */
+/** Parse Wrangler JSONC with comments and trailing commas. */
 export function parseJsonc(source) {
-  const withoutBlock = String(source).replace(/\/\*[\s\S]*?\*\//g, "");
-  const withoutLine = withoutBlock.replace(/^\s*\/\/.*$/gm, "");
-  return JSON.parse(withoutLine);
+  const errors = [];
+  const result = parseJsoncDocument(String(source), errors, {
+    allowTrailingComma: true,
+    disallowComments: false,
+  });
+  if (errors.length > 0) {
+    throw new Error("Invalid Wrangler JSONC configuration.");
+  }
+  return result;
 }
 
 export async function loadPagesConfig(configPath) {
@@ -659,14 +670,82 @@ export function getGitStatus(options = {}) {
   };
 }
 
+export function resolveExecutable(command, platform = process.platform) {
+  if (platform !== "win32") return command;
+  if (command === "npm") return "npm.cmd";
+  if (command === "npx") return "npx.cmd";
+  return command;
+}
+
+/**
+ * Locate the Node CLI entry that Windows npm/npx.cmd shims ultimately run.
+ * Used so we can spawn without a shell while preserving exact argv boundaries.
+ */
+export function resolveNpmCliScript(command, options = {}) {
+  const execPath = options.execPath || process.execPath;
+  const nodeDir = path.dirname(execPath);
+  if (command === "npm") {
+    return path.join(nodeDir, "node_modules", "npm", "bin", "npm-cli.js");
+  }
+  if (command === "npx") {
+    return path.join(nodeDir, "node_modules", "npm", "bin", "npx-cli.js");
+  }
+  return null;
+}
+
+/**
+ * Build an exact spawn invocation without a shell so argument boundaries
+ * (including spaced commit messages) are preserved on Windows.
+ *
+ * Windows cannot CreateProcess `.cmd` shims with `shell: false` (EINVAL), so
+ * npm/npx are invoked as `node <npm|npx>-cli.js ...args` — the same target the
+ * official shims use — without cmd.exe / PowerShell.
+ */
+export function buildProcessInvocation(command, args, options = {}) {
+  const platform = options.platform ?? process.platform;
+  const list = Array.isArray(args) ? [...args] : [];
+  const shim = resolveExecutable(command, platform);
+
+  if (platform === "win32" && (command === "npm" || command === "npx")) {
+    const execPath = options.execPath || process.execPath;
+    const cli = resolveNpmCliScript(command, { execPath });
+    return {
+      command: execPath,
+      args: [cli, ...list],
+      options: {
+        cwd: options.cwd || process.cwd(),
+        env: options.env || process.env,
+        encoding: "utf8",
+        shell: false,
+        stdio: options.stdio ?? "inherit",
+      },
+      shim,
+      resolvedVia: "node-cli",
+    };
+  }
+
+  return {
+    command: shim,
+    args: list,
+    options: {
+      cwd: options.cwd || process.cwd(),
+      env: options.env || process.env,
+      encoding: "utf8",
+      shell: false,
+      stdio: options.stdio ?? "inherit",
+    },
+    shim,
+    resolvedVia: "direct",
+  };
+}
+
 export function defaultRunProcess(command, args, options = {}) {
-  const result = spawnSync(command, args, {
-    cwd: options.cwd || process.cwd(),
-    env: options.env || process.env,
-    encoding: "utf8",
-    shell: options.shell ?? process.platform === "win32",
-    stdio: options.stdio ?? "inherit",
-  });
+  const invocation = buildProcessInvocation(command, args, options);
+  const result = spawnSync(
+    invocation.command,
+    invocation.args,
+    invocation.options,
+  );
   return {
     status: result.status === null ? 1 : result.status,
     signal: result.signal,
@@ -997,7 +1076,7 @@ export async function buildPagesStaticExport({
 export async function runGuardedPreviewDeploy({
   root,
   dryRun = false,
-  commitMessage = "EuroDigital contact activation preview",
+  commitMessage = DEFAULT_PREVIEW_COMMIT_MESSAGE,
   configPath,
   loadConfig = loadPagesConfig,
   validateConfig = validatePagesConfig,
@@ -1158,7 +1237,7 @@ export async function runGuardedProductionDeploy({
   expectedSha,
   authorizeProductionDeploy = false,
   dryRun = false,
-  commitMessage = "EuroDigital production Pages deploy",
+  commitMessage = DEFAULT_PRODUCTION_COMMIT_MESSAGE,
   configPath,
   loadConfig = loadPagesConfig,
   validateConfig = validatePagesConfig,

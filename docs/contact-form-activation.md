@@ -147,7 +147,7 @@ A preview deployment changes the Cloudflare Pages project and therefore requires
 
 ### Committed non-secret Preview variables
 
-[`wrangler.jsonc`](../wrangler.jsonc) is the source of truth for non-secret Pages settings. Cloudflare Pages applies top-level `vars` to local and Production; `env.preview.vars` overrides Preview. Do not use an `env.production` block. Preview plain-text overrides are versioned under `env.preview.vars`:
+[`wrangler.jsonc`](../wrangler.jsonc) is the source of truth for non-secret Pages settings. Cloudflare Pages applies top-level `vars` to local and Production; `env.preview.vars` overrides Preview. Do not use an `env.production` block. The file is loaded with a maintained JSONC parser (inline comments and trailing commas are valid). Guarded build/deploy helpers spawn with `shell: false`; on Windows they run `npm`/`npx` through Node’s CLI scripts so spaced `--commit-message` values and shell metacharacters remain single arguments. Preview plain-text overrides are versioned under `env.preview.vars`:
 
 | Name | Type | Preview value |
 |---|---|---|

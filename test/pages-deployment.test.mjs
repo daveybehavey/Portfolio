@@ -8,7 +8,10 @@ import {
   assertPreviewDeployGuards,
   assertProductionDeployGuards,
   buildWranglerDeployArgs,
+  buildProcessInvocation,
   COMPATIBILITY_DATE,
+  DEFAULT_PREVIEW_COMMIT_MESSAGE,
+  DEFAULT_PRODUCTION_COMMIT_MESSAGE,
   getGitStatus,
   parseJsonc,
   parsePorcelainStatus,
@@ -19,6 +22,7 @@ import {
   PRODUCTION_SITE_KEY,
   PRODUCTION_VARS,
   PROJECT_NAME,
+  resolveExecutable,
   runGuardedPreviewDeploy,
   runGuardedProductionDeploy,
   scanBuildAssets,
@@ -125,12 +129,12 @@ async function createTempGitRepo() {
   return root;
 }
 
-test("parseJsonc strips line and block comments", () => {
+test("parseJsonc accepts comments and trailing commas", () => {
   const parsed = parseJsonc(`{
     // comment
-    "name": "eurodigital-ca",
+    "name": "eurodigital-ca", // project
     /* block */
-    "pages_build_output_dir": "./out"
+    "pages_build_output_dir": "./out",
   }`);
   assert.equal(parsed.name, "eurodigital-ca");
   assert.equal(parsed.pages_build_output_dir, "./out");
@@ -1167,4 +1171,190 @@ test("successful Preview execution invokes Wrangler only after build scan and gi
   const scanIdx = harness.order.indexOf("scan");
   const wranglerIdx = harness.order.indexOf("wrangler");
   assert.ok(buildIdx >= 0 && scanIdx > buildIdx && wranglerIdx > scanIdx);
+});
+
+test("parseJsonc accepts strict JSON", () => {
+  const parsed = parseJsonc('{"name":"eurodigital-ca","pages_build_output_dir":"./out"}');
+  assert.equal(parsed.name, "eurodigital-ca");
+});
+
+test("parseJsonc accepts inline line and block comments", () => {
+  const parsed = parseJsonc(`{
+    "name": "eurodigital-ca", // project
+    "pages_build_output_dir": /* output */ "./out"
+  }`);
+  assert.equal(parsed.name, "eurodigital-ca");
+  assert.equal(parsed.pages_build_output_dir, "./out");
+});
+
+test("parseJsonc accepts multiline block comments", () => {
+  const parsed = parseJsonc(`{
+    /* multi
+       line */
+    "name": "eurodigital-ca"
+  }`);
+  assert.equal(parsed.name, "eurodigital-ca");
+});
+
+test("parseJsonc accepts trailing commas in nested objects", () => {
+  const parsed = parseJsonc(`{
+    "name": "eurodigital-ca",
+    "env": {
+      "preview": {
+        "vars": {
+          "CONTACT_TO_EMAIL": "delivered@resend.dev",
+        },
+      },
+    },
+  }`);
+  assert.equal(parsed.env.preview.vars.CONTACT_TO_EMAIL, "delivered@resend.dev");
+});
+
+test("parseJsonc preserves // and block markers inside strings", () => {
+  const parsed = parseJsonc(`{
+    "note": "use https://eurodigital.ca // not a comment",
+    "block": "keep /* inside */ strings"
+  }`);
+  assert.equal(parsed.note, "use https://eurodigital.ca // not a comment");
+  assert.equal(parsed.block, "keep /* inside */ strings");
+});
+
+test("parseJsonc rejects malformed syntax without leaking contents", () => {
+  assert.throws(
+    () => parseJsonc('{ "name": "eurodigital-ca", '),
+    (error) => {
+      assert.equal(error.message, "Invalid Wrangler JSONC configuration.");
+      assert.ok(!String(error.message).includes("eurodigital-ca"));
+      return true;
+    },
+  );
+});
+
+test("canonical wrangler.jsonc continues to validate", async () => {
+  const source = await import("node:fs/promises").then((fs) =>
+    fs.readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8"),
+  );
+  const config = parseJsonc(source);
+  const report = validatePagesConfig(config);
+  assert.equal(report.ok, true, JSON.stringify(report.checks.filter((c) => c.status === "fail")));
+});
+
+test("Windows resolver maps npm and npx to cmd shims", () => {
+  assert.equal(resolveExecutable("npm", "win32"), "npm.cmd");
+  assert.equal(resolveExecutable("npx", "win32"), "npx.cmd");
+  assert.equal(resolveExecutable("node", "win32"), "node");
+  assert.equal(resolveExecutable("npm", "linux"), "npm");
+  assert.equal(resolveExecutable("npx", "darwin"), "npx");
+});
+
+test("Windows process invocation disables shell and preserves spaced commit messages", () => {
+  const previewArgs = buildWranglerDeployArgs({
+    target: "preview",
+    commitHash: "abc",
+    commitMessage: DEFAULT_PREVIEW_COMMIT_MESSAGE,
+  });
+  const productionArgs = buildWranglerDeployArgs({
+    target: "production",
+    commitHash: "abc",
+    commitMessage: DEFAULT_PRODUCTION_COMMIT_MESSAGE,
+  });
+  const custom = "Release candidate 42";
+  const meta = "Release & | < > ^ % ( )";
+  const customArgs = buildWranglerDeployArgs({
+    target: "preview",
+    commitHash: "abc",
+    commitMessage: custom,
+  });
+  const metaArgs = buildWranglerDeployArgs({
+    target: "production",
+    commitHash: "abc",
+    commitMessage: meta,
+  });
+
+  assert.equal(
+    previewArgs.filter((arg) => arg.startsWith("--commit-message=")).length,
+    1,
+  );
+  assert.ok(
+    previewArgs.includes(`--commit-message=${DEFAULT_PREVIEW_COMMIT_MESSAGE}`),
+  );
+  assert.ok(
+    productionArgs.includes(
+      `--commit-message=${DEFAULT_PRODUCTION_COMMIT_MESSAGE}`,
+    ),
+  );
+  assert.ok(customArgs.includes(`--commit-message=${custom}`));
+  assert.ok(metaArgs.includes(`--commit-message=${meta}`));
+
+  const invocation = buildProcessInvocation("npx", ["wrangler", ...customArgs], {
+    platform: "win32",
+    execPath: "C:\\fake\\node.exe",
+    cwd: "/tmp",
+    env: { PATH: "x" },
+    stdio: "pipe",
+  });
+  assert.equal(invocation.command, "C:\\fake\\node.exe");
+  assert.equal(invocation.shim, "npx.cmd");
+  assert.equal(invocation.resolvedVia, "node-cli");
+  assert.equal(invocation.options.shell, false);
+  assert.ok(invocation.args[0].replace(/\\/g, "/").endsWith("npx-cli.js"));
+  assert.deepEqual(
+    invocation.args.filter((arg) => arg.startsWith("--commit-message=")),
+    [`--commit-message=${custom}`],
+  );
+
+  const npmInvocation = buildProcessInvocation("npm", ["run", "build"], {
+    platform: "win32",
+    execPath: "C:\\fake\\node.exe",
+  });
+  assert.equal(npmInvocation.command, "C:\\fake\\node.exe");
+  assert.equal(npmInvocation.shim, "npm.cmd");
+  assert.equal(npmInvocation.options.shell, false);
+  assert.ok(npmInvocation.args[0].replace(/\\/g, "/").endsWith("npm-cli.js"));
+  assert.deepEqual(npmInvocation.args.slice(1), ["run", "build"]);
+
+  const nodeInvocation = buildProcessInvocation(
+    "node",
+    ["scripts/verify-static-export.mjs"],
+    { platform: "win32" },
+  );
+  assert.equal(nodeInvocation.command, "node");
+  assert.equal(nodeInvocation.options.shell, false);
+  assert.deepEqual(nodeInvocation.args, ["scripts/verify-static-export.mjs"]);
+
+  const metaInvocation = buildProcessInvocation(
+    "npx",
+    ["wrangler", ...metaArgs],
+    { platform: "win32", execPath: "C:\\fake\\node.exe" },
+  );
+  assert.ok(metaInvocation.args.includes(`--commit-message=${meta}`));
+});
+
+test("guarded dry-runs preserve process order and never invoke Wrangler", async () => {
+  const preview = previewDeployHarness();
+  const previewResult = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    dryRun: true,
+    ...preview.deps,
+  });
+  assert.equal(previewResult.ok, true);
+  assert.equal(previewResult.wranglerInvoked, false);
+  assert.deepEqual(
+    preview.order.filter((step) => ["build", "scan", "wrangler"].includes(step)),
+    ["build", "scan"],
+  );
+
+  const production = productionDeployHarness();
+  const productionResult = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    dryRun: true,
+    ...production.deps,
+  });
+  assert.equal(productionResult.ok, true);
+  assert.equal(productionResult.wranglerInvoked, false);
+  assert.equal(production.calls.build, 1);
+  assert.ok(production.calls.scan >= 1);
+  assert.equal(production.calls.process.length, 0);
 });

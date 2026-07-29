@@ -80,7 +80,7 @@ npm run pages:production:deploy  # PRODUCTION-CHANGING — requires --expected-s
 
 **GitHub Actions:** there is **no** active deployment workflow in this repository. CI is verification-only and does not deploy.
 
-**Committed Wrangler configuration:** [`wrangler.jsonc`](wrangler.jsonc) is the source of truth for non-secret Pages settings. Top-level `vars` are the reviewed local/Production plain-text configuration; `env.preview.vars` overrides Preview. There is no `env.production` block — Cloudflare Pages applies top-level bindings to Production. Encrypted secrets (`TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`) remain dashboard/provider-managed and must never be committed.
+**Committed Wrangler configuration:** [`wrangler.jsonc`](wrangler.jsonc) is the source of truth for non-secret Pages settings. Top-level `vars` are the reviewed local/Production plain-text configuration; `env.preview.vars` overrides Preview. There is no `env.production` block — Cloudflare Pages applies top-level bindings to Production. The committed file is parsed with a real JSONC parser (comments and trailing commas allowed). Guarded deploy commands spawn processes with `shell: false`; on Windows, `npm`/`npx` run via Node’s official CLI scripts (not `cmd.exe`) so spaced commit messages and metacharacters stay one argv each. Encrypted secrets (`TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`) remain dashboard/provider-managed and must never be committed.
 
 A Pages direct-upload deploy can replace project configuration. Deploying `out/` with `wrangler pages deploy` **without** this committed configuration is prohibited because it can silently drop required plain-text variables.
 
