@@ -23,6 +23,8 @@ import {
   PRODUCTION_SITE_KEY,
   PRODUCTION_VARS,
   PROJECT_NAME,
+  refreshOriginMain,
+  isValidCommitSha,
   resolveExecutable,
   runGuardedPreviewDeploy,
   runGuardedProductionDeploy,
@@ -528,35 +530,65 @@ test("scanBuildAssets rejects preview sitekey and missing contact route for prod
 });
 
 function productionDeployHarness(overrides = {}) {
-  const calls = { build: 0, scan: 0, process: [], statusReads: 0 };
+  const order = [];
+  const calls = { build: 0, scan: 0, process: [], statusReads: 0, refreshes: 0 };
   let git = cleanGitStatus(overrides.initialGit);
+  let remoteSha = overrides.remoteSha ?? git.originMain ?? git.head ?? "abc123";
   const logs = [];
 
   const harness = {
     calls,
+    order,
     logs,
     setGit(next) {
       git = { ...git, ...next };
     },
+    setRemoteSha(next) {
+      remoteSha = next;
+    },
     deps: {
-      loadConfig: async () => baseConfig(),
+      loadConfig: async () => {
+        order.push("config");
+        return baseConfig();
+      },
       validateConfig: validatePagesConfig,
+      refreshRemoteMain: () => {
+        calls.refreshes += 1;
+        order.push(`fetch-${calls.refreshes}`);
+        if (Array.isArray(overrides.refreshResults)) {
+          return overrides.refreshResults[calls.refreshes - 1];
+        }
+        if (overrides.refreshResult && calls.refreshes === 1) {
+          return overrides.refreshResult;
+        }
+        if (typeof overrides.refreshFactory === "function") {
+          return overrides.refreshFactory(calls.refreshes, { git, remoteSha });
+        }
+        return { ok: true, originMain: remoteSha };
+      },
       getStatus: () => {
         calls.statusReads += 1;
+        order.push(`git-${calls.statusReads}`);
         return { ...git };
       },
       buildTarget: async () => {
         calls.build += 1;
+        order.push("build");
+        if (typeof overrides.onBuild === "function") {
+          overrides.onBuild(harness);
+        }
         if (overrides.buildResult) return overrides.buildResult;
         return { ok: true, errors: [] };
       },
       scanAssets: async () => {
         calls.scan += 1;
+        order.push("scan");
         if (overrides.scanResult) return overrides.scanResult;
         return { ok: true, errors: [], findings: {} };
       },
       runProcess: (command, args) => {
         calls.process.push({ command, args });
+        order.push("wrangler");
         return { status: 0, stdout: "", stderr: "" };
       },
       log: (message) => logs.push(String(message)),
@@ -600,6 +632,8 @@ test("production deploy rebuilds instead of trusting stale out/", async () => {
   assert.equal(result.ok, true);
   assert.equal(harness.calls.build, 1);
   assert.ok(harness.calls.scan >= 1);
+  assert.equal(harness.calls.refreshes, 2);
+  assert.equal(result.remoteRefreshCount, 2);
   assert.equal(result.wranglerInvoked, false);
 });
 
@@ -758,13 +792,20 @@ test("successful guarded execution invokes Wrangler only after build scan and gi
   });
   assert.equal(result.ok, true);
   assert.equal(result.wranglerInvoked, true);
+  assert.equal(result.remoteRefreshCount, 2);
   assert.equal(harness.calls.build, 1);
   assert.ok(harness.calls.scan >= 1);
+  assert.equal(harness.calls.refreshes, 2);
   assert.equal(harness.calls.process.length, 1);
   assert.equal(harness.calls.process[0].command, "npx");
   assert.equal(harness.calls.process[0].args[0], "wrangler");
   assert.ok(harness.calls.process[0].args.includes("pages"));
   assert.ok(harness.calls.process[0].args.includes("deploy"));
+  const expectedOrder = ["fetch-1", "git-1", "build", "scan", "fetch-2", "git-2", "wrangler"];
+  assert.deepEqual(
+    harness.order.filter((step) => expectedOrder.includes(step)),
+    expectedOrder,
+  );
 });
 
 test("untracked functions/rogue.js blocks production before Wrangler", async () => {
@@ -1355,8 +1396,10 @@ test("guarded dry-runs preserve process order and never invoke Wrangler", async 
   });
   assert.equal(productionResult.ok, true);
   assert.equal(productionResult.wranglerInvoked, false);
+  assert.equal(productionResult.remoteRefreshCount, 2);
   assert.equal(production.calls.build, 1);
   assert.ok(production.calls.scan >= 1);
+  assert.equal(production.calls.refreshes, 2);
   assert.equal(production.calls.process.length, 0);
 });
 
@@ -1525,4 +1568,470 @@ test("dangerous production argv with missing commit-message fails before build o
   assert.equal(parserRejected, true);
   assert.equal(buildInvoked, false);
   assert.equal(wranglerInvoked, false);
+});
+
+const FULL_SHA_A = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const FULL_SHA_B = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+const FULL_SHA_C = "cccccccccccccccccccccccccccccccccccccccc";
+
+test("isValidCommitSha accepts only full hexadecimal SHAs", () => {
+  assert.equal(isValidCommitSha(FULL_SHA_A), true);
+  assert.equal(isValidCommitSha("ABCDEF0123456789ABCDEF0123456789ABCDEF01"), true);
+  assert.equal(isValidCommitSha("abc123"), false);
+  assert.equal(isValidCommitSha(`${FULL_SHA_A}\n${FULL_SHA_B}`), false);
+  assert.equal(isValidCommitSha("g".repeat(40)), false);
+  assert.equal(isValidCommitSha(""), false);
+  assert.equal(isValidCommitSha(null), false);
+});
+
+test("initial live remote refresh happens before the first Production Git guard", async () => {
+  const harness = productionDeployHarness({ remoteSha: "abc123" });
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  const fetchIdx = harness.order.indexOf("fetch-1");
+  const gitIdx = harness.order.indexOf("git-1");
+  assert.ok(fetchIdx >= 0);
+  assert.ok(gitIdx > fetchIdx);
+});
+
+test("second live remote refresh happens after build and scan", async () => {
+  const harness = productionDeployHarness({ remoteSha: "abc123" });
+  await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    dryRun: true,
+    ...harness.deps,
+  });
+  const buildIdx = harness.order.indexOf("build");
+  const scanIdx = harness.order.indexOf("scan");
+  const fetch2Idx = harness.order.indexOf("fetch-2");
+  const git2Idx = harness.order.indexOf("git-2");
+  assert.ok(buildIdx >= 0);
+  assert.ok(scanIdx > buildIdx);
+  assert.ok(fetch2Idx > scanIdx);
+  assert.ok(git2Idx > fetch2Idx);
+});
+
+test("initial fetch failure stops before build and Wrangler", async () => {
+  const harness = productionDeployHarness({
+    refreshResults: [{ ok: false, errors: ["Unable to refresh origin/main."] }],
+  });
+  let buildOrWrangler = false;
+  harness.deps.buildTarget = async () => {
+    buildOrWrangler = true;
+    return { ok: true, errors: [] };
+  };
+  harness.deps.runProcess = () => {
+    buildOrWrangler = true;
+    return { status: 0, stdout: "", stderr: "" };
+  };
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    dryRun: false,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "initial-fetch");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.refreshes, 1);
+  assert.equal(harness.calls.build, 0);
+  assert.equal(buildOrWrangler, false);
+});
+
+test("post-build fetch failure stops before Wrangler", async () => {
+  const harness = productionDeployHarness({
+    refreshResults: [
+      { ok: true, originMain: "abc123" },
+      { ok: false, errors: ["Unable to refresh origin/main."] },
+    ],
+  });
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    dryRun: false,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "post-build-fetch");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(result.remoteRefreshCount, 2);
+  assert.equal(harness.calls.build, 1);
+  assert.equal(harness.calls.process.length, 0);
+});
+
+test("missing origin stops before build", async () => {
+  const harness = productionDeployHarness({
+    refreshResult: { ok: false, errors: ["Unable to refresh origin/main."] },
+  });
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "initial-fetch");
+  assert.equal(harness.calls.build, 0);
+  assert.equal(result.wranglerInvoked, false);
+});
+
+test("missing remote main stops before build", async () => {
+  const harness = productionDeployHarness({
+    refreshResult: { ok: false, errors: ["Unable to refresh origin/main."] },
+  });
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "initial-fetch");
+  assert.equal(harness.calls.build, 0);
+});
+
+test("stale local origin/main that refreshes to another SHA blocks deployment", async () => {
+  const harness = productionDeployHarness({
+    initialGit: cleanGitStatus({
+      head: "abc123",
+      originMain: "stale-cached-sha",
+    }),
+    remoteSha: "live-fresh-sha",
+  });
+  let buildOrWrangler = false;
+  const originalBuild = harness.deps.buildTarget;
+  harness.deps.buildTarget = async (...args) => {
+    buildOrWrangler = true;
+    return originalBuild(...args);
+  };
+  harness.deps.runProcess = () => {
+    buildOrWrangler = true;
+    return { status: 0, stdout: "", stderr: "" };
+  };
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    dryRun: false,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "initial-git");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(buildOrWrangler, false);
+  assert.match(result.errors.join("\n"), /origin\/main|HEAD/i);
+});
+
+test("remote main advancing during the Production build blocks deployment", async () => {
+  const harness = productionDeployHarness({
+    remoteSha: "abc123",
+    onBuild: (h) => {
+      h.setRemoteSha("advanced-sha");
+    },
+  });
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "post-build-git");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.refreshes, 2);
+  assert.equal(harness.calls.process.length, 0);
+});
+
+test("remote force-push to another SHA blocks deployment", async () => {
+  const harness = productionDeployHarness({
+    remoteSha: "abc123",
+    onBuild: (h) => {
+      h.setRemoteSha("force-pushed-sha");
+    },
+  });
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    dryRun: false,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "post-build-git");
+  assert.equal(result.wranglerInvoked, false);
+});
+
+test("malformed or ambiguous fetched ref fails closed in refreshOriginMain", () => {
+  const calls = [];
+  const runProcess = (command, args) => {
+    calls.push({ command, args });
+    if (args[0] === "remote") {
+      return { status: 0, stdout: "origin\n", stderr: "" };
+    }
+    if (args[0] === "fetch") {
+      return { status: 0, stdout: "", stderr: "" };
+    }
+    if (args[0] === "rev-parse") {
+      return {
+        status: 0,
+        stdout: `${FULL_SHA_A}\n${FULL_SHA_B}\n`,
+        stderr: "",
+      };
+    }
+    return { status: 1, stdout: "", stderr: "unexpected" };
+  };
+  const result = refreshOriginMain({ cwd: "/tmp/unused", runProcess });
+  assert.equal(result.ok, false);
+  assert.deepEqual(result.errors, ["Unable to refresh origin/main."]);
+  assert.ok(calls.some((c) => c.args[0] === "fetch"));
+});
+
+test("fetched SHA must be a full valid hexadecimal commit SHA", () => {
+  const runProcess = (command, args) => {
+    if (args[0] === "remote") {
+      return { status: 0, stdout: "origin\n", stderr: "" };
+    }
+    if (args[0] === "fetch") {
+      return { status: 0, stdout: "", stderr: "" };
+    }
+    if (args[0] === "rev-parse") {
+      return { status: 0, stdout: "not-a-full-sha\n", stderr: "" };
+    }
+    return { status: 1, stdout: "", stderr: "" };
+  };
+  const result = refreshOriginMain({ cwd: "/tmp/unused", runProcess });
+  assert.equal(result.ok, false);
+  assert.deepEqual(result.errors, ["Unable to refresh origin/main."]);
+});
+
+test("refreshOriginMain fails closed when origin is missing", () => {
+  const runProcess = (command, args) => {
+    if (args[0] === "remote") {
+      return { status: 0, stdout: "upstream\n", stderr: "" };
+    }
+    return { status: 0, stdout: "", stderr: "" };
+  };
+  const result = refreshOriginMain({ cwd: "/tmp/unused", runProcess });
+  assert.equal(result.ok, false);
+});
+
+test("refreshOriginMain fails closed when fetch fails", () => {
+  const runProcess = (command, args) => {
+    if (args[0] === "remote") {
+      return { status: 0, stdout: "origin\n", stderr: "" };
+    }
+    if (args[0] === "fetch") {
+      return { status: 1, stdout: "", stderr: "fetch failed" };
+    }
+    return { status: 0, stdout: "", stderr: "" };
+  };
+  const result = refreshOriginMain({ cwd: "/tmp/unused", runProcess });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.join(" ").includes("Unable to refresh origin/main."));
+});
+
+test("refreshOriginMain uses shell-free argv fetch of origin main with GIT_TERMINAL_PROMPT=0", () => {
+  const envs = [];
+  const runProcess = (command, args, options = {}) => {
+    envs.push(options.env || {});
+    if (args[0] === "remote") {
+      return { status: 0, stdout: "origin\n", stderr: "" };
+    }
+    if (args[0] === "fetch") {
+      assert.equal(command, "git");
+      assert.deepEqual(args, [
+        "fetch",
+        "--no-tags",
+        "--prune",
+        "origin",
+        "+refs/heads/main:refs/remotes/origin/main",
+      ]);
+      return { status: 0, stdout: "", stderr: "" };
+    }
+    if (args[0] === "rev-parse") {
+      return { status: 0, stdout: `${FULL_SHA_A}\n`, stderr: "" };
+    }
+    return { status: 1, stdout: "", stderr: "" };
+  };
+  const result = refreshOriginMain({ cwd: "/tmp/unused", runProcess });
+  assert.equal(result.ok, true);
+  assert.equal(result.originMain, FULL_SHA_A);
+  assert.ok(envs.every((env) => env.GIT_TERMINAL_PROMPT === "0"));
+});
+
+test("HEAD, refreshed origin/main, and --expected-sha must all match", async () => {
+  const harness = productionDeployHarness({
+    initialGit: cleanGitStatus({ head: "abc123", originMain: "abc123" }),
+    remoteSha: "abc123",
+  });
+  const mismatch = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "different-expected",
+    authorizeProductionDeploy: true,
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(mismatch.ok, false);
+  assert.equal(mismatch.stage, "initial-git");
+  assert.equal(mismatch.wranglerInvoked, false);
+});
+
+test("successful dry-run performs two refreshes and no Wrangler call", async () => {
+  const harness = productionDeployHarness({ remoteSha: "abc123" });
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.remoteRefreshCount, 2);
+  assert.equal(harness.calls.refreshes, 2);
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.process.length, 0);
+  assert.ok(
+    harness.logs.some((line) =>
+      line.includes("Production artifact built and verified."),
+    ),
+  );
+  assert.ok(
+    harness.logs.some((line) =>
+      line.includes("Dry run complete. No Cloudflare request was made."),
+    ),
+  );
+});
+
+test("successful non-dry mocked flow invokes Wrangler only after fetch → guards → build → scan → fetch → post-build guards", async () => {
+  const harness = productionDeployHarness({ remoteSha: "abc123" });
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    dryRun: false,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.wranglerInvoked, true);
+  assert.deepEqual(
+    harness.order.filter((step) =>
+      ["fetch-1", "git-1", "build", "scan", "fetch-2", "git-2", "wrangler"].includes(
+        step,
+      ),
+    ),
+    ["fetch-1", "git-1", "build", "scan", "fetch-2", "git-2", "wrangler"],
+  );
+});
+
+test("Preview deploy never requires origin/main refresh", async () => {
+  const harness = previewDeployHarness();
+  let refreshCalled = false;
+  harness.deps.refreshRemoteMain = () => {
+    refreshCalled = true;
+    return { ok: true, originMain: "abc123" };
+  };
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    dryRun: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(refreshCalled, false);
+  assert.equal(harness.order.includes("fetch-1"), false);
+  assert.equal(harness.calls.build, 1);
+});
+
+test("refreshOriginMain integration against local bare remotes without internet", async () => {
+  const base = await mkdtemp(path.join(tmpdir(), "origin-main-refresh-"));
+  const bare = path.join(base, "bare.git");
+  const work = path.join(base, "work");
+  try {
+    execFileSync("git", ["init", "--bare", bare], { stdio: "pipe" });
+    execFileSync("git", ["clone", bare, work], { stdio: "pipe" });
+    execFileSync("git", ["-C", work, "checkout", "-b", "main"], {
+      stdio: "pipe",
+    });
+    await writeFile(path.join(work, "README.md"), "one\n", "utf8");
+    execFileSync("git", ["-C", work, "add", "README.md"], { stdio: "pipe" });
+    execFileSync(
+      "git",
+      ["-C", work, "commit", "-m", "first"],
+      {
+        stdio: "pipe",
+        env: {
+          ...process.env,
+          GIT_AUTHOR_NAME: "Test",
+          GIT_AUTHOR_EMAIL: "test@example.com",
+          GIT_COMMITTER_NAME: "Test",
+          GIT_COMMITTER_EMAIL: "test@example.com",
+        },
+      },
+    );
+    execFileSync("git", ["-C", work, "push", "-u", "origin", "main"], {
+      stdio: "pipe",
+    });
+    const sha1 = execFileSync("git", ["-C", work, "rev-parse", "HEAD"], {
+      encoding: "utf8",
+    }).trim();
+
+    const first = refreshOriginMain({ cwd: work });
+    assert.equal(first.ok, true);
+    assert.equal(first.originMain, sha1.toLowerCase());
+
+    await writeFile(path.join(work, "README.md"), "two\n", "utf8");
+    execFileSync("git", ["-C", work, "add", "README.md"], { stdio: "pipe" });
+    execFileSync(
+      "git",
+      ["-C", work, "commit", "-m", "second"],
+      {
+        stdio: "pipe",
+        env: {
+          ...process.env,
+          GIT_AUTHOR_NAME: "Test",
+          GIT_AUTHOR_EMAIL: "test@example.com",
+          GIT_COMMITTER_NAME: "Test",
+          GIT_COMMITTER_EMAIL: "test@example.com",
+        },
+      },
+    );
+    execFileSync("git", ["-C", work, "push", "origin", "main"], {
+      stdio: "pipe",
+    });
+    const sha2 = execFileSync("git", ["-C", work, "rev-parse", "HEAD"], {
+      encoding: "utf8",
+    }).trim();
+
+    // Simulate a stale remote-tracking ref by resetting origin/main locally.
+    execFileSync(
+      "git",
+      ["-C", work, "update-ref", "refs/remotes/origin/main", sha1],
+      { stdio: "pipe" },
+    );
+    const stale = execFileSync(
+      "git",
+      ["-C", work, "rev-parse", "refs/remotes/origin/main"],
+      { encoding: "utf8" },
+    ).trim();
+    assert.equal(stale, sha1);
+
+    const refreshed = refreshOriginMain({ cwd: work });
+    assert.equal(refreshed.ok, true);
+    assert.equal(refreshed.originMain, sha2.toLowerCase());
+    assert.notEqual(refreshed.originMain, sha1.toLowerCase());
+  } finally {
+    await rm(base, { recursive: true, force: true });
+  }
 });

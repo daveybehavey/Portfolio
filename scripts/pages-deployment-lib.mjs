@@ -744,6 +744,78 @@ export function getGitStatus(options = {}) {
   };
 }
 
+const FULL_COMMIT_SHA_PATTERN = /^[0-9a-f]{40}$/i;
+
+export function isValidCommitSha(value) {
+  return typeof value === "string" && FULL_COMMIT_SHA_PATTERN.test(value);
+}
+
+/**
+ * Refresh the live remote-tracking ref for origin/main without pulling or mutating
+ * the working tree. Uses a shell-free Git argv and GIT_TERMINAL_PROMPT=0.
+ * Never logs remote URLs or credentials.
+ */
+export function refreshOriginMain({
+  cwd,
+  runProcess = defaultRunProcess,
+  env = process.env,
+} = {}) {
+  const gitEnv = {
+    ...env,
+    GIT_TERMINAL_PROMPT: "0",
+  };
+  const runGitProcess = (args) =>
+    runProcess("git", args, {
+      cwd,
+      env: gitEnv,
+      stdio: "pipe",
+    });
+
+  const remotes = runGitProcess(["remote"]);
+  if (remotes.status !== 0) {
+    return { ok: false, errors: ["Unable to refresh origin/main."] };
+  }
+  const remoteNames = String(remotes.stdout || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (!remoteNames.includes("origin")) {
+    return { ok: false, errors: ["Unable to refresh origin/main."] };
+  }
+
+  const fetchResult = runGitProcess([
+    "fetch",
+    "--no-tags",
+    "--prune",
+    "origin",
+    "+refs/heads/main:refs/remotes/origin/main",
+  ]);
+  if (fetchResult.status !== 0) {
+    return { ok: false, errors: ["Unable to refresh origin/main."] };
+  }
+
+  const resolved = runGitProcess([
+    "rev-parse",
+    "--verify",
+    "--quiet",
+    "refs/remotes/origin/main^{commit}",
+  ]);
+  const resolvedLines = String(resolved.stdout || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim().toLowerCase())
+    .filter(Boolean);
+  const originMain = resolvedLines[0] || "";
+  if (
+    resolved.status !== 0 ||
+    resolvedLines.length !== 1 ||
+    !isValidCommitSha(originMain)
+  ) {
+    return { ok: false, errors: ["Unable to refresh origin/main."] };
+  }
+
+  return { ok: true, originMain };
+}
+
 export function resolveExecutable(command, platform = process.platform) {
   if (platform !== "win32") return command;
   if (command === "npm") return "npm.cmd";
@@ -1303,7 +1375,9 @@ export async function runGuardedPreviewDeploy({
 }
 
 /**
- * Production deploy orchestration: git guards → build → rescan → post-build git → Wrangler.
+ * Production deploy orchestration:
+ * config → refresh origin/main → git guards → build → scan → refresh origin/main →
+ * post-build git guards → Wrangler.
  * Injectable runners keep regression tests free of Cloudflare/network side effects.
  */
 export async function runGuardedProductionDeploy({
@@ -1316,6 +1390,7 @@ export async function runGuardedProductionDeploy({
   loadConfig = loadPagesConfig,
   validateConfig = validatePagesConfig,
   getStatus = getGitStatus,
+  refreshRemoteMain = refreshOriginMain,
   buildTarget = buildPagesStaticExport,
   scanAssets = scanBuildAssets,
   runProcess = defaultRunProcess,
@@ -1331,7 +1406,20 @@ export async function runGuardedProductionDeploy({
       ok: false,
       stage: "config",
       wranglerInvoked: false,
+      remoteRefreshCount: 0,
       errors: ["Committed Pages configuration validation failed."],
+    };
+  }
+
+  const initialFetch = refreshRemoteMain({ cwd: root, runProcess });
+  if (!initialFetch.ok) {
+    for (const error of initialFetch.errors || []) logError(`- ${error}`);
+    return {
+      ok: false,
+      stage: "initial-fetch",
+      wranglerInvoked: false,
+      remoteRefreshCount: 1,
+      errors: initialFetch.errors || ["Unable to refresh origin/main."],
     };
   }
 
@@ -1343,7 +1431,7 @@ export async function runGuardedProductionDeploy({
     environment: "production",
     workingTreeDirty: initialGit.workingTreeDirty,
     head: initialGit.head,
-    originMain: initialGit.originMain,
+    originMain: initialFetch.originMain,
     expectedSha,
     authorizeProductionDeploy,
     configOk: true,
@@ -1354,6 +1442,7 @@ export async function runGuardedProductionDeploy({
       ok: false,
       stage: "initial-git",
       wranglerInvoked: false,
+      remoteRefreshCount: 1,
       errors: initialGuards.errors,
     };
   }
@@ -1376,6 +1465,7 @@ export async function runGuardedProductionDeploy({
       ok: false,
       stage: "build",
       wranglerInvoked: false,
+      remoteRefreshCount: 1,
       errors: buildResult.errors || ["Production build failed."],
     };
   }
@@ -1390,7 +1480,20 @@ export async function runGuardedProductionDeploy({
       ok: false,
       stage: "scan",
       wranglerInvoked: false,
+      remoteRefreshCount: 1,
       errors: scan.errors,
+    };
+  }
+
+  const postFetch = refreshRemoteMain({ cwd: root, runProcess });
+  if (!postFetch.ok) {
+    for (const error of postFetch.errors || []) logError(`- ${error}`);
+    return {
+      ok: false,
+      stage: "post-build-fetch",
+      wranglerInvoked: false,
+      remoteRefreshCount: 2,
+      errors: postFetch.errors || ["Unable to refresh origin/main."],
     };
   }
 
@@ -1402,7 +1505,7 @@ export async function runGuardedProductionDeploy({
     environment: "production",
     workingTreeDirty: postGit.workingTreeDirty,
     head: postGit.head,
-    originMain: postGit.originMain,
+    originMain: postFetch.originMain,
     expectedSha,
     authorizeProductionDeploy,
     configOk: true,
@@ -1413,6 +1516,7 @@ export async function runGuardedProductionDeploy({
       ok: false,
       stage: "post-build-git",
       wranglerInvoked: false,
+      remoteRefreshCount: 2,
       errors: postGuards.errors,
     };
   }
@@ -1437,6 +1541,7 @@ export async function runGuardedProductionDeploy({
       ok: true,
       stage: "dry-run",
       wranglerInvoked: false,
+      remoteRefreshCount: 2,
       wranglerArgs,
       errors: [],
     };
@@ -1451,6 +1556,7 @@ export async function runGuardedProductionDeploy({
       ok: false,
       stage: "wrangler",
       wranglerInvoked: true,
+      remoteRefreshCount: 2,
       wranglerArgs,
       status: result.status,
       errors: [`Wrangler exited with status ${result.status}.`],
@@ -1460,6 +1566,7 @@ export async function runGuardedProductionDeploy({
     ok: true,
     stage: "wrangler",
     wranglerInvoked: true,
+    remoteRefreshCount: 2,
     wranglerArgs,
     status: result.status,
     errors: [],

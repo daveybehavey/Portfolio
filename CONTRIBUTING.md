@@ -67,13 +67,14 @@ The CI workflow is verification-only:
 - no Wrangler deploy, Cloudflare API, DNS, email-routing, or Pages mutation command is executed
 - `npm run pages:preview:deploy` and `npm run pages:production:deploy` are never invoked
 - Preview and Production deploy guards in source require an in-command artifact build/rescan and reject dirty or non-ignored untracked working trees; CI still never executes those deploy commands
+- Production deploy refreshes live `origin/main` before initial Git guards and again after the artifact build/scan; cached remote-tracking refs are not deployment evidence, and remote advancement or force-push during preparation fails closed. Preview deploy does not use this remote-main gate
 - committed `wrangler.jsonc` uses top-level `vars` for Production/local and `env.preview.vars` for Preview (no `env.production`)
 - Pages deploy helpers parse JSONC with `jsonc-parser` and spawn with `shell: false` (on Windows, `npm`/`npx` run as `node <cli>.js` so argv boundaries are preserved without `cmd.exe`)
 - deploy CLI parsing rejects missing or flag-shaped values for `--target`, `--expected-sha`, and `--commit-message` before any build or Wrangler work
 - action dependencies are pinned to immutable full commit SHAs
 - superseded runs for the same pull request or branch are cancelled
 
-A successful CI run does **not** deploy the website or activate the inquiry endpoint. Production changes require a separate reviewed process and explicit authorization immediately before secret configuration and deployment. Separately run Preview or Production builds are not authorization or integrity evidence for deployment. Dry-runs prepare and verify artifacts without a Cloudflare request. Deploying without the committed Wrangler configuration is prohibited.
+A successful CI run does **not** deploy the website or activate the inquiry endpoint. Production changes require a separate reviewed process and explicit authorization immediately before secret configuration and deployment. Separately run Preview or Production builds are not authorization or integrity evidence for deployment. Dry-runs prepare and verify artifacts without a Cloudflare request (Production dry-run still performs both live `origin/main` refreshes). Deploying without the committed Wrangler configuration is prohibited.
 
 ## Review sequence
 
