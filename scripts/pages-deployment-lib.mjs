@@ -95,6 +95,80 @@ export async function loadPagesConfig(configPath) {
   return parseJsonc(source);
 }
 
+/**
+ * Read the next argv entry for a value-taking option.
+ * Rejects missing values and values that look like another option.
+ */
+export function requireOptionValue(argv, index, optionName) {
+  const value = argv[index + 1];
+  if (
+    typeof value !== "string" ||
+    value.trim() === "" ||
+    value.startsWith("-")
+  ) {
+    throw new Error(`${optionName} requires a value.`);
+  }
+  return value;
+}
+
+/**
+ * Pure Pages deploy CLI parser. Fail-closed for missing/flag-shaped option values.
+ * Call before any repository, Git, build, or Wrangler work.
+ */
+export function parsePagesDeployArgs(argv) {
+  const options = {
+    target: null,
+    dryRun: false,
+    expectedSha: null,
+    authorizeProductionDeploy: false,
+    commitMessage: null,
+    help: false,
+  };
+
+  const list = Array.isArray(argv) ? argv : [];
+  for (let i = 0; i < list.length; i += 1) {
+    const arg = list[i];
+    if (arg === "--target") {
+      options.target = requireOptionValue(list, i, "--target");
+      i += 1;
+    } else if (arg.startsWith("--target=")) {
+      const value = arg.slice("--target=".length);
+      if (typeof value !== "string" || value.trim() === "") {
+        throw new Error("--target requires a value.");
+      }
+      options.target = value;
+    } else if (arg === "--dry-run") {
+      options.dryRun = true;
+    } else if (arg === "--expected-sha") {
+      options.expectedSha = requireOptionValue(list, i, "--expected-sha");
+      i += 1;
+    } else if (arg.startsWith("--expected-sha=")) {
+      const value = arg.slice("--expected-sha=".length);
+      if (typeof value !== "string" || value.trim() === "") {
+        throw new Error("--expected-sha requires a value.");
+      }
+      options.expectedSha = value;
+    } else if (arg === "--authorize-production-deploy") {
+      options.authorizeProductionDeploy = true;
+    } else if (arg === "--commit-message") {
+      options.commitMessage = requireOptionValue(list, i, "--commit-message");
+      i += 1;
+    } else if (arg.startsWith("--commit-message=")) {
+      const value = arg.slice("--commit-message=".length);
+      if (typeof value !== "string" || value.trim() === "") {
+        throw new Error("--commit-message requires a value.");
+      }
+      options.commitMessage = value;
+    } else if (arg === "--help" || arg === "-h") {
+      options.help = true;
+    } else {
+      throw new Error(`Unknown argument: ${arg}`);
+    }
+  }
+
+  return options;
+}
+
 function check(name, status, message) {
   return { name, status, message };
 }

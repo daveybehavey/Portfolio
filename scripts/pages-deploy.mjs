@@ -1,38 +1,11 @@
 #!/usr/bin/env node
 import {
+  parsePagesDeployArgs,
   repoRootFrom,
   ROLLBACK_DEPLOYMENT_ID,
   runGuardedPreviewDeploy,
   runGuardedProductionDeploy,
 } from "./pages-deployment-lib.mjs";
-
-function parseArgs(argv) {
-  const options = {
-    target: null,
-    dryRun: false,
-    expectedSha: null,
-    authorizeProductionDeploy: false,
-    commitMessage: null,
-  };
-  for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i];
-    if (arg === "--target") options.target = argv[++i];
-    else if (arg.startsWith("--target=")) {
-      options.target = arg.slice("--target=".length);
-    } else if (arg === "--dry-run") options.dryRun = true;
-    else if (arg === "--expected-sha") options.expectedSha = argv[++i];
-    else if (arg.startsWith("--expected-sha=")) {
-      options.expectedSha = arg.slice("--expected-sha=".length);
-    } else if (arg === "--authorize-production-deploy") {
-      options.authorizeProductionDeploy = true;
-    } else if (arg === "--commit-message") options.commitMessage = argv[++i];
-    else if (arg.startsWith("--commit-message=")) {
-      options.commitMessage = arg.slice("--commit-message=".length);
-    } else if (arg === "--help" || arg === "-h") options.help = true;
-    else throw new Error(`Unknown argument: ${arg}`);
-  }
-  return options;
-}
 
 function usage() {
   return `Usage:
@@ -43,12 +16,16 @@ Guarded Cloudflare Pages deployment. Requires the committed wrangler.jsonc.
 Preview and Production deploys always create and verify their own artifact before Wrangler.
 Does not invent provider mutations beyond the requested Wrangler deploy.
 
+Value-taking options (--target, --expected-sha, --commit-message) require an explicit
+non-empty value and must not consume another option as their value.
+
 Production still requires an explicit one-time authorization flag.
 Rollback deployment ID (current production baseline): ${ROLLBACK_DEPLOYMENT_ID}`;
 }
 
 async function main() {
-  const options = parseArgs(process.argv.slice(2));
+  // Parse before any repository, Git, build, or Wrangler work.
+  const options = parsePagesDeployArgs(process.argv.slice(2));
   if (options.help || !options.target) {
     console.log(usage());
     process.exit(options.help ? 0 : 1);

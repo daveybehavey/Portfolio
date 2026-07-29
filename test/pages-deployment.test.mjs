@@ -14,6 +14,7 @@ import {
   DEFAULT_PRODUCTION_COMMIT_MESSAGE,
   getGitStatus,
   parseJsonc,
+  parsePagesDeployArgs,
   parsePorcelainStatus,
   PREVIEW_BRANCH,
   PREVIEW_SITE_KEY,
@@ -1357,4 +1358,171 @@ test("guarded dry-runs preserve process order and never invoke Wrangler", async 
   assert.equal(production.calls.build, 1);
   assert.ok(production.calls.scan >= 1);
   assert.equal(production.calls.process.length, 0);
+});
+
+test("parsePagesDeployArgs rejects --commit-message --dry-run", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "preview",
+        "--commit-message",
+        "--dry-run",
+      ]),
+    /--commit-message requires a value/,
+  );
+});
+
+test("parsePagesDeployArgs rejects missing and empty commit-message values", () => {
+  assert.throws(
+    () => parsePagesDeployArgs(["--target", "preview", "--commit-message"]),
+    /--commit-message requires a value/,
+  );
+  assert.throws(
+    () => parsePagesDeployArgs(["--target", "preview", "--commit-message="]),
+    /--commit-message requires a value/,
+  );
+});
+
+test("parsePagesDeployArgs rejects missing and empty expected-sha values", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "production",
+        "--expected-sha",
+        "--authorize-production-deploy",
+      ]),
+    /--expected-sha requires a value/,
+  );
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "production",
+        "--expected-sha",
+      ]),
+    /--expected-sha requires a value/,
+  );
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "production",
+        "--expected-sha=",
+      ]),
+    /--expected-sha requires a value/,
+  );
+});
+
+test("parsePagesDeployArgs rejects missing and empty target values", () => {
+  assert.throws(
+    () => parsePagesDeployArgs(["--target", "--dry-run"]),
+    /--target requires a value/,
+  );
+  assert.throws(
+    () => parsePagesDeployArgs(["--target"]),
+    /--target requires a value/,
+  );
+  assert.throws(
+    () => parsePagesDeployArgs(["--target="]),
+    /--target requires a value/,
+  );
+});
+
+test("parsePagesDeployArgs preserves spaced and metacharacter commit messages", () => {
+  const spaced = parsePagesDeployArgs([
+    "--target",
+    "preview",
+    "--commit-message",
+    "Release candidate 42",
+    "--dry-run",
+  ]);
+  assert.equal(spaced.commitMessage, "Release candidate 42");
+  assert.equal(spaced.dryRun, true);
+
+  const meta = "Release & | < > ^ % ( )";
+  const withMeta = parsePagesDeployArgs([
+    "--target=preview",
+    `--commit-message=${meta}`,
+  ]);
+  assert.equal(withMeta.commitMessage, meta);
+});
+
+test("parsePagesDeployArgs accepts valid Preview and Production dry-run shapes", () => {
+  const preview = parsePagesDeployArgs([
+    "--target",
+    "preview",
+    "--dry-run",
+  ]);
+  assert.deepEqual(preview, {
+    target: "preview",
+    dryRun: true,
+    expectedSha: null,
+    authorizeProductionDeploy: false,
+    commitMessage: null,
+    help: false,
+  });
+
+  const sha = "a".repeat(40);
+  const production = parsePagesDeployArgs([
+    "--target",
+    "production",
+    "--expected-sha",
+    sha,
+    "--authorize-production-deploy",
+    "--dry-run",
+  ]);
+  assert.equal(production.target, "production");
+  assert.equal(production.expectedSha, sha);
+  assert.equal(production.authorizeProductionDeploy, true);
+  assert.equal(production.dryRun, true);
+});
+
+test("dangerous production argv with missing commit-message fails before build or Wrangler", async () => {
+  const dangerous = [
+    "--target",
+    "production",
+    "--expected-sha",
+    "a".repeat(40),
+    "--authorize-production-deploy",
+    "--commit-message",
+    "--dry-run",
+  ];
+
+  let parserRejected = false;
+  let buildInvoked = false;
+  let wranglerInvoked = false;
+
+  try {
+    const options = parsePagesDeployArgs(dangerous);
+    // Unreachable when the parser rejects flag-shaped values; if it ever
+    // incorrectly succeeds, prove deploy still must not be treated as dry-run.
+    assert.equal(options.dryRun, true);
+    const harness = productionDeployHarness();
+    harness.deps.buildTarget = async () => {
+      buildInvoked = true;
+      return { ok: true, errors: [] };
+    };
+    harness.deps.runProcess = () => {
+      wranglerInvoked = true;
+      return { status: 0, stdout: "", stderr: "" };
+    };
+    await runGuardedProductionDeploy({
+      root: "/tmp/unused",
+      expectedSha: options.expectedSha,
+      authorizeProductionDeploy: options.authorizeProductionDeploy,
+      dryRun: options.dryRun,
+      commitMessage: options.commitMessage,
+      ...harness.deps,
+    });
+  } catch (error) {
+    parserRejected = /--commit-message requires a value/.test(
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+
+  assert.equal(parserRejected, true);
+  assert.equal(buildInvoked, false);
+  assert.equal(wranglerInvoked, false);
 });

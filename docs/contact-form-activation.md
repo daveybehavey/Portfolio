@@ -176,7 +176,7 @@ npm run pages:preview:deploy
 
 `npm run pages:preview:build` remains useful for local inspection, but it is **not** artifact-integrity evidence for deployment. Preview deploy always creates and verifies its own artifact before Wrangler: validate `wrangler.jsonc`, require branch `contact-preview`, enforce a clean working tree (no tracked changes and no non-ignored untracked files), run the Preview build, rescan `out/` with Preview expectations (test sitekey present; production sitekey absent; `_routes.json` includes `/api/contact`), re-check that Git branch/HEAD/tree are unchanged, then invoke Wrangler. Neither Preview nor Production may upload an arbitrary pre-existing `out/`. A Preview `--dry-run` exercises that full path and stops before any Cloudflare request.
 
-The deploy guard requires project `eurodigital-ca`, environment `preview`, current git branch `contact-preview`, and Wrangler deploy branch `contact-preview`. It uses committed `wrangler.jsonc` (`--config=wrangler.jsonc`).
+The deploy guard requires project `eurodigital-ca`, environment `preview`, current git branch `contact-preview`, and Wrangler deploy branch `contact-preview`. It uses committed `wrangler.jsonc` (`--config=wrangler.jsonc`). Value-taking CLI options (`--target`, `--expected-sha`, `--commit-message`) fail closed when their value is missing, empty, or another option (for example `--commit-message --dry-run`), before any build or Wrangler work.
 
 Run the test-mode preflight against a temporary ignored file containing the intended names and values before entering secrets into Cloudflare.
 

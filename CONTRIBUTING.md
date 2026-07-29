@@ -69,6 +69,7 @@ The CI workflow is verification-only:
 - Preview and Production deploy guards in source require an in-command artifact build/rescan and reject dirty or non-ignored untracked working trees; CI still never executes those deploy commands
 - committed `wrangler.jsonc` uses top-level `vars` for Production/local and `env.preview.vars` for Preview (no `env.production`)
 - Pages deploy helpers parse JSONC with `jsonc-parser` and spawn with `shell: false` (on Windows, `npm`/`npx` run as `node <cli>.js` so argv boundaries are preserved without `cmd.exe`)
+- deploy CLI parsing rejects missing or flag-shaped values for `--target`, `--expected-sha`, and `--commit-message` before any build or Wrangler work
 - action dependencies are pinned to immutable full commit SHAs
 - superseded runs for the same pull request or branch are cancelled
 
