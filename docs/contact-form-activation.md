@@ -145,24 +145,45 @@ Using the official test credentials and Resend testing recipient:
 
 A preview deployment changes the Cloudflare Pages project and therefore requires explicit authorization immediately before configuration or deployment.
 
-For the **Preview** environment only, configure:
+### Committed non-secret Preview variables
+
+[`wrangler.jsonc`](../wrangler.jsonc) is the source of truth for non-secret Pages settings. Cloudflare Pages applies top-level `vars` to local and Production; `env.preview.vars` overrides Preview. Do not use an `env.production` block. The file is loaded with a maintained JSONC parser (inline comments and trailing commas are valid). Guarded build/deploy helpers spawn with `shell: false`; on Windows they run `npm`/`npx` through Node’s CLI scripts so spaced `--commit-message` values and shell metacharacters remain single arguments. Preview plain-text overrides are versioned under `env.preview.vars`:
 
 | Name | Type | Preview value |
 |---|---|---|
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | build/runtime variable | official always-pass test sitekey |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | plain text (committed) | `1x00000000000000000000AA` |
+| `CONTACT_FROM_EMAIL` | plain text (committed) | `EuroDigital Preview <onboarding@resend.dev>` |
+| `CONTACT_TO_EMAIL` | plain text (committed) | `delivered@resend.dev` |
+| `CONTACT_ALLOWED_ORIGINS` | plain text (committed) | `https://contact-preview.eurodigital-ca.pages.dev` |
+| `TURNSTILE_ALLOWED_HOSTNAMES` | plain text (committed) | `contact-preview.eurodigital-ca.pages.dev` |
+
+Encrypted secrets remain dashboard-managed only:
+
+| Name | Type | Preview value |
+|---|---|---|
 | `TURNSTILE_SECRET_KEY` | encrypted secret | official always-pass test secret key |
 | `RESEND_API_KEY` | encrypted secret | narrowly scoped Resend API key |
-| `CONTACT_FROM_EMAIL` | variable | `EuroDigital Preview <onboarding@resend.dev>` |
-| `CONTACT_TO_EMAIL` | variable | `delivered@resend.dev` |
-| `CONTACT_ALLOWED_ORIGINS` | variable | exact approved preview origin |
-| `TURNSTILE_ALLOWED_HOSTNAMES` | variable | exact approved preview hostname |
 
-Run the test-mode preflight against a temporary ignored file containing the intended names and values before entering them into Cloudflare.
+Do not commit secret values. Do not deploy with a bare `wrangler pages deploy out` command that omits the committed configuration — a direct upload can replace Pages configuration and silently drop required plain-text variables.
+
+Authorized Preview commands:
+
+```powershell
+npm run pages:preview:build
+npm run pages:preview:deploy -- --dry-run
+npm run pages:preview:deploy
+```
+
+`npm run pages:preview:build` remains useful for local inspection, but it is **not** artifact-integrity evidence for deployment. Preview deploy always creates and verifies its own artifact before Wrangler: validate `wrangler.jsonc`, require branch `contact-preview`, enforce a clean working tree (no tracked changes and no non-ignored untracked files), run the Preview build, rescan `out/` with Preview expectations (test sitekey present; production sitekey absent; `_routes.json` includes `/api/contact`), re-check that Git branch/HEAD/tree are unchanged, then invoke Wrangler. Neither Preview nor Production may upload an arbitrary pre-existing `out/`. A Preview `--dry-run` exercises that full path and stops before any Cloudflare request.
+
+The deploy guard requires project `eurodigital-ca`, environment `preview`, current git branch `contact-preview`, and Wrangler deploy branch `contact-preview`. It uses committed `wrangler.jsonc` (`--config=wrangler.jsonc`). Value-taking CLI options (`--target`, `--expected-sha`, `--commit-message`) fail closed when their value is missing, empty, or another option (for example `--commit-message --dry-run`), before any build or Wrangler work.
+
+Run the test-mode preflight against a temporary ignored file containing the intended names and values before entering secrets into Cloudflare.
 
 After an explicitly authorized preview deployment, run:
 
 ```powershell
-npm run contact:smoke -- --url https://<exact-preview-host> --allow-host <exact-preview-host>
+npm run contact:smoke -- --url https://contact-preview.eurodigital-ca.pages.dev --allow-host contact-preview.eurodigital-ca.pages.dev
 ```
 
 Then repeat the browser checks from Phase 5.
@@ -219,19 +240,24 @@ Delete the temporary file after configuration and verification.
 
 ## Phase 9 — production Pages variables and secrets
 
-With explicit authorization immediately before the change, configure the **Production** environment:
+Committed Production plain-text variables live in top-level `vars` in [`wrangler.jsonc`](../wrangler.jsonc) (not under `env.production`):
 
 | Name | Type | Requirement |
 |---|---|---|
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | build/runtime variable | production widget sitekey |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | plain text (committed) | `0x4AAAAAAEAJbd2XaAk7ZRBR` |
+| `CONTACT_FROM_EMAIL` | plain text (committed) | `EuroDigital <website@send.eurodigital.ca>` |
+| `CONTACT_TO_EMAIL` | plain text (committed) | `contact@eurodigital.ca` |
+| `CONTACT_ALLOWED_ORIGINS` | plain text (committed) | `https://eurodigital.ca,https://www.eurodigital.ca` |
+| `TURNSTILE_ALLOWED_HOSTNAMES` | plain text (committed) | `eurodigital.ca,www.eurodigital.ca` |
+
+With explicit authorization immediately before the change, configure **only** the encrypted Production secrets in the Cloudflare dashboard:
+
+| Name | Type | Requirement |
+|---|---|---|
 | `TURNSTILE_SECRET_KEY` | encrypted secret | production widget secret |
 | `RESEND_API_KEY` | encrypted secret | narrowly scoped production API key |
-| `CONTACT_FROM_EMAIL` | variable | verified production sender |
-| `CONTACT_TO_EMAIL` | variable | `contact@eurodigital.ca` |
-| `CONTACT_ALLOWED_ORIGINS` | variable | `https://eurodigital.ca` and any separately approved direct form origin |
-| `TURNSTILE_ALLOWED_HOSTNAMES` | variable | exact production hostnames |
 
-Cloudflare requires a redeployment for changed Pages variables and secrets to take effect.
+Cloudflare requires a redeployment for changed Pages variables and secrets to take effect. Deploy only through the guarded package commands that use the committed Wrangler configuration.
 
 Do not add secrets to a Wrangler configuration file, GitHub Actions, or repository settings for this manual activation.
 
@@ -250,7 +276,22 @@ Immediately before production deployment, record:
 - rollback deployment identifier
 - explicit authorization for the production deployment
 
-Then use only the existing reviewed manual deployment path. Do not improvise a new deployment command or workflow.
+Then use only the guarded production path. Immediately before the run: read the current Production deployment ID from Cloudflare, record it in the provider audit, confirm it is the deployment to restore if the new deployment fails, then pass it as `--rollback-deployment-id`. Obtain immediate authorization, then:
+
+```powershell
+npm run pages:production:preflight -- --expected-sha <exact-main-sha> --rollback-deployment-id <current-production-deployment-id> --authorize-production-deploy
+npm run pages:production:deploy -- --expected-sha <exact-main-sha> --rollback-deployment-id <current-production-deployment-id> --authorize-production-deploy
+```
+
+`npm run pages:production:build` remains available for local inspection, but it is **not** authorization or integrity evidence for deployment. Production deploy always creates and verifies its own artifact before Wrangler: validate `wrangler.jsonc`, refresh live `origin/main` (read-only fetch that updates only `refs/remotes/origin/main`; cached remote-tracking state is not accepted), enforce a clean working tree (no tracked changes and no non-ignored untracked files) with `HEAD` equal to the freshly fetched `origin/main` and `--expected-sha`, run the production build, rescan `out/` (production sitekey present; test sitekeys and secret-shaped values absent; `_routes.json` includes `/api/contact`; mailto fallback retained), refresh live `origin/main` again, re-check Git state (remote advancement or force-push during preparation fails closed), then invoke Wrangler. Ignored build output such as `out/` is permitted because Git omits it from porcelain status. Do not add broad production-guard exceptions for local evidence directories — move them outside the repo or use a narrow local `.git/info/exclude` entry.
+
+The production deploy guard requires: branch `main`, clean working tree under that strengthened definition, live-refreshed `HEAD == origin/main`, matching `--expected-sha`, operator-supplied `--rollback-deployment-id`, project `eurodigital-ca`, and the one-time `--authorize-production-deploy` flag. Preview deployment does not use the Production remote-main gate. Do not improvise a bare `wrangler pages deploy out` command.
+
+A production `--dry-run` exercises both live `origin/main` refreshes plus full artifact preparation and verification, and stops before any Cloudflare request. If remote `main` advances during the build, the dry-run fails rather than reporting success. Dry-runs still require `--rollback-deployment-id`.
+
+After a successful deployment, the previous rollback ID is no longer the default for the next release. The next release must repeat the Cloudflare lookup.
+
+This repository does **not** claim Production secrets are already configured or that Production has been redeployed with the contact form.
 
 ## Phase 11 — production verification
 
@@ -281,11 +322,31 @@ Use the fastest safe rollback appropriate to the failure:
 
 ### Disable online submission while preserving contact
 
-Remove or blank `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in the production build environment and redeploy the last reviewed source. The form will fail closed and retain the direct email link.
+Do **not** edit committed `wrangler.jsonc` or manually blank Production bindings during an incident. Use the guarded emergency disable mode, which blanks `NEXT_PUBLIC_TURNSTILE_SITE_KEY` only for the generated artifact while keeping the direct email fallback:
+
+```powershell
+npm run pages:production:preflight -- `
+  --expected-sha <exact-main-sha> `
+  --rollback-deployment-id <current-production-deployment-id> `
+  --disable-contact-form `
+  --authorize-contact-form-disable `
+  --authorize-production-deploy
+
+npm run pages:production:deploy -- `
+  --expected-sha <exact-main-sha> `
+  --rollback-deployment-id <current-production-deployment-id> `
+  --disable-contact-form `
+  --authorize-contact-form-disable `
+  --authorize-production-deploy
+```
+
+Both `--disable-contact-form` and `--authorize-contact-form-disable` are required together. Disable mode still requires reviewed `main`, the exact SHA, live `origin/main` refreshes, a clean working tree, the operator-supplied rollback deployment ID, and `--authorize-production-deploy`. Preview cannot use disable mode.
 
 ### Revert the deployment
 
-Restore the recorded prior Cloudflare Pages deployment. Verify the homepage, projects, privacy page, and mailto fallback afterward.
+Restore the operator-supplied prior Cloudflare Pages deployment recorded for that run via `--rollback-deployment-id`. Capture the current Production deployment ID from Cloudflare immediately before each Production deployment; do not treat any source constant as a permanent rollback baseline. The initial activation may use `f0ddd72c-3740-4340-a9f7-4e98b63cf807` only when that ID is confirmed to be the current Production deployment immediately before the run.
+
+Verify the homepage, projects, privacy page, and mailto fallback afterward.
 
 ### Revoke provider access
 
