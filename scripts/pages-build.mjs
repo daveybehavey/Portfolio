@@ -2,6 +2,7 @@
 import {
   buildPagesStaticExport,
   repoRootFrom,
+  requireOptionValue,
 } from "./pages-deployment-lib.mjs";
 
 function parseArgs(argv) {
@@ -10,12 +11,22 @@ function parseArgs(argv) {
     disableContactForm: false,
     help: false,
   };
-  for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i];
+  const list = Array.isArray(argv) ? argv : [];
+  for (let i = 0; i < list.length; i += 1) {
+    const arg = list[i];
     if (arg === "--target") {
-      options.target = argv[++i];
+      options.target = requireOptionValue(list, i, "--target");
+      i += 1;
     } else if (arg.startsWith("--target=")) {
-      options.target = arg.slice("--target=".length);
+      const value = arg.slice("--target=".length);
+      if (
+        typeof value !== "string" ||
+        value.trim() === "" ||
+        value.startsWith("-")
+      ) {
+        throw new Error("--target requires a value.");
+      }
+      options.target = value;
     } else if (arg === "--disable-contact-form") {
       options.disableContactForm = true;
     } else if (arg === "--help" || arg === "-h") {

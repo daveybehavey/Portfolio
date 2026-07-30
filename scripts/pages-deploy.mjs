@@ -7,25 +7,32 @@ import {
 } from "./pages-deployment-lib.mjs";
 
 function usage() {
-  return `Usage:
-  node scripts/pages-deploy.mjs --target preview [--dry-run]
-  node scripts/pages-deploy.mjs --target production --expected-sha <sha> --rollback-deployment-id <uuid> --authorize-production-deploy [--dry-run]
-  node scripts/pages-deploy.mjs --target production --expected-sha <sha> --rollback-deployment-id <uuid> --disable-contact-form --authorize-contact-form-disable --authorize-production-deploy [--dry-run]
+  return `Usage (safe default — never invokes Wrangler):
+  node scripts/pages-deploy.mjs --target preview
+  node scripts/pages-deploy.mjs --target preview --dry-run
+  node scripts/pages-deploy.mjs --target production --expected-sha <sha> --rollback-deployment-id <uuid> --authorize-production-deploy --dry-run
 
-Guarded Cloudflare Pages deployment. Requires the committed wrangler.jsonc.
-Preview and Production deploys always create and verify their own artifact before Wrangler.
-Does not invent provider mutations beyond the requested Wrangler deploy.
+Actual Preview deployment (requires immediate authorization):
+  node scripts/pages-deploy.mjs --target preview --execute-deploy --authorize-preview-deploy
+
+Actual Production deployment (requires immediate authorization):
+  node scripts/pages-deploy.mjs --target production --expected-sha <sha> --rollback-deployment-id <uuid> --authorize-production-deploy --execute-deploy
+
+Emergency Production contact-form disable (actual):
+  node scripts/pages-deploy.mjs --target production --expected-sha <sha> --rollback-deployment-id <uuid> --disable-contact-form --authorize-contact-form-disable --authorize-production-deploy --execute-deploy
+
+Guarded Cloudflare Pages deployment. Requires committed root wrangler.jsonc.
+Pages discovers wrangler.jsonc automatically from the repository root cwd —
+never pass --config / -c to Wrangler Pages commands.
+
+Non-execution is the default. A missing or dropped --dry-run flag does NOT deploy.
+Actual provider execution requires --execute-deploy plus the target authorization flag.
 
 Value-taking options (--target, --expected-sha, --commit-message, --rollback-deployment-id)
 require an explicit non-empty value and must not consume another option as their value.
 
-Production requires an operator-supplied --rollback-deployment-id (current Production
-deployment UUID) with no source-code default. Capture it from Cloudflare immediately
-before the run; do not reuse a stale hardcoded baseline.
-
-Emergency contact-form disable mode blanks NEXT_PUBLIC_TURNSTILE_SITE_KEY only for the
-generated artifact. Committed Production wrangler.jsonc bindings are not modified.
-Disable mode requires both --disable-contact-form and --authorize-contact-form-disable.`;
+Do not use npm run ... -- --flag for provider-changing operations; invoke this script
+with node directly so argv boundaries are preserved.`;
 }
 
 async function main() {
@@ -45,7 +52,8 @@ async function main() {
   if (options.target === "preview") {
     const result = await runGuardedPreviewDeploy({
       root,
-      dryRun: options.dryRun,
+      executeDeploy: options.executeDeploy,
+      authorizePreviewDeploy: options.authorizePreviewDeploy,
       commitMessage: options.commitMessage,
     });
     if (!result.ok) {
@@ -60,7 +68,7 @@ async function main() {
     root,
     expectedSha: options.expectedSha,
     authorizeProductionDeploy: options.authorizeProductionDeploy,
-    dryRun: options.dryRun,
+    executeDeploy: options.executeDeploy,
     commitMessage: options.commitMessage,
     rollbackDeploymentId: options.rollbackDeploymentId,
     disableContactForm: options.disableContactForm,

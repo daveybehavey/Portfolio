@@ -23,10 +23,10 @@
     "typecheck": "tsc --noEmit",
     "pages:preview": "npm run build && wrangler pages dev out",
     "pages:preview:build": "node scripts/pages-build.mjs --target preview",
-    "pages:preview:deploy": "node scripts/pages-deploy.mjs --target preview",
+    "pages:preview:dry-run": "node scripts/pages-deploy.mjs --target preview --dry-run",
+    "pages:deploy:help": "node scripts/pages-deploy.mjs --help",
     "pages:production:build": "node scripts/pages-build.mjs --target production",
-    "pages:production:preflight": "node scripts/pages-production-preflight.mjs",
-    "pages:production:deploy": "node scripts/pages-deploy.mjs --target production"
+    "pages:production:preflight": "node scripts/pages-production-preflight.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
@@ -445,7 +445,7 @@ test("production deploy guards refuse preview branch and missing authorization",
   );
 });
 
-test("wrangler deploy args pin project and branch", () => {
+test("wrangler deploy args pin project and branch without custom --config", () => {
   const previewArgs = buildWranglerDeployArgs({
     target: "preview",
     commitHash: "dfde13d",
@@ -453,8 +453,13 @@ test("wrangler deploy args pin project and branch", () => {
   });
   assert.ok(previewArgs.includes("--branch=contact-preview"));
   assert.ok(previewArgs.includes("--project-name=eurodigital-ca"));
-  assert.ok(previewArgs.includes("--config=wrangler.jsonc"));
+  assert.equal(previewArgs.includes("--config=wrangler.jsonc"), false);
+  assert.equal(
+    previewArgs.some((arg) => arg === "-c" || arg.startsWith("--config")),
+    false,
+  );
   assert.ok(previewArgs.includes("--commit-dirty=false"));
+  assert.deepEqual(previewArgs.slice(0, 3), ["pages", "deploy", "out"]);
 
   const productionArgs = buildWranglerDeployArgs({
     target: "production",
@@ -462,7 +467,11 @@ test("wrangler deploy args pin project and branch", () => {
     commitMessage: "production",
   });
   assert.ok(productionArgs.includes("--branch=main"));
-  assert.ok(productionArgs.includes("--config=wrangler.jsonc"));
+  assert.equal(productionArgs.includes("--config=wrangler.jsonc"), false);
+  assert.equal(
+    productionArgs.some((arg) => arg === "-c" || arg.startsWith("--config")),
+    false,
+  );
   assert.ok(!productionArgs.includes("--branch=contact-preview"));
 });
 
@@ -630,7 +639,7 @@ test("production deploy refuses preview-style out artifact before Wrangler", asy
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    dryRun: false,
+    executeDeploy: true,
         rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
       ...harness.deps,
   });
@@ -816,7 +825,7 @@ test("successful guarded execution invokes Wrangler only after build scan and gi
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    dryRun: false,
+    executeDeploy: true,
         rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
       ...harness.deps,
   });
@@ -1234,7 +1243,8 @@ test("successful Preview execution invokes Wrangler only after build scan and gi
   const harness = previewDeployHarness();
   const result = await runGuardedPreviewDeploy({
     root: "/tmp/unused",
-    dryRun: false,
+    executeDeploy: true,
+    authorizePreviewDeploy: true,
     ...harness.deps,
   });
   assert.equal(result.ok, true);
@@ -1537,8 +1547,10 @@ test("parsePagesDeployArgs accepts valid Preview and Production dry-run shapes",
   assert.deepEqual(preview, {
     target: "preview",
     dryRun: true,
+    executeDeploy: false,
     expectedSha: null,
     authorizeProductionDeploy: false,
+    authorizePreviewDeploy: false,
     commitMessage: null,
     rollbackDeploymentId: null,
     disableContactForm: false,
@@ -1561,8 +1573,15 @@ test("parsePagesDeployArgs accepts valid Preview and Production dry-run shapes",
   assert.equal(production.expectedSha, sha);
   assert.equal(production.authorizeProductionDeploy, true);
   assert.equal(production.dryRun, true);
+  assert.equal(production.executeDeploy, false);
   assert.equal(production.rollbackDeploymentId, SAMPLE_ROLLBACK_DEPLOYMENT_ID);
   assert.equal(production.disableContactForm, false);
+});
+
+test("parsePagesDeployArgs treats missing dry-run as safe non-execution", () => {
+  const preview = parsePagesDeployArgs(["--target", "preview"]);
+  assert.equal(preview.executeDeploy, false);
+  assert.equal(preview.dryRun, false);
 });
 
 test("dangerous production argv with missing commit-message fails before build or Wrangler", async () => {
@@ -1598,11 +1617,11 @@ test("dangerous production argv with missing commit-message fails before build o
       root: "/tmp/unused",
       expectedSha: options.expectedSha,
       authorizeProductionDeploy: options.authorizeProductionDeploy,
-      dryRun: options.dryRun,
+      executeDeploy: options.executeDeploy,
       commitMessage: options.commitMessage,
-          rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+      rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
       ...harness.deps,
-  });
+    });
   } catch (error) {
     parserRejected = /--commit-message requires a value/.test(
       error instanceof Error ? error.message : String(error),
@@ -1682,7 +1701,7 @@ test("initial fetch failure stops before build and Wrangler", async () => {
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    dryRun: false,
+    executeDeploy: true,
         rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
       ...harness.deps,
   });
@@ -1705,7 +1724,7 @@ test("post-build fetch failure stops before Wrangler", async () => {
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    dryRun: false,
+    executeDeploy: true,
         rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
       ...harness.deps,
   });
@@ -1774,7 +1793,7 @@ test("stale local origin/main that refreshes to another SHA blocks deployment", 
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    dryRun: false,
+    executeDeploy: true,
         rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
       ...harness.deps,
   });
@@ -1818,7 +1837,7 @@ test("remote force-push to another SHA blocks deployment", async () => {
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    dryRun: false,
+    executeDeploy: true,
         rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
       ...harness.deps,
   });
@@ -1976,7 +1995,7 @@ test("successful non-dry mocked flow invokes Wrangler only after fetch → guard
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: true,
-    dryRun: false,
+    executeDeploy: true,
         rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
       ...harness.deps,
   });
@@ -2442,7 +2461,7 @@ test("disabled build failure stops before Wrangler", async () => {
     rollbackDeploymentId: SAMPLE_ROLLBACK_DEPLOYMENT_ID,
     disableContactForm: true,
     authorizeContactFormDisable: true,
-    dryRun: false,
+    executeDeploy: true,
     ...harness.deps,
   });
   assert.equal(result.ok, false);
@@ -2466,7 +2485,7 @@ test("disabled scan failure stops before Wrangler", async () => {
     rollbackDeploymentId: SAMPLE_ROLLBACK_DEPLOYMENT_ID,
     disableContactForm: true,
     authorizeContactFormDisable: true,
-    dryRun: false,
+    executeDeploy: true,
     ...harness.deps,
   });
   assert.equal(result.ok, false);
@@ -2527,7 +2546,7 @@ test("successful mocked disable deployment invokes Wrangler only after all guard
     rollbackDeploymentId: SAMPLE_ROLLBACK_DEPLOYMENT_ID,
     disableContactForm: true,
     authorizeContactFormDisable: true,
-    dryRun: false,
+    executeDeploy: true,
     ...harness.deps,
   });
   assert.equal(result.ok, true);
@@ -2605,4 +2624,320 @@ test("buildPagesStaticExport rejects disable mode for Preview", async () => {
       error.includes("only valid for Production builds"),
     ),
   );
+});
+
+test("Preview Wrangler args never include --config or -c", () => {
+  const args = buildWranglerDeployArgs({
+    target: "preview",
+    commitHash: "a".repeat(40),
+    commitMessage: "preview",
+  });
+  const configPresent = args.some(
+    (arg) => arg === "-c" || arg.startsWith("--config"),
+  );
+  assert.equal(configPresent, false);
+  assert.deepEqual(args.slice(0, 5), [
+    "pages",
+    "deploy",
+    "out",
+    "--project-name=eurodigital-ca",
+    "--branch=contact-preview",
+  ]);
+  console.log(`PAGES_CUSTOM_CONFIG_ARG_PRESENT=${configPresent}`);
+});
+
+test("Production Wrangler args never include --config or -c", () => {
+  const args = buildWranglerDeployArgs({
+    target: "production",
+    commitHash: "a".repeat(40),
+    commitMessage: "production",
+  });
+  assert.equal(
+    args.some((arg) => arg === "-c" || arg.startsWith("--config")),
+    false,
+  );
+  assert.ok(args.includes("--branch=main"));
+});
+
+test("mocked Preview execution invokes Wrangler with cwd equal to repository root", async () => {
+  const harness = previewDeployHarness();
+  let capturedCwd = null;
+  harness.deps.runProcess = (command, args, options = {}) => {
+    harness.calls.process.push({ command, args, cwd: options.cwd });
+    harness.order.push("wrangler");
+    capturedCwd = options.cwd;
+    return { status: 0, stdout: "", stderr: "" };
+  };
+  const result = await runGuardedPreviewDeploy({
+    root: "/verified/repo/root",
+    executeDeploy: true,
+    authorizePreviewDeploy: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.wranglerInvoked, true);
+  assert.equal(capturedCwd, "/verified/repo/root");
+  assert.equal(
+    result.wranglerArgs.some((arg) => arg.startsWith("--config")),
+    false,
+  );
+});
+
+test("missing root config fails before Wrangler for Preview", async () => {
+  const harness = previewDeployHarness();
+  harness.deps.loadConfig = async () => {
+    throw new Error("ENOENT: missing wrangler.jsonc");
+  };
+  let caught = false;
+  try {
+    await runGuardedPreviewDeploy({
+      root: "/tmp/unused",
+      executeDeploy: true,
+      authorizePreviewDeploy: true,
+      ...harness.deps,
+    });
+  } catch (error) {
+    caught = /ENOENT|missing wrangler\.jsonc/.test(
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+  assert.equal(caught, true);
+  assert.equal(harness.calls.process.length, 0);
+  assert.equal(harness.calls.build, 0);
+});
+
+test("invalid root config fails before Wrangler for Preview", async () => {
+  const harness = previewDeployHarness();
+  harness.deps.loadConfig = async () => ({ name: "wrong-project" });
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    executeDeploy: true,
+    authorizePreviewDeploy: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "config");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.build, 0);
+  assert.equal(harness.calls.process.length, 0);
+});
+
+test("Preview with only --target preview is a dry-run", async () => {
+  const options = parsePagesDeployArgs(["--target", "preview"]);
+  assert.equal(options.executeDeploy, false);
+  const harness = previewDeployHarness();
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    executeDeploy: options.executeDeploy,
+    authorizePreviewDeploy: options.authorizePreviewDeploy,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.stage, "dry-run");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.process.length, 0);
+});
+
+test("simulating a dropped --dry-run still leaves wranglerInvoked=false", async () => {
+  // Operator intended --dry-run but npm dropped it: argv is only --target preview.
+  const options = parsePagesDeployArgs(["--target", "preview"]);
+  assert.equal(options.dryRun, false);
+  assert.equal(options.executeDeploy, false);
+  const harness = previewDeployHarness();
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    executeDeploy: options.executeDeploy,
+    authorizePreviewDeploy: options.authorizePreviewDeploy,
+    ...harness.deps,
+  });
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(result.stage, "dry-run");
+  console.log(`DROPPED_DRY_RUN_SAFE=${result.wranglerInvoked === false}`);
+  console.log(`DEFAULT_PREVIEW_WRANGLER_INVOKED=${result.wranglerInvoked}`);
+});
+
+test("Production with guards but no --execute-deploy remains a dry-run", async () => {
+  const harness = productionDeployHarness();
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: true,
+    rollbackDeploymentId: SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+    executeDeploy: false,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.stage, "dry-run");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(result.remoteRefreshCount, 2);
+  console.log(`DEFAULT_PRODUCTION_WRANGLER_INVOKED=${result.wranglerInvoked}`);
+});
+
+test("Preview actual execution requires --execute-deploy", async () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "preview",
+        "--authorize-preview-deploy",
+      ]),
+    /without --execute-deploy is contradictory/,
+  );
+});
+
+test("Preview actual execution also requires --authorize-preview-deploy", async () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "preview",
+        "--execute-deploy",
+      ]),
+    /requires --authorize-preview-deploy/,
+  );
+  const harness = previewDeployHarness();
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    executeDeploy: true,
+    authorizePreviewDeploy: false,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.stage, "config");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.build, 0);
+  console.log("PREVIEW_EXECUTE_REQUIRES_AUTH=true");
+});
+
+test("Preview authorization without execution fails closed", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "preview",
+        "--authorize-preview-deploy",
+      ]),
+    /contradictory/,
+  );
+});
+
+test("Production actual execution requires --execute-deploy", async () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "production",
+        "--expected-sha",
+        "a".repeat(40),
+        "--rollback-deployment-id",
+        SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+        "--execute-deploy",
+      ]),
+    /requires --authorize-production-deploy/,
+  );
+});
+
+test("--dry-run plus --execute-deploy fails before Git build or Wrangler", async () => {
+  let buildInvoked = false;
+  let wranglerInvoked = false;
+  let parserRejected = false;
+  try {
+    parsePagesDeployArgs([
+      "--target",
+      "preview",
+      "--dry-run",
+      "--execute-deploy",
+      "--authorize-preview-deploy",
+    ]);
+  } catch (error) {
+    parserRejected = /contradictory/.test(
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+  assert.equal(parserRejected, true);
+  assert.equal(buildInvoked, false);
+  assert.equal(wranglerInvoked, false);
+});
+
+test("Preview authorization is rejected for Production", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "production",
+        "--expected-sha",
+        "a".repeat(40),
+        "--rollback-deployment-id",
+        SAMPLE_ROLLBACK_DEPLOYMENT_ID,
+        "--authorize-preview-deploy",
+        "--authorize-production-deploy",
+        "--dry-run",
+      ]),
+    /only valid for Preview/,
+  );
+});
+
+test("Production authorization does not authorize Preview", () => {
+  assert.throws(
+    () =>
+      parsePagesDeployArgs([
+        "--target",
+        "preview",
+        "--authorize-production-deploy",
+        "--execute-deploy",
+      ]),
+    /does not authorize Preview/,
+  );
+});
+
+test("successful mocked Preview execution order is config → git → build → scan → post-git → wrangler", async () => {
+  const harness = previewDeployHarness();
+  const result = await runGuardedPreviewDeploy({
+    root: "/tmp/unused",
+    executeDeploy: true,
+    authorizePreviewDeploy: true,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.deepEqual(
+    harness.order.filter((step) =>
+      ["config", "git-1", "build", "scan", "git-2", "wrangler"].includes(step),
+    ),
+    ["config", "git-1", "build", "scan", "git-2", "wrangler"],
+  );
+});
+
+test("package scripts never embed --execute-deploy and omit deploy scripts", async () => {
+  const pkg = JSON.parse(await readFile(path.join(process.cwd(), "package.json"), "utf8"));
+  const scripts = pkg.scripts || {};
+  for (const [name, value] of Object.entries(scripts)) {
+    assert.equal(
+      String(value).includes("--execute-deploy"),
+      false,
+      `${name} must not embed --execute-deploy`,
+    );
+  }
+  assert.equal(Object.hasOwn(scripts, "pages:preview:deploy"), false);
+  assert.equal(Object.hasOwn(scripts, "pages:production:deploy"), false);
+  assert.ok(scripts["pages:preview:dry-run"]);
+  assert.ok(scripts["pages:deploy:help"]);
+});
+
+test("pages-build.mjs rejects missing and flag-shaped --target values", async () => {
+  const { spawnSync } = await import("node:child_process");
+  const missing = spawnSync(
+    process.execPath,
+    ["scripts/pages-build.mjs", "--target", "--disable-contact-form"],
+    { encoding: "utf8" },
+  );
+  assert.notEqual(missing.status, 0);
+  assert.match(missing.stderr || missing.stdout, /--target requires a value/);
+
+  const empty = spawnSync(
+    process.execPath,
+    ["scripts/pages-build.mjs", "--target="],
+    { encoding: "utf8" },
+  );
+  assert.notEqual(empty.status, 0);
+  assert.match(empty.stderr || empty.stdout, /--target requires a value/);
 });
