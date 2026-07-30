@@ -126,13 +126,16 @@ export function requireOptionValue(argv, index, optionName) {
 /**
  * Pure Pages deploy CLI parser. Fail-closed for missing/flag-shaped option values.
  * Call before any repository, Git, build, or Wrangler work.
+ * Default mode is non-executing (safe). Actual provider work requires --execute-deploy.
  */
 export function parsePagesDeployArgs(argv) {
   const options = {
     target: null,
     dryRun: false,
+    executeDeploy: false,
     expectedSha: null,
     authorizeProductionDeploy: false,
+    authorizePreviewDeploy: false,
     commitMessage: null,
     rollbackDeploymentId: null,
     disableContactForm: false,
@@ -154,6 +157,8 @@ export function parsePagesDeployArgs(argv) {
       options.target = value;
     } else if (arg === "--dry-run") {
       options.dryRun = true;
+    } else if (arg === "--execute-deploy") {
+      options.executeDeploy = true;
     } else if (arg === "--expected-sha") {
       options.expectedSha = requireOptionValue(list, i, "--expected-sha");
       i += 1;
@@ -165,6 +170,8 @@ export function parsePagesDeployArgs(argv) {
       options.expectedSha = value;
     } else if (arg === "--authorize-production-deploy") {
       options.authorizeProductionDeploy = true;
+    } else if (arg === "--authorize-preview-deploy") {
+      options.authorizePreviewDeploy = true;
     } else if (arg === "--commit-message") {
       options.commitMessage = requireOptionValue(list, i, "--commit-message");
       i += 1;
@@ -204,12 +211,19 @@ export function parsePagesDeployArgs(argv) {
 /**
  * Cross-option validation for deploy CLI args. Fail closed before any
  * repository, Git, build, Wrangler, or provider work.
+ * Non-execution is the default; --dry-run is an explicit alias for that default.
  */
 export function finalizePagesDeployArgs(options) {
   const next = { ...options };
 
   if (next.help) {
     return next;
+  }
+
+  if (next.dryRun && next.executeDeploy) {
+    throw new Error(
+      "--dry-run and --execute-deploy are contradictory; choose exactly one mode.",
+    );
   }
 
   if (next.target === "preview") {
@@ -223,10 +237,30 @@ export function finalizePagesDeployArgs(options) {
         "Contact-form disable mode is only valid for Production deployments.",
       );
     }
+    if (next.authorizeProductionDeploy) {
+      throw new Error(
+        "--authorize-production-deploy does not authorize Preview deployments.",
+      );
+    }
+    if (next.executeDeploy && !next.authorizePreviewDeploy) {
+      throw new Error(
+        "Preview --execute-deploy requires --authorize-preview-deploy.",
+      );
+    }
+    if (next.authorizePreviewDeploy && !next.executeDeploy) {
+      throw new Error(
+        "--authorize-preview-deploy without --execute-deploy is contradictory.",
+      );
+    }
     return next;
   }
 
   if (next.target === "production") {
+    if (next.authorizePreviewDeploy) {
+      throw new Error(
+        "--authorize-preview-deploy is only valid for Preview deployments.",
+      );
+    }
     if (!next.rollbackDeploymentId) {
       throw new Error("--rollback-deployment-id is required for Production.");
     }
@@ -238,6 +272,11 @@ export function finalizePagesDeployArgs(options) {
     if (next.disableContactForm !== next.authorizeContactFormDisable) {
       throw new Error(
         "--disable-contact-form and --authorize-contact-form-disable must be supplied together.",
+      );
+    }
+    if (next.executeDeploy && !next.authorizeProductionDeploy) {
+      throw new Error(
+        "Production --execute-deploy requires --authorize-production-deploy.",
       );
     }
     return next;
@@ -1380,10 +1419,13 @@ export async function buildPagesStaticExport({
 /**
  * Preview deploy orchestration: git guards → build → rescan → post-build git → Wrangler.
  * Injectable runners keep regression tests free of Cloudflare/network side effects.
+ * Non-execution is the default: Wrangler runs only when executeDeploy and
+ * authorizePreviewDeploy are both explicitly true.
  */
 export async function runGuardedPreviewDeploy({
   root,
-  dryRun = false,
+  executeDeploy = false,
+  authorizePreviewDeploy = false,
   commitMessage = DEFAULT_PREVIEW_COMMIT_MESSAGE,
   configPath,
   loadConfig = loadPagesConfig,
@@ -1395,6 +1437,27 @@ export async function runGuardedPreviewDeploy({
   log = console.log,
   logError = console.error,
 }) {
+  if (executeDeploy && !authorizePreviewDeploy) {
+    return {
+      ok: false,
+      stage: "config",
+      wranglerInvoked: false,
+      errors: [
+        "Preview --execute-deploy requires --authorize-preview-deploy.",
+      ],
+    };
+  }
+  if (authorizePreviewDeploy && !executeDeploy) {
+    return {
+      ok: false,
+      stage: "config",
+      wranglerInvoked: false,
+      errors: [
+        "--authorize-preview-deploy without --execute-deploy is contradictory.",
+      ],
+    };
+  }
+
   const resolvedConfigPath = configPath || path.join(root, "wrangler.jsonc");
   const config = await loadConfig(resolvedConfigPath);
   const configReport = validateConfig(config);
@@ -1501,7 +1564,7 @@ export async function runGuardedPreviewDeploy({
   log(`Deploy branch: ${PREVIEW_BRANCH}`);
   log(`Commit hash: ${initialHead}`);
 
-  if (dryRun) {
+  if (!executeDeploy) {
     log("Dry run complete. No Cloudflare request was made.");
     return {
       ok: true,
@@ -1549,7 +1612,7 @@ export async function runGuardedProductionDeploy({
   root,
   expectedSha,
   authorizeProductionDeploy = false,
-  dryRun = false,
+  executeDeploy = false,
   commitMessage,
   rollbackDeploymentId,
   disableContactForm = false,
@@ -1572,6 +1635,20 @@ export async function runGuardedProductionDeploy({
     (contactFormMode === "disabled"
       ? DEFAULT_PRODUCTION_DISABLE_COMMIT_MESSAGE
       : DEFAULT_PRODUCTION_COMMIT_MESSAGE);
+
+  if (executeDeploy && !authorizeProductionDeploy) {
+    return {
+      ok: false,
+      stage: "config",
+      wranglerInvoked: false,
+      remoteRefreshCount: 0,
+      contactFormMode,
+      rollbackDeploymentId: rollbackDeploymentId || null,
+      errors: [
+        "Production --execute-deploy requires --authorize-production-deploy.",
+      ],
+    };
+  }
 
   if (disableContactForm !== authorizeContactFormDisable) {
     return {
@@ -1759,7 +1836,7 @@ export async function runGuardedProductionDeploy({
   log(`Contact form mode: ${contactFormMode}`);
   log(`Operator-supplied rollback deployment: ${rollbackDeploymentId}`);
 
-  if (dryRun) {
+  if (!executeDeploy) {
     log("Dry run complete. No Cloudflare request was made.");
     return {
       ok: true,
@@ -1803,19 +1880,21 @@ export async function runGuardedProductionDeploy({
   };
 }
 
+/**
+ * Build Wrangler Pages deploy argv.
+ * Do not pass --config / -c: Pages discovers root wrangler.jsonc from cwd.
+ */
 export function buildWranglerDeployArgs({
   target,
   commitHash,
   commitMessage,
   commitDirty = false,
-  configPath = "wrangler.jsonc",
 }) {
   const branch = target === "production" ? PRODUCTION_BRANCH : PREVIEW_BRANCH;
   const args = [
     "pages",
     "deploy",
     "out",
-    `--config=${configPath}`,
     `--project-name=${PROJECT_NAME}`,
     `--branch=${branch}`,
   ];

@@ -66,11 +66,13 @@ npm run lint             # ESLint
 npm run typecheck        # tsc --noEmit
 npm run pages:preview            # local Wrangler Pages dev server for out/
 npm run pages:preview:build      # build + verify with Turnstile test sitekey
-npm run pages:preview:deploy     # guarded Preview deploy (branch contact-preview)
+npm run pages:preview:dry-run    # safe Preview verification (never invokes Wrangler)
+npm run pages:deploy:help        # print guarded deploy CLI usage
 npm run pages:production:build   # build + verify with production sitekey
 npm run pages:production:preflight
-npm run pages:production:deploy  # PRODUCTION-CHANGING — requires --expected-sha and --authorize-production-deploy
 ```
+
+There are **no** npm scripts that embed `--execute-deploy` or that can initiate a real Pages deployment by themselves. Provider-changing deploys use direct `node scripts/pages-deploy.mjs ...` commands (see Deploy below). Do not treat `npm run ... -- --flag` as a safety boundary on Windows.
 
 `contact:preflight` validates names and formats without printing configuration values. `contact:smoke` requires an exact target-host allowlist and sends only invalid requests that cannot trigger email delivery.
 
@@ -80,30 +82,67 @@ npm run pages:production:deploy  # PRODUCTION-CHANGING — requires --expected-s
 
 **GitHub Actions:** there is **no** active deployment workflow in this repository. CI is verification-only and does not deploy.
 
-**Committed Wrangler configuration:** [`wrangler.jsonc`](wrangler.jsonc) is the source of truth for non-secret Pages settings. Top-level `vars` are the reviewed local/Production plain-text configuration; `env.preview.vars` overrides Preview. There is no `env.production` block — Cloudflare Pages applies top-level bindings to Production. The committed file is parsed with a real JSONC parser (comments and trailing commas allowed). Guarded deploy commands spawn processes with `shell: false`; on Windows, `npm`/`npx` run via Node’s official CLI scripts (not `cmd.exe`) so spaced commit messages and metacharacters stay one argv each. Encrypted secrets (`TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`) remain dashboard/provider-managed and must never be committed.
+**Committed Wrangler configuration:** [`wrangler.jsonc`](wrangler.jsonc) is the source of truth for non-secret Pages settings. Top-level `vars` are the reviewed local/Production plain-text configuration; `env.preview.vars` overrides Preview. There is no `env.production` block — Cloudflare Pages applies top-level bindings to Production. The committed file is parsed with a real JSONC parser (comments and trailing commas allowed). Guarded helpers load and validate root `wrangler.jsonc` independently, then launch Wrangler with `cwd` set to the repository root so Pages **auto-discovers** that file. Never pass `--config` / `-c` to Wrangler Pages commands. Guarded deploy helpers spawn processes with `shell: false`; on Windows, `npm`/`npx` run via Node’s official CLI scripts (not `cmd.exe`) so spaced commit messages and metacharacters stay one argv each. Encrypted secrets (`TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`) remain dashboard/provider-managed and must never be committed.
 
 A Pages direct-upload deploy can replace project configuration. Deploying `out/` with `wrangler pages deploy` **without** this committed configuration is prohibited because it can silently drop required plain-text variables.
 
-**Preview deploy:** `npm run pages:preview:deploy` (optionally `-- --dry-run`). Preview deploy creates and verifies its own artifact; a separately run `pages:preview:build` is useful for inspection only and is not artifact-integrity evidence. Requires git branch and Wrangler `--branch` both `contact-preview`, a clean working tree (no tracked changes or non-ignored untracked files), and committed `wrangler.jsonc`. Value-taking flags (`--target`, `--expected-sha`, `--commit-message`) require an explicit non-empty value and must not consume another option (for example `--commit-message --dry-run` is rejected). Neither Preview nor Production may upload an arbitrary pre-existing `out/`. Dry-runs perform full artifact preparation without a Cloudflare request. Preview deploy does **not** refresh or require live `origin/main`.
+**Safe by default:** `scripts/pages-deploy.mjs` never invokes Wrangler unless `--execute-deploy` is present. A missing or dropped `--dry-run` flag does **not** deploy. `--dry-run` remains an explicit alias for the default safe mode and cannot be combined with `--execute-deploy`.
 
-**Production deploy:** still requires explicit authorization immediately before setting Production secrets and immediately before deployment. Capture the current Production deployment ID from Cloudflare immediately before the run and pass it as `--rollback-deployment-id` (no source-code default):
+**Failed Preview attempt (2026-07-29):** An authorized final Preview verification from `main` `73ae44c` failed before creating a deployment. Windows `npm run … -- --dry-run` dropped `--dry-run`, and Wrangler rejected unsupported `--config=wrangler.jsonc`. Zero Preview deployments were created; Production was unchanged. This PR removes custom `--config` and makes non-execution the default. Another Preview attempt requires **new immediate authorization** after this PR is reviewed and merged. Do not claim that final Preview verification succeeded.
+
+**Preview — safe verification** (direct Node; never deploys):
 
 ```powershell
-npm run pages:production:preflight -- --expected-sha <exact-main-sha> --rollback-deployment-id <current-production-deployment-id> --authorize-production-deploy
-npm run pages:production:deploy -- --expected-sha <exact-main-sha> --rollback-deployment-id <current-production-deployment-id> --authorize-production-deploy
+node scripts/pages-deploy.mjs --target preview --dry-run
 ```
 
-Production deploy refreshes live `origin/main` (read-only GitHub fetch that updates only the local remote-tracking ref) immediately before initial authorization checks, builds and verifies its own artifact (`pages-build` + `scanBuildAssets`), then refreshes `origin/main` again before Wrangler. Cached remote-tracking state is not accepted as deployment evidence. Remote advancement or a force-push during preparation blocks deployment. Production also rejects any non-ignored untracked files. A separately run `pages:production:build` is useful for inspection only — it is not sufficient authorization or integrity evidence. Ignored `out/` is fine because Git omits it from status. Do not weaken production guards with broad exceptions for local evidence directories.
-
-**Emergency contact-form disable:** to disable online submission while retaining the direct `mailto:contact@eurodigital.ca` fallback, use the guarded Production path with both disable flags. Committed `wrangler.jsonc` Production bindings stay unchanged; only the generated artifact blanks `NEXT_PUBLIC_TURNSTILE_SITE_KEY`:
+**Preview — actual deployment** (only after immediate authorization):
 
 ```powershell
-npm run pages:production:deploy -- `
+node scripts/pages-deploy.mjs `
+  --target preview `
+  --execute-deploy `
+  --authorize-preview-deploy
+```
+
+Preview requires git branch and Wrangler `--branch` both `contact-preview`, a clean working tree, and committed root `wrangler.jsonc`. Preview does **not** refresh or require live `origin/main`.
+
+**Production — safe verification:**
+
+```powershell
+node scripts/pages-production-preflight.mjs --expected-sha <exact-main-sha> --rollback-deployment-id <current-production-deployment-id> --authorize-production-deploy
+node scripts/pages-deploy.mjs `
+  --target production `
+  --expected-sha <exact-main-sha> `
+  --rollback-deployment-id <current-production-deployment-id> `
+  --authorize-production-deploy `
+  --dry-run
+```
+
+**Production — actual deployment** (only after immediate authorization):
+
+```powershell
+node scripts/pages-deploy.mjs `
+  --target production `
+  --expected-sha <exact-main-sha> `
+  --rollback-deployment-id <current-production-deployment-id> `
+  --authorize-production-deploy `
+  --execute-deploy
+```
+
+Production still refreshes live `origin/main` twice, requires a clean tree, matching `--expected-sha`, and an operator-supplied `--rollback-deployment-id`.
+
+**Emergency contact-form disable** (actual; committed bindings unchanged):
+
+```powershell
+node scripts/pages-deploy.mjs `
+  --target production `
   --expected-sha <exact-main-sha> `
   --rollback-deployment-id <current-production-deployment-id> `
   --disable-contact-form `
   --authorize-contact-form-disable `
-  --authorize-production-deploy
+  --authorize-production-deploy `
+  --execute-deploy
 ```
 
 That path is **production-changing**. Do not run it without authorization. Rollback IDs are captured per deployment from Cloudflare and are never permanently hardcoded in source.
