@@ -78,7 +78,7 @@ There are **no** npm scripts that embed `--execute-deploy` or that can initiate 
 
 ## Deploy
 
-**Current production:** eurodigital.ca remains the previous **manual** Cloudflare Pages deploy. Merging source to GitHub does **not** change production by itself.
+**Current production:** eurodigital.ca is served by Cloudflare Pages deployment `e6c9ca53-554c-4be9-8bc2-847074a80c7d` from source SHA `887d9abb55f5ef3c085e2497b7a56c137a847e7d` (160/160 tests passing at deploy). Online contact submission is **live and verified** (one confirmed end-to-end delivery to `contact@eurodigital.ca`). The previous deployment `f0ddd72c-3740-4340-a9f7-4e98b63cf807` remains the documented rollback reference. Merging source to GitHub still does **not** change production by itself — Production deploys require an explicitly authorized guarded `pages-deploy` invocation.
 
 **GitHub Actions:** there is **no** active deployment workflow in this repository. CI is verification-only and does not deploy.
 
@@ -149,7 +149,7 @@ That path is **production-changing**. Do not run it without authorization. Rollb
 
 ## Contact-form activation
 
-The source contains a narrow `/api/contact` Pages Function, but online submission is disabled until reviewed Turnstile, Resend, and Cloudflare Pages configuration is supplied.
+The source contains a narrow `/api/contact` Pages Function. **Production** online submission is **live** on eurodigital.ca (deployment `e6c9ca53-554c-4be9-8bc2-847074a80c7d`, source `887d9abb55f5ef3c085e2497b7a56c137a847e7d`), with reviewed Turnstile, Resend, and Cloudflare Pages configuration already applied and verified. The mailto fallback remains available. Rollback reference for the prior Production deployment: `f0ddd72c-3740-4340-a9f7-4e98b63cf807`.
 
 Follow [`docs/contact-form-activation.md`](docs/contact-form-activation.md) for:
 
