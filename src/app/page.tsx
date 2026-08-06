@@ -309,11 +309,21 @@ export default function Home() {
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm text-slate-600">
-              More client work and side projects are available in the full portfolio.
+              Detailed case studies and the full portfolio stay limited to
+              supportable claims. MaestrosServices is a family business site;
+              StarMapCo is an owned ecommerce product.
             </div>
-            <ButtonLink href="/projects" variant="secondary">
-              Open full portfolio
-            </ButtonLink>
+            <div className="flex flex-wrap gap-3">
+              <ButtonLink
+                href="/website-design-vancouver-island"
+                variant="secondary"
+              >
+                Island website design
+              </ButtonLink>
+              <ButtonLink href="/projects" variant="secondary">
+                Open full portfolio
+              </ButtonLink>
+            </div>
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -387,6 +397,12 @@ export default function Home() {
                     >
                       Email {CONTACT_EMAIL}
                     </ButtonA>
+                    <ButtonLink
+                      href="/website-design-vancouver-island"
+                      variant="secondary"
+                    >
+                      Island website design
+                    </ButtonLink>
                     <ButtonLink href="/projects" variant="secondary">
                       Browse portfolio
                     </ButtonLink>

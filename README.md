@@ -200,13 +200,16 @@ Analytics configuration for eurodigital.ca.
 beacon scripts. Injection happens at Cloudflare’s edge after an authorized
 Pages deployment, not during the local static export.
 
-**Production status:** Web Analytics is enabled on the Pages project and is
-**pending the next authorized Production deployment**. Do not treat current
-live Production as already injecting the beacon until that deployment completes
-and the checks below pass. A later docs-only closeout can record the resulting
-deployment ID and verification evidence without causing another deploy.
+**Production status:** Native Web Analytics is enabled on the Pages project and
+was activated by Production deployment
+`fc18bfa8-56e0-4786-b7d7-7130ece3bcb3` from source
+`348bff05ce4e8d01290cd66c1b79a99aafc68ae4`. Rollback reference for that run:
+`e6c9ca53-554c-4be9-8bc2-847074a80c7d`. Evidence is recorded in
+[`docs/production-closeout.md`](docs/production-closeout.md). **GA4 remains
+disabled** unless a separately authorized change sets
+`NEXT_PUBLIC_GA_MEASUREMENT_ID`.
 
-**Post-deployment verification (after an authorized Production deploy):**
+**Post-deployment verification (for future authorized Production deploys):**
 
 1. Exactly one `beacon.min.js` script on the rendered Production page HTML.
 2. At least one `/cdn-cgi/rum` beacon request from a real browser session.

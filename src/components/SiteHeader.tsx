@@ -36,6 +36,12 @@ export function SiteHeader({ showSectionNav = true }: SiteHeaderProps) {
               <NavLink href="/#process" className="nav-link">
                 Process
               </NavLink>
+              <NavLink
+                href="/website-design-vancouver-island"
+                className="nav-link"
+              >
+                Island websites
+              </NavLink>
               <NavLink href="/projects" className="nav-link">
                 Portfolio
               </NavLink>

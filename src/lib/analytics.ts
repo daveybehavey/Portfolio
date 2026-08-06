@@ -16,7 +16,9 @@ export type AnalyticsLocation =
   | "mobile_nav"
   | "sticky_bar"
   | "portfolio"
-  | "privacy";
+  | "privacy"
+  | "service"
+  | "case_study";
 
 export type LeadMethod = "contact_form" | "mailto" | "mailto_direct";
 

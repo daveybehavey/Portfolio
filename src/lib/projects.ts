@@ -10,6 +10,8 @@ export type Project = {
   playStoreUrl?: string;
   isFeatured?: boolean;
   isEarlyWork?: boolean;
+  /** Internal case-study route when a dedicated proof page exists */
+  caseStudyPath?: `/projects/${string}`;
 };
 
 export const projects: readonly Project[] = [
@@ -27,6 +29,7 @@ export const projects: readonly Project[] = [
     label: "Local services",
     imageSrc: "/projects/maestrosservices.webp",
     isFeatured: true,
+    caseStudyPath: "/projects/maestrosservices",
   },
   {
     name: "AnglKissCreations",
@@ -68,6 +71,7 @@ export const projects: readonly Project[] = [
     ],
     label: "Ecommerce store",
     imageSrc: "/projects/starmapco.webp",
+    caseStudyPath: "/projects/starmapco",
   },
   {
     name: "VancouverIslandProRoofing",
