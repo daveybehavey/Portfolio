@@ -158,8 +158,17 @@ test("privacy page discloses Cloudflare Web Analytics unconditionally", async ()
 
 test("generated out/ HTML has zero manual Cloudflare analytics beacons when present", async () => {
   const outDir = path.join(root, "out");
+  const requireStaticExport = process.env.REQUIRE_STATIC_EXPORT === "1";
+
   if (!existsSync(outDir)) {
-    // Covered by post-build verification scans; source invariants still run always.
+    if (requireStaticExport) {
+      assert.fail(
+        "REQUIRE_STATIC_EXPORT=1 requires a completed static export at out/ " +
+          "before scanning generated HTML for manual Cloudflare analytics beacons. " +
+          "Run npm run build (or the CI Build static export step) first.",
+      );
+    }
+    // Pre-build source suite: out/ scan is optional unless REQUIRE_STATIC_EXPORT=1.
     return;
   }
 
