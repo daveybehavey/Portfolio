@@ -183,16 +183,39 @@ Follow [`docs/contact-form-activation.md`](docs/contact-form-activation.md) for:
 
 In GA4: **Admin → Events → Mark as key event** on `generate_lead` (and optionally `cta_click`) for reporting.
 
-## Optional: Cloudflare Web Analytics
+## Cloudflare Web Analytics (Pages native injection)
 
-1. Cloudflare dashboard → **Analytics & logs** → **Web Analytics** → add **eurodigital.ca**
-2. Copy the beacon token into `.env.local`:
+Cloudflare Pages **native** Web Analytics is dashboard-managed for the
+`eurodigital-ca` project. When enabled under the project **Metrics** panel,
+Cloudflare automatically edge-injects the JavaScript beacon on the **next**
+deployment. Application source intentionally contains **no** manual beacon
+token and **no** manual `beacon.min.js` / `data-cf-beacon` script.
 
-   ```env
-   NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN=your_token_here
-   ```
+This repository must not reintroduce a token-based or component-based manual
+beacon path. Native Pages injection is the only supported Cloudflare Web
+Analytics configuration for eurodigital.ca.
 
-3. Rebuild and deploy (only after explicit authorization if targeting production). Privacy copy updates automatically on `/privacy`.
+**Pre-edge / local builds:** Generated `out/` HTML from `npm run build` or
+`npm run pages:production:build` should contain **zero** Cloudflare analytics
+beacon scripts. Injection happens at Cloudflare’s edge after an authorized
+Pages deployment, not during the local static export.
+
+**Production status:** Web Analytics is enabled on the Pages project and is
+**pending the next authorized Production deployment**. Do not treat current
+live Production as already injecting the beacon until that deployment completes
+and the checks below pass. A later docs-only closeout can record the resulting
+deployment ID and verification evidence without causing another deploy.
+
+**Post-deployment verification (after an authorized Production deploy):**
+
+1. Exactly one `beacon.min.js` script on the rendered Production page HTML.
+2. At least one `/cdn-cgi/rum` beacon request from a real browser session.
+3. Analytics data visible in the Cloudflare Web Analytics dashboard.
+4. Contact-form non-delivery smoke tests passing.
+5. One authorized real form submission successfully delivered.
+6. No unexpected browser console or page errors.
+
+Reference: [Enable Web Analytics on Pages](https://developers.cloudflare.com/pages/how-to/web-analytics/).
 
 ## Cloudflare helper commands (`scripts/cf-api.js`)
 

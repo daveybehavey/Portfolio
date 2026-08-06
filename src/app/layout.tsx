@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { CloudflareAnalytics } from "@/components/CloudflareAnalytics";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import {
   CONTACT_EMAIL,
@@ -103,7 +102,6 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         {children}
         <GoogleAnalytics />
-        <CloudflareAnalytics />
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
