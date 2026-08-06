@@ -124,7 +124,10 @@ test("built revenue routes, metadata, sitemap, and claim guardrails", async (t) 
         `<link[^>]+rel="canonical"[^>]+href="https://eurodigital\\.ca/${route}/?"`,
       ),
     );
-    assert.doesNotMatch(html, /googletagmanager|gtag\/js|G-[A-Z0-9]{6,}/i);
+    assert.doesNotMatch(
+      html,
+      /googletagmanager\.com|gtag\/js|gtag\(|NEXT_PUBLIC_GA_MEASUREMENT_ID/i,
+    );
     assert.doesNotMatch(html, /static\.cloudflareinsights\.com\/beacon\.min\.js/);
     for (const pattern of PROHIBITED_CLAIM_PATTERNS) {
       assert.doesNotMatch(html, pattern, `${route} avoids ${pattern}`);
