@@ -69,6 +69,11 @@ jobs:
       - name: Build static export
         run: npm run build
 
+      - name: Verify native Web Analytics static output
+        env:
+          REQUIRE_STATIC_EXPORT: "1"
+        run: node --test test/native-web-analytics.test.mjs
+
       - name: Verify static export artifacts
         run: node scripts/verify-static-export.mjs
 

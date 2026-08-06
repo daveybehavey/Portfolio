@@ -16,9 +16,6 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPage() {
-  const cfAnalyticsEnabled = Boolean(
-    process.env.NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN?.trim(),
-  );
   const gaAnalyticsEnabled = isGaEnabled();
 
   return (
@@ -98,54 +95,54 @@ export default function PrivacyPage() {
               Analytics
             </h2>
             <p className="mt-3 leading-relaxed text-slate-700">
-              {gaAnalyticsEnabled || cfAnalyticsEnabled ? (
-                <>
-                  {gaAnalyticsEnabled ? (
-                    <>
-                      I use{" "}
-                      <a
-                        href="https://support.google.com/analytics/answer/11593727"
-                        className="font-medium text-indigo-600 hover:text-indigo-700"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        Google Analytics 4
-                      </a>{" "}
-                      to understand how people find the site and which pages and
-                      contact actions they use (aggregate traffic and button events
-                      — not ad personalization).{" "}
-                    </>
-                  ) : null}
-                  {cfAnalyticsEnabled ? (
-                    <>
-                      {gaAnalyticsEnabled ? "I also use " : "I use "}
-                      <a
-                        href="https://www.cloudflare.com/web-analytics/"
-                        className="font-medium text-indigo-600 hover:text-indigo-700"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        Cloudflare Web Analytics
-                      </a>{" "}
-                      for lightweight, cookie-free visit counts.
-                    </>
-                  ) : null}
-                  You can block these scripts with a browser extension or privacy
-                  settings if you prefer.
-                </>
-              ) : (
-                "This deployment does not load third-party analytics scripts."
-              )}
+              EuroDigital uses{" "}
+              <a
+                href="https://developers.cloudflare.com/web-analytics/"
+                className="font-medium text-indigo-600 hover:text-indigo-700"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Cloudflare Web Analytics
+              </a>{" "}
+              for aggregate visits, page views, page-performance measurements, and
+              Core Web Vitals. Aggregate reporting may include page path, referring
+              site, country, device type, browser, and operating system. The
+              analytics beacon is injected and operated through Cloudflare Pages
+              rather than configured manually in this application. Cloudflare states
+              that Web Analytics does not use cookies or{" "}
+              <span className="font-mono text-[0.95em]">localStorage</span> for
+              analytics, does not fingerprint individuals for analytics, and does
+              not track individual visitors across Cloudflare customer properties.
+              Browser privacy settings or content blockers may prevent the analytics
+              beacon from running.
             </p>
+            {gaAnalyticsEnabled ? (
+              <p className="mt-3 leading-relaxed text-slate-700">
+                I also use{" "}
+                <a
+                  href="https://support.google.com/analytics/answer/11593727"
+                  className="font-medium text-indigo-600 hover:text-indigo-700"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Google Analytics 4
+                </a>{" "}
+                to understand how people find the site and which pages and contact
+                actions they use (aggregate traffic and button events — not ad
+                personalization). You can block these scripts with a browser
+                extension or privacy settings if you prefer.
+              </p>
+            ) : null}
 
             <h2 className="mt-10 text-xl font-semibold text-slate-900">
               Hosting and security
             </h2>
             <p className="mt-3 leading-relaxed text-slate-700">
               The site is hosted on Cloudflare Pages. Cloudflare may process
-              technical request data, such as an IP address and user agent, while
-              delivering the site and protecting it from abuse. Contact endpoint
-              responses are marked not to be cached.
+              ordinary technical request information, such as an IP address and user
+              agent, while hosting, securing, and delivering the website and while
+              protecting it from abuse. Contact endpoint responses are marked not to
+              be cached.
             </p>
 
             <h2 className="mt-10 text-xl font-semibold text-slate-900">
