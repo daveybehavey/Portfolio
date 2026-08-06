@@ -110,7 +110,16 @@ test("production closeout docs record deploy identities without enabling GA4", (
 });
 
 test("built revenue routes, metadata, sitemap, and claim guardrails", async (t) => {
+  const requireStaticExport = process.env.REQUIRE_STATIC_EXPORT === "1";
+
   if (!existsSync(outDir)) {
+    if (requireStaticExport) {
+      assert.fail(
+        "REQUIRE_STATIC_EXPORT=1 requires a completed static export at out/ " +
+          "before asserting built revenue routes, metadata, sitemap, and claim guardrails. " +
+          "Run npm run build (or the CI Build static export step) first.",
+      );
+    }
     t.skip("out/ not built yet — run npm run build first");
     return;
   }

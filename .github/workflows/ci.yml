@@ -74,6 +74,11 @@ jobs:
           REQUIRE_STATIC_EXPORT: "1"
         run: node --test test/native-web-analytics.test.mjs
 
+      - name: Verify revenue engine static output
+        env:
+          REQUIRE_STATIC_EXPORT: "1"
+        run: node --test test/revenue-engine.test.mjs
+
       - name: Verify static export artifacts
         run: node scripts/verify-static-export.mjs
 
