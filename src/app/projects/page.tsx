@@ -169,6 +169,27 @@ export default function ProjectsPage() {
         ) : null}
 
         <Section
+          eyebrow="Case studies"
+          title="Dedicated proof pages for the featured launches."
+          subtitle="Start with MaestrosServices (family landscaping/service website) or StarMapCo (owned ecommerce storefront), then continue through the rest of the portfolio."
+        >
+          <div className="flex flex-wrap gap-3">
+            <ButtonLink href="/projects/maestrosservices">
+              MaestrosServices case study
+            </ButtonLink>
+            <ButtonLink href="/projects/starmapco">
+              StarMapCo case study
+            </ButtonLink>
+            <ButtonLink
+              href="/website-design-vancouver-island"
+              variant="secondary"
+            >
+              Vancouver Island website design
+            </ButtonLink>
+          </div>
+        </Section>
+
+        <Section
           eyebrow="Next step"
           title="If this feels like the kind of launch you need, say hello."
         >
@@ -185,6 +206,12 @@ export default function ProjectsPage() {
               </div>
               <div className="flex flex-wrap gap-3">
                 <ButtonLink href="/#contact">Contact</ButtonLink>
+                <ButtonLink
+                  href="/website-design-vancouver-island"
+                  variant="secondary"
+                >
+                  Island websites
+                </ButtonLink>
                 <ButtonLink href="/#packages" variant="secondary">
                   Packages
                 </ButtonLink>

@@ -11,6 +11,10 @@ const links = [
   { href: "/#why-us", label: "Why us" },
   { href: "/#work", label: "Work" },
   { href: "/#process", label: "Process" },
+  {
+    href: "/website-design-vancouver-island",
+    label: "Island websites",
+  },
   { href: "/projects", label: "Portfolio" },
   { href: "/#faq", label: "FAQ" },
   { href: "/#contact", label: "Contact" },

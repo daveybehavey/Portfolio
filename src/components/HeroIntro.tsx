@@ -95,6 +95,14 @@ export function HeroIntro() {
             Request a project estimate
           </ButtonLink>
           <ButtonLink
+            href="/website-design-vancouver-island"
+            variant="secondary"
+            analyticsLocation="hero"
+            analyticsLabel="Island website design"
+          >
+            Island website design
+          </ButtonLink>
+          <ButtonLink
             href="#examples"
             variant="secondary"
             analyticsLocation="hero"

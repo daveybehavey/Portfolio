@@ -20,10 +20,28 @@ export function SiteFooter() {
           <div className="flex flex-col gap-3 sm:items-end">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
               <Link
+                href="/website-design-vancouver-island"
+                className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+              >
+                Island websites
+              </Link>
+              <Link
                 href="/projects"
                 className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
               >
                 Portfolio
+              </Link>
+              <Link
+                href="/projects/maestrosservices"
+                className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+              >
+                MaestrosServices
+              </Link>
+              <Link
+                href="/projects/starmapco"
+                className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+              >
+                StarMapCo
               </Link>
               <Link
                 href="/#packages"

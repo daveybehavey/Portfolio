@@ -6,9 +6,9 @@
  *   used only as expected needle values when scanning OTHER repository files.
  * - When walking the tree, skip this test file path and any path under node_modules,
  *   .git, .next, out/coverage, or lighthouse-reports.
- * - Mentions inside README of "beacon.min.js" / "/cdn-cgi/rum" as post-deploy
- *   verification instructions are allow-listed as documentation of edge injection,
- *   not application embedding.
+ * - Mentions inside README and docs/production-closeout.md of "beacon.min.js"
+ *   / "/cdn-cgi/rum" as post-deploy verification instructions are allow-listed
+ *   as documentation of edge injection, not application embedding.
  */
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
@@ -56,7 +56,9 @@ const APP_CONFIG_GLOBS_EXT = new Set([
  * The token env var name itself must not appear anywhere outside this test file.
  */
 function isBeaconDocAllowList(relPosix) {
-  return relPosix === "README.md";
+  return (
+    relPosix === "README.md" || relPosix === "docs/production-closeout.md"
+  );
 }
 
 async function walkFiles(dir, out = []) {
