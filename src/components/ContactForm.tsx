@@ -12,6 +12,7 @@ import {
 } from "react";
 import { ButtonA } from "@/components/Button";
 import { trackGenerateLead } from "@/lib/analytics";
+import { collectLeadAttribution } from "@/lib/lead-attribution";
 
 const TURNSTILE_ACTION = "contact";
 const TURNSTILE_SITE_KEY =
@@ -205,6 +206,7 @@ export function ContactForm({ email }: { email: string }) {
       website: String(data.get("website") || ""),
       turnstileToken,
       submissionId,
+      attribution: collectLeadAttribution(),
     };
 
     setStatus({ state: "submitting", message: "Sending your inquiry…" });

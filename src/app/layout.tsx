@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { AttributionCapture } from "@/components/AttributionCapture";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import {
   CONTACT_EMAIL,
@@ -100,6 +101,7 @@ export default function RootLayout({
   return (
     <html lang="en-CA" className={sans.variable}>
       <body className="font-sans antialiased">
+        <AttributionCapture />
         {children}
         <GoogleAnalytics />
         <script

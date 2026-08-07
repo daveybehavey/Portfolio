@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Container } from "@/components/Container";
+import { buildContactHref } from "@/lib/lead-attribution";
 import { SITE_TAGLINE } from "@/lib/site";
 
 export function SiteFooter() {
@@ -56,7 +57,10 @@ export function SiteFooter() {
                 Why us
               </Link>
               <Link
-                href="/#contact"
+                href={buildContactHref({
+                  ctaLabel: "Contact",
+                  ctaLocation: "footer",
+                })}
                 className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
               >
                 Contact

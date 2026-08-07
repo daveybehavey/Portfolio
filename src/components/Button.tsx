@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { useMemo, useRef } from "react";
 import { type AnalyticsLocation, trackCtaAndMaybeLead } from "@/lib/analytics";
+import {
+  isContactHref,
+  noteInquiryCta,
+  withContactAttribution,
+} from "@/lib/lead-attribution";
 
 type CommonProps = {
   children: React.ReactNode;
@@ -45,6 +50,14 @@ function useMagnetic(magnetic: boolean | undefined) {
   return { ref, handlers };
 }
 
+function resolveLabel(
+  children: React.ReactNode,
+  analyticsLabel: string | undefined,
+  href: string,
+): string {
+  return analyticsLabel ?? (typeof children === "string" ? children : href);
+}
+
 function useAnalyticsClick(
   href: string,
   children: React.ReactNode,
@@ -53,8 +66,10 @@ function useAnalyticsClick(
 ) {
   return () => {
     if (!analyticsLocation) return;
-    const label =
-      analyticsLabel ?? (typeof children === "string" ? children : href);
+    const label = resolveLabel(children, analyticsLabel, href);
+    if (isContactHref(href)) {
+      noteInquiryCta({ label, location: analyticsLocation });
+    }
     trackCtaAndMaybeLead({ label, location: analyticsLocation, href });
   };
 }
@@ -69,8 +84,13 @@ export function ButtonLink({
   analyticsLabel,
 }: CommonProps & { href: string }) {
   const { ref, handlers } = useMagnetic(magnetic);
+  const label = resolveLabel(children, analyticsLabel, href);
+  const resolvedHref = withContactAttribution(href, {
+    ctaLabel: analyticsLocation ? label : undefined,
+    ctaLocation: analyticsLocation,
+  });
   const onAnalytics = useAnalyticsClick(
-    href,
+    resolvedHref,
     children,
     analyticsLocation,
     analyticsLabel,
@@ -82,7 +102,7 @@ export function ButtonLink({
 
   return (
     <Link
-      href={href}
+      href={resolvedHref}
       ref={(node) => {
         // next/link ref typing differs; keep it simple
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -113,8 +133,13 @@ export function ButtonA({
   analyticsLabel,
 }: CommonProps & { href: string; target?: string; rel?: string }) {
   const { ref, handlers } = useMagnetic(magnetic);
+  const label = resolveLabel(children, analyticsLabel, href);
+  const resolvedHref = withContactAttribution(href, {
+    ctaLabel: analyticsLocation ? label : undefined,
+    ctaLocation: analyticsLocation,
+  });
   const onAnalytics = useAnalyticsClick(
-    href,
+    resolvedHref,
     children,
     analyticsLocation,
     analyticsLabel,
@@ -128,7 +153,7 @@ export function ButtonA({
 
   return (
     <a
-      href={href}
+      href={resolvedHref}
       target={target}
       rel={safeRel}
       ref={(node) => {

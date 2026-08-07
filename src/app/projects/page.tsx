@@ -205,7 +205,13 @@ export default function ProjectsPage() {
                 </h2>
               </div>
               <div className="flex flex-wrap gap-3">
-                <ButtonLink href="/#contact">Contact</ButtonLink>
+                <ButtonLink
+                  href="/#contact"
+                  analyticsLocation="portfolio"
+                  analyticsLabel="Contact"
+                >
+                  Contact
+                </ButtonLink>
                 <ButtonLink
                   href="/website-design-vancouver-island"
                   variant="secondary"
