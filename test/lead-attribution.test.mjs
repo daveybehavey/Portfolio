@@ -299,6 +299,160 @@ test("client CTA coverage helpers encode distinct surfaces", async () => {
 
   const leadLib = await readFile(join(root, "src/lib/lead-attribution.ts"), "utf8");
   assert.match(leadLib, /no cookies or\s+localStorage/i);
+  assert.match(leadLib, /sanitizeClientReferrer/);
   assert.doesNotMatch(leadLib, /localStorage\.(set|get)Item/);
   assert.doesNotMatch(leadLib, /document\.cookie/);
+  assert.doesNotMatch(leadLib, /truncate\(ref,\s*500\)/);
+});
+
+async function loadClientLeadAttribution() {
+  const { readFile, mkdtemp, writeFile, rm } = await import("node:fs/promises");
+  const { join, dirname } = await import("node:path");
+  const { fileURLToPath, pathToFileURL } = await import("node:url");
+  const { tmpdir } = await import("node:os");
+  const ts = await import("typescript");
+
+  const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const source = await readFile(
+    join(root, "src/lib/lead-attribution.ts"),
+    "utf8",
+  );
+  const { outputText } = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ES2022,
+      moduleResolution: ts.ModuleResolutionKind.Bundler,
+    },
+    fileName: "lead-attribution.ts",
+  });
+
+  const dir = await mkdtemp(join(tmpdir(), "lead-attr-"));
+  const outFile = join(dir, "lead-attribution.mjs");
+  await writeFile(outFile, outputText, "utf8");
+  try {
+    return {
+      mod: await import(pathToFileURL(outFile).href),
+      cleanup: async () => {
+        await rm(dir, { recursive: true, force: true });
+      },
+    };
+  } catch (error) {
+    await rm(dir, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+test("sanitizeClientReferrer strips credentials, query, and fragment before transmission", async () => {
+  const { mod, cleanup } = await loadClientLeadAttribution();
+  try {
+    const { sanitizeClientReferrer } = mod;
+    assert.equal(
+      sanitizeClientReferrer("https://example.com/path?q=secret#section"),
+      "https://example.com/path",
+    );
+    assert.equal(
+      sanitizeClientReferrer("https://user:pass@example.com/path?q=1#x"),
+      "https://example.com/path",
+    );
+    assert.equal(sanitizeClientReferrer("javascript:alert(1)"), "");
+    assert.equal(sanitizeClientReferrer("data:text/html,hi"), "");
+    assert.equal(sanitizeClientReferrer("ftp://files.example/a"), "");
+    assert.equal(sanitizeClientReferrer("not a url"), "");
+    assert.equal(sanitizeClientReferrer(""), "");
+  } finally {
+    await cleanup();
+  }
+});
+
+test("sanitizeClientReferrer normalizes slashes, drops unsafe paths to origin, and caps length", async () => {
+  const { mod, cleanup } = await loadClientLeadAttribution();
+  try {
+    const { sanitizeClientReferrer } = mod;
+    assert.equal(
+      sanitizeClientReferrer("https://example.com//a//b/"),
+      "https://example.com/a/b",
+    );
+    assert.equal(
+      sanitizeClientReferrer("https://example.com/"),
+      "https://example.com",
+    );
+    // Unsafe pathname characters → origin only (documented client/server rule).
+    assert.equal(
+      sanitizeClientReferrer("https://example.com/path<script>"),
+      "https://example.com",
+    );
+    const longPath = `https://example.com/${"p".repeat(400)}`;
+    const capped = sanitizeClientReferrer(longPath);
+    assert.ok(capped.length <= 200);
+    assert.match(capped, /^https:\/\/example\.com/);
+    assert.doesNotMatch(capped, /\?|#|@/);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("observeLocation never stores raw referrer credentials, query, or fragment", async () => {
+  const { mod, cleanup } = await loadClientLeadAttribution();
+  try {
+    const {
+      observeLocation,
+      collectLeadAttribution,
+      resetLeadAttributionSessionForTests,
+      sanitizeClientReferrer,
+    } = mod;
+
+    resetLeadAttributionSessionForTests();
+    observeLocation({
+      pathname: "/website-design-vancouver-island",
+      search: "",
+      documentReferrer: "https://user:secret@evil.example/landing?token=abc#frag",
+    });
+    const snapshot = collectLeadAttribution();
+    assert.equal(snapshot.referrer, "https://evil.example/landing");
+    assert.doesNotMatch(snapshot.referrer, /user:|secret|token=|frag|#|\?/);
+    assert.equal(
+      snapshot.referrer,
+      sanitizeClientReferrer(
+        "https://user:secret@evil.example/landing?token=abc#frag",
+      ),
+    );
+
+    // Empty after sanitize → omit field entirely.
+    resetLeadAttributionSessionForTests();
+    observeLocation({
+      pathname: "/",
+      search: "",
+      documentReferrer: "javascript:alert(1)",
+    });
+    assert.equal(collectLeadAttribution().referrer, undefined);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("client sanitizeClientReferrer matches server sanitizeReferrer outputs", async () => {
+  const { mod, cleanup } = await loadClientLeadAttribution();
+  try {
+    const samples = [
+      "https://example.com/path?q=secret#section",
+      "https://user:pass@example.com/path?q=1#x",
+      "javascript:alert(1)",
+      "data:text/html,hi",
+      "ftp://files.example/a",
+      "not a url",
+      "https://example.com//a//b/",
+      "https://example.com/path<script>",
+      "http://news.example/story/",
+      `https://example.com/${"z".repeat(300)}`,
+    ];
+    for (const sample of samples) {
+      assert.equal(
+        mod.sanitizeClientReferrer(sample),
+        sanitizeReferrer(sample),
+        `mismatch for ${sample}`,
+      );
+    }
+  } finally {
+    await cleanup();
+  }
 });

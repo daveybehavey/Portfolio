@@ -48,6 +48,9 @@ const session: SessionState = {
   pagePath: null,
 };
 
+const CLIENT_REFERRER_MAX = 200;
+const SAFE_REFERRER_PATH_RE = /^\/[a-zA-Z0-9/_-]*$/;
+
 function truncate(value: string, max: number): string {
   return value.length > max ? value.slice(0, max) : value;
 }
@@ -57,6 +60,45 @@ function normalizePathname(pathname: string): string {
   return pathname.length > 1 && pathname.endsWith("/")
     ? pathname.slice(0, -1)
     : pathname;
+}
+
+/**
+ * Sanitize a document.referrer (or similar) before it is stored or submitted.
+ * Matches the privacy shape of server sanitizeReferrer; server remains authoritative.
+ */
+export function sanitizeClientReferrer(value: string): string {
+  if (typeof value !== "string") return "";
+  const text = value.replace(/\s+/g, " ").trim();
+  if (!text) return "";
+
+  let url: URL;
+  try {
+    url = new URL(text);
+  } catch {
+    return "";
+  }
+
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    return "";
+  }
+
+  url.username = "";
+  url.password = "";
+  url.hash = "";
+  url.search = "";
+
+  let path = url.pathname || "/";
+  path = path.replace(/\/{2,}/g, "/");
+  if (path.length > 1 && path.endsWith("/")) {
+    path = path.slice(0, -1);
+  }
+  // Unsafe pathname characters → origin only (same rule as server).
+  if (!SAFE_REFERRER_PATH_RE.test(path) && path !== "/") {
+    path = "/";
+  }
+
+  const rendered = `${url.origin}${path === "/" ? "" : path}`;
+  return truncate(rendered, CLIENT_REFERRER_MAX);
 }
 
 function readParam(params: URLSearchParams, key: string, max: number): string {
@@ -161,9 +203,8 @@ export function observeLocation(options: {
   if (ctaLocation) session.ctaLocation = ctaLocation;
 
   if (session.referrer === null && options.documentReferrer) {
-    // Store raw; server sanitizes. Cap length client-side only as a courtesy.
-    const ref = options.documentReferrer.trim();
-    if (ref) session.referrer = truncate(ref, 500);
+    const ref = sanitizeClientReferrer(options.documentReferrer);
+    if (ref) session.referrer = ref;
   }
 }
 
