@@ -1,3 +1,9 @@
+import {
+  buildAttributionEmailSection,
+  hasAttribution,
+  sanitizeAttribution,
+} from "./lead-attribution.mjs";
+
 const MAX_REQUEST_BYTES = 16_384;
 const TURNSTILE_ENDPOINT = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
@@ -142,6 +148,8 @@ export function validateContactPayload(input) {
     website: cleanText(input.website),
     turnstileToken: cleanText(input.turnstileToken),
     submissionId: cleanText(input.submissionId),
+    // Optional; never used for auth, recipients, or delivery routing.
+    attribution: sanitizeAttribution(input.attribution),
   };
 
   if (values.website) {
@@ -214,6 +222,11 @@ export function buildEmailPayload(values, config) {
     ["Submission ID", values.submissionId],
   ];
 
+  const attributionSection = buildAttributionEmailSection(
+    values.attribution,
+    escapeHtml,
+  );
+
   const text = [
     "New EuroDigital website inquiry",
     "",
@@ -221,6 +234,7 @@ export function buildEmailPayload(values, config) {
     "",
     "Message:",
     values.message,
+    ...(attributionSection ? [attributionSection.text] : []),
   ].join("\n");
 
   const htmlRows = rows
@@ -230,7 +244,9 @@ export function buildEmailPayload(values, config) {
     )
     .join("");
 
-  const html = `<!doctype html><html><body><h1>New EuroDigital website inquiry</h1><table>${htmlRows}</table><h2>Message</h2><p style="white-space:pre-wrap">${escapeHtml(values.message)}</p></body></html>`;
+  const attributionHtml = attributionSection ? attributionSection.html : "";
+
+  const html = `<!doctype html><html><body><h1>New EuroDigital website inquiry</h1><table>${htmlRows}</table><h2>Message</h2><p style="white-space:pre-wrap">${escapeHtml(values.message)}</p>${attributionHtml}</body></html>`;
 
   return {
     from: config.fromEmail,
@@ -241,6 +257,9 @@ export function buildEmailPayload(values, config) {
     html,
   };
 }
+
+// Re-export for focused tests.
+export { hasAttribution, sanitizeAttribution };
 
 async function readJsonBody(request) {
   const contentLength = Number(request.headers.get("content-length") || 0);

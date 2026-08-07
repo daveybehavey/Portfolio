@@ -6,6 +6,11 @@ import {
   classifyHref,
   trackCtaClick,
 } from "@/lib/analytics";
+import {
+  isContactHref,
+  noteInquiryCta,
+  withContactAttribution,
+} from "@/lib/lead-attribution";
 
 type NavLinkProps = {
   href: string;
@@ -21,26 +26,33 @@ export function NavLink({
   location = "header",
 }: NavLinkProps) {
   const label = typeof children === "string" ? children : href;
+  const resolvedHref = withContactAttribution(href, {
+    ctaLabel: isContactHref(href) ? label : undefined,
+    ctaLocation: isContactHref(href) ? location : undefined,
+  });
 
   const onClick = () => {
+    if (isContactHref(resolvedHref)) {
+      noteInquiryCta({ label, location });
+    }
     trackCtaClick({
       label,
       location,
-      href,
-      linkType: classifyHref(href),
+      href: resolvedHref,
+      linkType: classifyHref(resolvedHref),
     });
   };
 
-  if (href.startsWith("/") && !href.startsWith("//")) {
+  if (resolvedHref.startsWith("/") && !resolvedHref.startsWith("//")) {
     return (
-      <Link href={href} className={className} onClick={onClick}>
+      <Link href={resolvedHref} className={className} onClick={onClick}>
         {children}
       </Link>
     );
   }
 
   return (
-    <a href={href} className={className} onClick={onClick}>
+    <a href={resolvedHref} className={className} onClick={onClick}>
       {children}
     </a>
   );

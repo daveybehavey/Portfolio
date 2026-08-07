@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useRef, useState } from "react";
 import { ButtonLink } from "@/components/Button";
+import { buildContactHref, noteInquiryCta } from "@/lib/lead-attribution";
 import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
 const links = [
@@ -17,7 +18,13 @@ const links = [
   },
   { href: "/projects", label: "Portfolio" },
   { href: "/#faq", label: "FAQ" },
-  { href: "/#contact", label: "Contact" },
+  {
+    href: buildContactHref({
+      ctaLabel: "Contact",
+      ctaLocation: "mobile_nav",
+    }),
+    label: "Contact",
+  },
 ] as const;
 
 export function MobileNav() {
@@ -126,7 +133,15 @@ export function MobileNav() {
                       key={l.href}
                       href={l.href}
                       className="rounded-xl px-3 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
-                      onClick={() => setOpen(false)}
+                      onClick={() => {
+                        if (l.label === "Contact") {
+                          noteInquiryCta({
+                            label: "Contact",
+                            location: "mobile_nav",
+                          });
+                        }
+                        setOpen(false);
+                      }}
                     >
                       {l.label}
                     </a>

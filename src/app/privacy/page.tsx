@@ -56,6 +56,17 @@ export default function PrivacyPage() {
               The visitor&apos;s email address is used as the reply-to address and is
               never accepted as the trusted sender address.
             </p>
+            <p className="mt-3 leading-relaxed text-slate-700">
+              Submissions may also include a short internal attribution note: which
+              EuroDigital page or call-to-action was used, campaign parameters
+              (such as UTM values) that were voluntarily present in the URL, and
+              limited referral context (typically the referring site origin and a
+              safe path). This helps understand which website pages or campaigns
+              generate inquiries. Attribution values are validated and length-limited
+              on the server, appear only in the internal inquiry email, and are not
+              used to authorize delivery or choose recipients. Google Analytics 4 is
+              not enabled for this purpose.
+            </p>
 
             <h2 className="mt-10 text-xl font-semibold text-slate-900">
               Spam protection and email delivery

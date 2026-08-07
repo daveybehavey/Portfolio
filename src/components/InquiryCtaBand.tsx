@@ -1,6 +1,7 @@
 import { ButtonLink } from "@/components/Button";
 import { Card } from "@/components/Card";
 import type { AnalyticsLocation } from "@/lib/analytics";
+import { buildContactHref } from "@/lib/lead-attribution";
 
 type InquiryCtaBandProps = {
   title: string;
@@ -15,12 +16,19 @@ type InquiryCtaBandProps = {
 export function InquiryCtaBand({
   title,
   body,
-  primaryHref = "/#contact",
+  primaryHref,
   primaryLabel = "Request a project estimate",
   secondaryHref = "/projects",
   secondaryLabel = "Browse portfolio",
   analyticsLocation,
 }: InquiryCtaBandProps) {
+  const contactHref =
+    primaryHref ??
+    buildContactHref({
+      ctaLabel: primaryLabel,
+      ctaLocation: analyticsLocation,
+    });
+
   return (
     <Card className="p-8 sm:p-10">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -32,7 +40,7 @@ export function InquiryCtaBand({
         </div>
         <div className="flex flex-wrap gap-3">
           <ButtonLink
-            href={primaryHref}
+            href={contactHref}
             analyticsLocation={analyticsLocation}
             analyticsLabel={primaryLabel}
           >

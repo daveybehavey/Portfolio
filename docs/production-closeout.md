@@ -30,4 +30,4 @@ Documentation-only closeout for the Production deployment that activated Cloudfl
 - Additional Production or Preview deploys
 - Cloudflare dashboard, DNS, Turnstile, Resend, Gmail, or Search Console mutations
 - Enabling GA4
-- Contact-form attribution work (tracked separately for Issue #17 Phase B)
+- Unscoped follow-on work beyond verified Production closeout evidence
