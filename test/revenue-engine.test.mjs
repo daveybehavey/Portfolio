@@ -46,6 +46,14 @@ test("source offers keep published package prices", () => {
   assert.match(offerSource, /From \$1,250 CAD/);
   assert.match(offerSource, /From \$2,000 CAD/);
   assert.match(offerSource, /Quoted per project/);
+  assert.match(offerSource, /SMALL_SITE_REPAIR/);
+  assert.match(offerSource, /From \$125 CAD/);
+  assert.match(offerSource, /Small Website Repairs/);
+  assert.doesNotMatch(
+    offerSource,
+    /PACKAGES\s*=\s*\[[\s\S]*From \$125 CAD/,
+    "$125 must stay outside PACKAGES so it is not framed as a launch price",
+  );
 
   const serviceSource = readFileSync(
     path.join(root, "src/lib/service-landing.ts"),
@@ -53,6 +61,35 @@ test("source offers keep published package prices", () => {
   );
   assert.match(serviceSource, /from \"@\/lib\/offer\"/);
   assert.match(serviceSource, /PACKAGES/);
+  assert.match(serviceSource, /SMALL_SITE_REPAIR/);
+  assert.match(serviceSource, /Do you take on small website fixes\?/);
+});
+
+test("homepage surfaces small-repair path without collapsing launch offers", () => {
+  const offer = readFileSync(path.join(root, "src/lib/offer.ts"), "utf8");
+  assert.match(offer, /ctaLabel: \"Request a small repair\"/);
+  assert.match(offer, /From \$125 CAD/);
+
+  const home = readFileSync(path.join(root, "src/app/page.tsx"), "utf8");
+  assert.match(home, /SMALL_SITE_REPAIR/);
+  assert.match(home, /SMALL_SITE_REPAIR\.ctaLabel/);
+  assert.match(home, /Do you take on small website fixes\?/);
+  assert.match(home, /start around \$125 CAD/);
+  assert.match(home, /One-Page Launch starts at \$499 CAD/);
+  assert.match(home, /Business Website starts at \$1,250 CAD/);
+
+  const form = readFileSync(
+    path.join(root, "src/components/ContactForm.tsx"),
+    "utf8",
+  );
+  assert.match(form, /value: \"small-repair\"/);
+  assert.match(form, /Small website repair \/ cleanup/);
+
+  const contactServer = readFileSync(
+    path.join(root, "server/contact.mjs"),
+    "utf8",
+  );
+  assert.match(contactServer, /\["small-repair", "Small website repair \/ cleanup"\]/);
 });
 
 test("case-study relationship disclosures exist in source", () => {
@@ -157,8 +194,21 @@ test("built revenue routes, metadata, sitemap, and claim guardrails", async (t) 
   assert.match(service, /From \$499 CAD/);
   assert.match(service, /From \$1,250 CAD/);
   assert.match(service, /From \$2,000 CAD/);
+  assert.match(service, /\$125 CAD/);
+  assert.match(service, /Small Website Repairs/);
+  assert.match(service, /Do you take on small website fixes\?/);
   assert.match(service, /FAQPage/);
   assert.doesNotMatch(service, /LocalBusiness/);
+
+  const homePath = path.join(outDir, "index.html");
+  assert.ok(existsSync(homePath), "homepage index.html exists");
+  const homeHtml = readFileSync(homePath, "utf8");
+  assert.match(homeHtml, /Small Website Repairs/);
+  assert.match(homeHtml, /From \$125 CAD/);
+  assert.match(homeHtml, /Request a small repair/);
+  assert.match(homeHtml, /From \$499 CAD/);
+  assert.match(homeHtml, /From \$1,250 CAD/);
+  assert.match(homeHtml, /small-repair/);
 
   const sitemapPath = path.join(outDir, "sitemap.xml");
   assert.ok(existsSync(sitemapPath), "sitemap.xml exists");

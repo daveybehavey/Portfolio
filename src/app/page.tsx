@@ -16,7 +16,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SkipLink } from "@/components/SkipLink";
 import { WhyChooseSection } from "@/components/WhyChooseSection";
-import { FULL_LAUNCH_INCLUDES, PACKAGES, PROJECT_ARCHETYPES } from "@/lib/offer";
+import { FULL_LAUNCH_INCLUDES, PACKAGES, PROJECT_ARCHETYPES, SMALL_SITE_REPAIR } from "@/lib/offer";
 import { projects } from "@/lib/projects";
 import { CONTACT_EMAIL, CONTACT_REPLY_NOTE } from "@/lib/site";
 
@@ -52,8 +52,12 @@ const processSteps = [
 
 const faqItems = [
   {
+    q: "Do you take on small website fixes?",
+    a: "Yes. Not every website problem needs a redesign. Small, clearly scoped repairs on an existing site can start around $125 CAD, depending on the platform, access required, and work involved. If a small fix is enough, that is what we will recommend. Larger launches stay on the package prices below when a new build is genuinely the right fit.",
+  },
+  {
     q: "Are these prices fixed?",
-    a: "They are starting points for a defined scope. One-Page Launch starts at $499 CAD, Business Website starts at $1,250 CAD, and Online Store starts at $2,000 CAD. Content volume, integrations, product count, migrations, and unusual requirements can change the quote. You receive written deliverables and a price before work starts.",
+    a: "They are starting points for a defined scope. Small website repairs start around $125 CAD for narrowly scoped existing-site work. One-Page Launch starts at $499 CAD, Business Website starts at $1,250 CAD, and Online Store starts at $2,000 CAD. Content volume, integrations, product count, migrations, and unusual requirements can change the quote. You receive written deliverables and a price before work starts.",
   },
   {
     q: "What is included in the One-Page Launch?",
@@ -205,10 +209,55 @@ export default function Home() {
         <Section
           id="packages"
           eyebrow="Launch offers"
-          title="Four clear ways to get your business online."
-          subtitle="These are starting points for a defined scope, not teaser prices. Business Website is the recommended path for most established local businesses that need a credible site and a proper inquiry flow."
+          title="Clear ways to get online — or fix what you already have."
+          subtitle="These are starting points for a defined scope, not teaser prices. Business Website is the recommended path for most established local businesses that need a credible site and a proper inquiry flow. If you only need a few targeted changes, start with a small repair instead."
         >
           <div className="grid gap-4">
+            <Reveal>
+              <Card className="border-slate-200/90 bg-gradient-to-br from-slate-50/90 via-white to-white p-6 transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:border-indigo-200/55 motion-reduce:hover:translate-y-0 sm:p-7">
+                <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <span className="mb-2 inline-flex w-fit rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700">
+                      {SMALL_SITE_REPAIR.badge}
+                    </span>
+                    <h2 className="text-base font-semibold text-slate-900">
+                      {SMALL_SITE_REPAIR.name}
+                    </h2>
+                    <div className="mt-1 text-sm font-medium text-indigo-700">
+                      {SMALL_SITE_REPAIR.price}
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                      {SMALL_SITE_REPAIR.bestFor}
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                      {SMALL_SITE_REPAIR.principle}
+                    </p>
+                    <ul className="mt-4 grid gap-2 text-sm text-slate-800 sm:grid-cols-2 lg:gap-x-8">
+                      {SMALL_SITE_REPAIR.examples.map((item) => (
+                        <li key={item} className="flex gap-2">
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                      {SMALL_SITE_REPAIR.excludesNote}
+                    </p>
+                  </div>
+                  <ButtonLink
+                    href={SMALL_SITE_REPAIR.ctaHref}
+                    variant="secondary"
+                    className="w-full shrink-0 lg:w-auto"
+                    magnetic
+                    analyticsLocation="packages"
+                    analyticsLabel={SMALL_SITE_REPAIR.ctaLabel}
+                  >
+                    {SMALL_SITE_REPAIR.ctaLabel}
+                  </ButtonLink>
+                </div>
+              </Card>
+            </Reveal>
+
             <Reveal>
               <Card className="p-6 transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:border-indigo-200/55 motion-reduce:hover:translate-y-0 sm:p-7">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -364,8 +413,8 @@ export default function Home() {
         <Section
           id="contact"
           eyebrow="Project estimate"
-          title="Tell me what your business needs to launch."
-          subtitle="A short note about your business, customers, current website, preferred package, and timing is enough to start. You will receive a fit response and the next information needed for a written estimate."
+          title="Tell me what your business needs."
+          subtitle="A short note about your business, current website, whether you need a small repair or a larger launch, and timing is enough to start. You will receive a fit response and the next information needed for a written estimate."
         >
           <Reveal>
             <Card className="p-8 sm:p-12">

@@ -345,6 +345,25 @@ test("payload validator enforces UUID, project type, and token limits", () => {
   assert.ok(result.errors.turnstileToken);
 });
 
+test("small-repair project type validates and is labeled in the delivery email", () => {
+  const values = {
+    ...validBody,
+    projectType: "small-repair",
+    message:
+      "Homepage title still shows Business Name. Looking for a small title fix only.",
+  };
+  const result = validateContactPayload(values);
+  assert.equal(result.ok, true);
+
+  const payload = buildEmailPayload(result.values, {
+    fromEmail: env.CONTACT_FROM_EMAIL,
+    toEmail: env.CONTACT_TO_EMAIL,
+  });
+  assert.match(payload.subject, /Small website repair \/ cleanup/i);
+  assert.match(payload.html, /Small website repair \/ cleanup/);
+  assert.match(payload.text, /Small website repair \/ cleanup/);
+});
+
 test("client records a lead only after a confirmed successful response", async () => {
   const source = await readFile(
     new URL("../src/components/ContactForm.tsx", import.meta.url),

@@ -20,6 +20,7 @@ const TURNSTILE_SITE_KEY =
 
 const projectTypes = [
   { value: "", label: "Choose the closest fit" },
+  { value: "small-repair", label: "Small website repair / cleanup" },
   { value: "one-page", label: "One-Page Launch" },
   { value: "business-website", label: "Business Website" },
   { value: "online-store", label: "Online Store" },

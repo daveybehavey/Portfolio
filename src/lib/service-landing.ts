@@ -1,4 +1,4 @@
-import { PACKAGES, FULL_LAUNCH_INCLUDES } from "@/lib/offer";
+import { PACKAGES, FULL_LAUNCH_INCLUDES, SMALL_SITE_REPAIR } from "@/lib/offer";
 
 export const SERVICE_LANDING_PATH =
   "/website-design-vancouver-island" as const;
@@ -76,8 +76,12 @@ export const SERVICE_FAQS = [
     a: "Vancouver Island small businesses are the core focus and the audience this page is written for. Remote-friendly projects can be considered when the fit is clear, but the standard offer is shaped around local service credibility, practical Google setup, and a handoff you can operate without an agency maze.",
   },
   {
+    q: "Do you take on small website fixes?",
+    a: `Yes. Not every website problem needs a redesign. ${SMALL_SITE_REPAIR.name} start around ${SMALL_SITE_REPAIR.pricePlain}, depending on the platform, access required, and work involved. If a small fix is enough, that is what we will recommend. New builds keep the published launch package starting points.`,
+  },
+  {
     q: "What are the starting prices?",
-    a: `One-Page Launch starts at ${PACKAGES[0].price.replace("From ", "")}, Business Website at ${PACKAGES[1].price.replace("From ", "")}, and Online Store at ${PACKAGES[2].price.replace("From ", "")}. They are starting points for a defined scope. Content volume, integrations, product count, migrations, and unusual requirements can change the quote. You receive written deliverables and a price before work starts.`,
+    a: `Small website repairs start around ${SMALL_SITE_REPAIR.pricePlain} for narrowly scoped existing-site work. One-Page Launch starts at ${PACKAGES[0].price.replace("From ", "")}, Business Website at ${PACKAGES[1].price.replace("From ", "")}, and Online Store at ${PACKAGES[2].price.replace("From ", "")}. They are starting points for a defined scope. Content volume, integrations, product count, migrations, and unusual requirements can change the quote. You receive written deliverables and a price before work starts.`,
   },
   {
     q: "Will you create a separate page for every Island town?",
@@ -105,4 +109,4 @@ export const SERVICE_PACKAGE_SUMMARY = PACKAGES.map((pkg) => ({
   highlight: "highlight" in pkg ? pkg.highlight : undefined,
 }));
 
-export { FULL_LAUNCH_INCLUDES, PACKAGES };
+export { FULL_LAUNCH_INCLUDES, PACKAGES, SMALL_SITE_REPAIR };
