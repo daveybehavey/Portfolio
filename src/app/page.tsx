@@ -208,7 +208,7 @@ export default function Home() {
 
         <Section
           id="packages"
-          eyebrow="Launch offers"
+          eyebrow="Ways to work together"
           title="Clear ways to get online — or fix what you already have."
           subtitle="These are starting points for a defined scope, not teaser prices. Business Website is the recommended path for most established local businesses that need a credible site and a proper inquiry flow. If you only need a few targeted changes, start with a small repair instead."
         >

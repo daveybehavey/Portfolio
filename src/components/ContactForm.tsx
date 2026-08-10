@@ -364,7 +364,7 @@ export function ContactForm({ email }: { email: string }) {
           <textarea
             id={messageId}
             name="message"
-            placeholder="What does your business do, what should the website help customers do, and what timing or features matter?"
+            placeholder="What would you like fixed or improved? For a larger project, tell us what the website should help customers do, plus any timing or features that matter."
             rows={6}
             minLength={20}
             maxLength={5000}
