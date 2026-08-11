@@ -25,6 +25,7 @@ import {
   SERVICE_PROCESS,
   SERVICE_WHO_DOES_NOT_FIT,
   SERVICE_WHO_FITS,
+  SMALL_SITE_REPAIR,
 } from "@/lib/service-landing";
 import { SITE_URL, defaultOpenGraph } from "@/lib/site";
 
@@ -213,6 +214,20 @@ export default function VancouverIslandWebsiteDesignPage() {
               Business Website and Online Store essentials:
             </strong>{" "}
             {FULL_LAUNCH_INCLUDES.join(" · ")}
+          </div>
+          <div className="mt-4 rounded-2xl border border-slate-200/90 bg-white p-5 text-sm leading-relaxed text-slate-700">
+            <strong className="font-semibold text-slate-900">
+              {SMALL_SITE_REPAIR.name}:
+            </strong>{" "}
+            {SMALL_SITE_REPAIR.price} for narrowly scoped changes to an existing
+            site. {SMALL_SITE_REPAIR.principle}{" "}
+            <Link
+              href="/#packages"
+              className="font-medium text-indigo-700 underline-offset-2 hover:underline"
+            >
+              See the homepage repair path
+            </Link>
+            .
           </div>
         </Section>
 

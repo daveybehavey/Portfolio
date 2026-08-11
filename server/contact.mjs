@@ -16,6 +16,7 @@ const RESEND_TEST_SENDER = "onboarding@resend.dev";
 const RESEND_TEST_RECIPIENT = "delivered@resend.dev";
 
 const PROJECT_TYPES = new Map([
+  ["small-repair", "Small website repair / cleanup"],
   ["one-page", "One-Page Launch"],
   ["business-website", "Business Website"],
   ["online-store", "Online Store"],

@@ -3,6 +3,32 @@
 export const CORE_OFFER =
   "Professional websites that help Vancouver Island businesses earn trust, calls, quote requests, and online sales — with clear scope, practical setup, and a handoff you own." as const;
 
+/**
+ * Complementary entry for narrowly scoped work on an existing site.
+ * Not a launch package — keep separate from PACKAGES so $125 never reads as a new-site price.
+ */
+export const SMALL_SITE_REPAIR = {
+  name: "Small Website Repairs",
+  price: "From $125 CAD",
+  pricePlain: "$125 CAD",
+  badge: "Existing sites",
+  bestFor:
+    "Need a few targeted changes rather than a new website? Focused repairs and cleanup on sites you already have — copy and metadata fixes, small layout or link cleanup, CTA polish, or minor contact-flow issues.",
+  principle:
+    "We recommend the smallest solution that adequately solves the problem rather than turning a minor issue into a rebuild.",
+  examples: [
+    "Copy and typo corrections",
+    "Page-title / metadata fixes",
+    "Small content or layout corrections",
+    "Broken-link / CTA cleanup",
+    "Minor contact-form or contact-flow fixes",
+  ] as const,
+  excludesNote:
+    "Starting price for a narrowly scoped repair. Platform, access, and the exact work can change the quote. A new page or website is priced under the launch packages below — not at $125.",
+  ctaLabel: "Request a small repair",
+  ctaHref: "#contact",
+} as const;
+
 /** Bundled on Business Website and Online Store projects. */
 export const FULL_LAUNCH_INCLUDES = [
   "Professional, mobile-first design",
