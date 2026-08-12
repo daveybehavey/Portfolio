@@ -129,8 +129,14 @@ export function isContactHref(href: string): boolean {
 export function buildContactHref(options?: {
   ctaLabel?: string;
   ctaLocation?: AnalyticsLocation;
+  extraParams?: Record<string, string>;
 }): string {
   const params = new URLSearchParams();
+  if (options?.extraParams) {
+    for (const [key, value] of Object.entries(options.extraParams)) {
+      if (key && value) params.set(key, value);
+    }
+  }
   if (options?.ctaLabel) {
     params.set(CTA_PARAM, truncate(options.ctaLabel.trim(), 120));
   }
@@ -141,6 +147,20 @@ export function buildContactHref(options?: {
   return query ? `/?${query}#contact` : "/#contact";
 }
 
+function extraParamsFromHref(href: string): Record<string, string> {
+  try {
+    const url = new URL(href, "https://eurodigital.ca");
+    const extra: Record<string, string> = {};
+    url.searchParams.forEach((value, key) => {
+      if (key === CTA_PARAM || key === CTA_LOCATION_PARAM) return;
+      extra[key] = value;
+    });
+    return extra;
+  } catch {
+    return {};
+  }
+}
+
 /**
  * Ensure a contact-destined href carries CTA attribution when known.
  */
@@ -149,12 +169,17 @@ export function withContactAttribution(
   options?: { ctaLabel?: string; ctaLocation?: AnalyticsLocation },
 ): string {
   if (!isContactHref(href)) return href;
+  const extraParams = extraParamsFromHref(href);
   if (!options?.ctaLabel && !options?.ctaLocation) {
-    return href === "#contact" ? "/#contact" : href;
+    if (Object.keys(extraParams).length === 0) {
+      return href === "#contact" ? "/#contact" : href;
+    }
+    return buildContactHref({ extraParams });
   }
   return buildContactHref({
     ctaLabel: options.ctaLabel,
     ctaLocation: options.ctaLocation,
+    extraParams,
   });
 }
 

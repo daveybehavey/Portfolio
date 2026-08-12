@@ -456,3 +456,19 @@ test("client sanitizeClientReferrer matches server sanitizeReferrer outputs", as
     await cleanup();
   }
 });
+
+test("withContactAttribution preserves configurator projectType on contact hrefs", async () => {
+  const { mod, cleanup } = await loadClientLeadAttribution();
+  try {
+    const resolved = mod.withContactAttribution(
+      "/?projectType=small-repair#contact",
+      { ctaLabel: "Request a small repair", ctaLocation: "packages" },
+    );
+    assert.match(resolved, /projectType=small-repair/);
+    assert.match(resolved, /ed_cta=/);
+    assert.match(resolved, /ed_loc=packages/);
+    assert.match(resolved, /#contact$/);
+  } finally {
+    await cleanup();
+  }
+});

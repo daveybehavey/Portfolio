@@ -26,6 +26,12 @@ export type CaseStudy = {
   notClaimed: readonly string[];
   imageSrc: string;
   imageAlt: string;
+  /** Real live-site captures at representative CSS viewports for DeviceShowcase. */
+  viewportImages: {
+    desktop: { src: string; width: number; height: number; alt: string };
+    tablet: { src: string; width: number; height: number; alt: string };
+    mobile: { src: string; width: number; height: number; alt: string };
+  };
 };
 
 function requireProject(name: string): Project {
@@ -91,6 +97,26 @@ export const caseStudies: readonly CaseStudy[] = [
     ],
     imageSrc: maestros.imageSrc,
     imageAlt: "MaestrosServices website preview",
+    viewportImages: {
+      desktop: {
+        src: "/projects/maestrosservices-desktop.webp",
+        width: 1200,
+        height: 750,
+        alt: "MaestrosServices homepage captured at desktop width (1440×900)",
+      },
+      tablet: {
+        src: "/projects/maestrosservices-tablet.webp",
+        width: 768,
+        height: 1024,
+        alt: "MaestrosServices homepage captured at tablet width (768×1024)",
+      },
+      mobile: {
+        src: "/projects/maestrosservices-mobile.webp",
+        width: 390,
+        height: 844,
+        alt: "MaestrosServices homepage captured at mobile width (390×844)",
+      },
+    },
   },
   {
     slug: "starmapco",
@@ -143,6 +169,26 @@ export const caseStudies: readonly CaseStudy[] = [
     ],
     imageSrc: starmap.imageSrc,
     imageAlt: "StarMapCo ecommerce storefront preview",
+    viewportImages: {
+      desktop: {
+        src: "/projects/starmapco-desktop.webp",
+        width: 1200,
+        height: 750,
+        alt: "StarMapCo homepage captured at desktop width (1440×900)",
+      },
+      tablet: {
+        src: "/projects/starmapco-tablet.webp",
+        width: 768,
+        height: 1024,
+        alt: "StarMapCo homepage captured at tablet width (768×1024)",
+      },
+      mobile: {
+        src: "/projects/starmapco-mobile.webp",
+        width: 390,
+        height: 844,
+        alt: "StarMapCo homepage captured at mobile width (390×844)",
+      },
+    },
   },
 ] as const;
 

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ButtonA, ButtonLink } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { DeviceShowcase } from "@/components/DeviceShowcase";
 import { InquiryCtaBand } from "@/components/InquiryCtaBand";
 import { PageBackground } from "@/components/PageBackground";
 import { Reveal } from "@/components/Reveal";
@@ -12,6 +13,14 @@ import { SkipLink } from "@/components/SkipLink";
 import type { CaseStudy } from "@/lib/case-studies";
 import { SERVICE_LANDING_PATH } from "@/lib/service-landing";
 import { SITE_URL } from "@/lib/site";
+
+const STORY_CHAPTERS = [
+  { id: "problem", label: "Problem" },
+  { id: "decisions", label: "Constraints" },
+  { id: "responsive", label: "Responsive" },
+  { id: "implementation", label: "Stack" },
+  { id: "proof", label: "Live proof" },
+] as const;
 
 export function CaseStudyView({ study }: { study: CaseStudy }) {
   const breadcrumbJsonLd = {
@@ -129,27 +138,53 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
               />
             </div>
           </div>
+
+          <nav
+            aria-label="Case study chapters"
+            className="mt-8 overflow-x-auto"
+          >
+            <ol className="flex min-w-max items-center gap-2 text-xs font-medium text-slate-600 sm:gap-3">
+              {STORY_CHAPTERS.map((chapter, index) => (
+                <li key={chapter.id} className="flex items-center gap-2 sm:gap-3">
+                  <a
+                    href={`#${chapter.id}`}
+                    className="rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-slate-700 underline-offset-2 hover:border-indigo-200 hover:text-indigo-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35"
+                  >
+                    {chapter.label}
+                  </a>
+                  {index < STORY_CHAPTERS.length - 1 ? (
+                    <span aria-hidden className="text-slate-300">
+                      →
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+          </nav>
         </Section>
 
         <Section
+          id="problem"
           eyebrow="Problem"
           title="What needed to be solved."
           subtitle={study.problem}
         >
           <div className="grid gap-4 lg:grid-cols-2">
-            <Card className="p-6">
-              <h3 className="text-base font-semibold text-slate-900">
-                Constraints
-              </h3>
-              <ul className="mt-4 grid gap-2 text-sm text-slate-700">
-                {study.constraints.map((item) => (
-                  <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </Card>
+            <div id="decisions" className="scroll-mt-28">
+              <Card className="p-6">
+                <h3 className="text-base font-semibold text-slate-900">
+                  Constraints
+                </h3>
+                <ul className="mt-4 grid gap-2 text-sm text-slate-700">
+                  {study.constraints.map((item) => (
+                    <li key={item} className="flex gap-2">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </div>
             <Card className="p-6">
               <h3 className="text-base font-semibold text-slate-900">
                 Implementation
@@ -167,6 +202,22 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
         </Section>
 
         <Section
+          id="responsive"
+          eyebrow="Responsive proof"
+          title="How it looks where customers browse."
+          subtitle="Real live-site screenshots at desktop, tablet, and mobile widths — switch modes to compare."
+        >
+          <Reveal>
+            <DeviceShowcase
+              images={study.viewportImages}
+              siteUrl={study.liveProof.url}
+              projectName={study.projectName}
+            />
+          </Reveal>
+        </Section>
+
+        <Section
+          id="implementation"
           eyebrow="Stack and operations"
           title="What was put in place."
           subtitle="Implementation accomplishments, not invented business outcomes."
@@ -186,6 +237,7 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
         </Section>
 
         <Section
+          id="proof"
           eyebrow="Live proof"
           title="Inspect the working site."
           subtitle={study.liveProof.summary}

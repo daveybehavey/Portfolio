@@ -13,20 +13,16 @@ import {
 import { ButtonA } from "@/components/Button";
 import { trackGenerateLead } from "@/lib/analytics";
 import { collectLeadAttribution } from "@/lib/lead-attribution";
+import {
+  CONTACT_PROJECT_TYPES,
+  resolveProjectTypeFromSearch,
+} from "@/lib/website-needs";
 
 const TURNSTILE_ACTION = "contact";
 const TURNSTILE_SITE_KEY =
   process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "";
 
-const projectTypes = [
-  { value: "", label: "Choose the closest fit" },
-  { value: "small-repair", label: "Small website repair / cleanup" },
-  { value: "one-page", label: "One-Page Launch" },
-  { value: "business-website", label: "Business Website" },
-  { value: "online-store", label: "Online Store" },
-  { value: "custom", label: "Custom Project" },
-  { value: "unsure", label: "Not sure yet" },
-] as const;
+const projectTypes = CONTACT_PROJECT_TYPES;
 
 type TurnstileOptions = {
   sitekey: string;
@@ -100,6 +96,7 @@ export function ContactForm({ email }: { email: string }) {
     state: "idle",
     message: "",
   });
+  const [projectTypeValue, setProjectTypeValue] = useState("");
 
   const nameId = `${id}-name`;
   const emailId = `${id}-email`;
@@ -108,6 +105,11 @@ export function ContactForm({ email }: { email: string }) {
   const messageId = `${id}-message`;
   const statusId = `${id}-status`;
   const hintId = `${id}-hint`;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setProjectTypeValue(resolveProjectTypeFromSearch(window.location.search));
+  }, []);
 
   const resetTurnstile = useCallback(() => {
     setTurnstileToken("");
@@ -237,6 +239,7 @@ export function ContactForm({ email }: { email: string }) {
         message: result.message || "Your inquiry was delivered.",
       });
       form.reset();
+      setProjectTypeValue("");
       submissionIdRef.current = null;
       resetTurnstile();
     } catch {
@@ -339,7 +342,8 @@ export function ContactForm({ email }: { email: string }) {
             id={projectTypeId}
             name="projectType"
             className={inputClassName}
-            defaultValue=""
+            value={projectTypeValue}
+            onChange={(event) => setProjectTypeValue(event.target.value)}
             required
           >
             {projectTypes.map((projectType) => (

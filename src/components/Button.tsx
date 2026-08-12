@@ -8,6 +8,7 @@ import {
   noteInquiryCta,
   withContactAttribution,
 } from "@/lib/lead-attribution";
+import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
 type CommonProps = {
   children: React.ReactNode;
@@ -26,9 +27,11 @@ function cn(...parts: Array<string | undefined | false>) {
 
 function useMagnetic(magnetic: boolean | undefined) {
   const ref = useRef<HTMLElement | null>(null);
+  const reducedMotion = usePrefersReducedMotion();
+  const enabled = Boolean(magnetic) && !reducedMotion;
 
   const handlers = useMemo(() => {
-    if (!magnetic) return {};
+    if (!enabled) return {};
     return {
       onMouseMove: (e: React.MouseEvent<HTMLElement>) => {
         const el = ref.current;
@@ -45,7 +48,7 @@ function useMagnetic(magnetic: boolean | undefined) {
         el.style.transform = "translate3d(0,0,0)";
       },
     } as const;
-  }, [magnetic]);
+  }, [enabled]);
 
   return { ref, handlers };
 }

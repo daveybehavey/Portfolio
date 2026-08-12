@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { Accordion } from "@/components/Accordion";
+import { BeforeAfterCompare } from "@/components/BeforeAfterCompare";
 import { ButtonA, ButtonLink } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Container } from "@/components/Container";
@@ -15,6 +16,7 @@ import { Section } from "@/components/Section";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SkipLink } from "@/components/SkipLink";
+import { WebsiteNeedsConfigurator } from "@/components/WebsiteNeedsConfigurator";
 import { WhyChooseSection } from "@/components/WhyChooseSection";
 import { FULL_LAUNCH_INCLUDES, PACKAGES, PROJECT_ARCHETYPES, SMALL_SITE_REPAIR } from "@/lib/offer";
 import { projects } from "@/lib/projects";
@@ -207,6 +209,17 @@ export default function Home() {
         </Section>
 
         <Section
+          id="fit-guide"
+          eyebrow="Find your fit"
+          title="Two questions. A practical recommendation."
+          subtitle="Use this interactive guide to narrow toward a repair, a lean one-page launch, a full business site, a store, or a custom scope — then continue into a written estimate."
+        >
+          <Reveal>
+            <WebsiteNeedsConfigurator />
+          </Reveal>
+        </Section>
+
+        <Section
           id="packages"
           eyebrow="Ways to work together"
           title="Clear ways to get online — or fix what you already have."
@@ -382,6 +395,17 @@ export default function Home() {
               </Reveal>
             ))}
           </div>
+        </Section>
+
+        <Section
+          id="design-demo"
+          eyebrow="Craft you can see"
+          title="Design quality is easier to recognize than describe."
+          subtitle="A labeled demonstration of the kind of clarity and hierarchy EuroDigital builds for local businesses — not a reconstructed client history."
+        >
+          <Reveal>
+            <BeforeAfterCompare />
+          </Reveal>
         </Section>
 
         <Section

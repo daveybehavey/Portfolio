@@ -82,8 +82,15 @@ test("homepage surfaces small-repair path without collapsing launch offers", () 
     path.join(root, "src/components/ContactForm.tsx"),
     "utf8",
   );
-  assert.match(form, /value: \"small-repair\"/);
-  assert.match(form, /Small website repair \/ cleanup/);
+  assert.match(form, /CONTACT_PROJECT_TYPES/);
+  assert.match(form, /from \"@\/lib\/website-needs\"/);
+
+  const websiteNeeds = readFileSync(
+    path.join(root, "src/lib/website-needs.ts"),
+    "utf8",
+  );
+  assert.match(websiteNeeds, /value: \"small-repair\"/);
+  assert.match(websiteNeeds, /Small website repair \/ cleanup/);
 
   const contactServer = readFileSync(
     path.join(root, "server/contact.mjs"),
