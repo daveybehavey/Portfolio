@@ -19,6 +19,7 @@ function OptionCard({
   hint,
   checked,
   onChange,
+  compact = false,
 }: {
   id: string;
   name: string;
@@ -27,12 +28,15 @@ function OptionCard({
   hint: string;
   checked: boolean;
   onChange: () => void;
+  /** Tighter padding for dense mobile grids (≥390px two-column). */
+  compact?: boolean;
 }) {
   return (
     <label
       htmlFor={id}
       className={[
-        "flex min-h-[44px] w-full cursor-pointer flex-col items-start rounded-xl border px-4 py-3 text-left transition",
+        "flex min-h-[44px] w-full cursor-pointer flex-col items-start rounded-xl border text-left transition",
+        compact ? "px-3 py-2.5 sm:px-4 sm:py-3" : "px-4 py-3",
         "has-[:focus-visible]:outline-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500/35 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-[rgb(var(--bg))]",
         checked
           ? "border-indigo-300 bg-indigo-50/80 shadow-sm shadow-indigo-900/5"
@@ -48,8 +52,10 @@ function OptionCard({
         onChange={onChange}
         className="sr-only"
       />
-      <span className="text-sm font-semibold text-slate-900">{label}</span>
-      <span className="mt-0.5 text-xs leading-relaxed text-slate-600">{hint}</span>
+      <span className="text-sm font-semibold leading-snug text-slate-900">
+        {label}
+      </span>
+      <span className="mt-0.5 text-xs leading-snug text-slate-600">{hint}</span>
     </label>
   );
 }
@@ -108,7 +114,7 @@ export function WebsiteNeedsConfigurator() {
             <legend className="text-sm font-semibold text-slate-900">
               2. What matters most right now?
             </legend>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div className="mt-3 grid grid-cols-1 gap-2 min-[390px]:grid-cols-2">
               {focusOptions.map((option) => (
                 <OptionCard
                   key={option.value}
@@ -119,6 +125,7 @@ export function WebsiteNeedsConfigurator() {
                   hint={option.hint}
                   checked={focus === option.value}
                   onChange={() => setFocus(option.value)}
+                  compact
                 />
               ))}
             </div>

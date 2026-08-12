@@ -209,17 +209,6 @@ export default function Home() {
         </Section>
 
         <Section
-          id="design-demo"
-          eyebrow="Craft you can see"
-          title="Design quality is easier to recognize than describe."
-          subtitle="A labeled demonstration of the kind of clarity and hierarchy EuroDigital builds for local businesses — not a reconstructed client history."
-        >
-          <Reveal>
-            <BeforeAfterCompare />
-          </Reveal>
-        </Section>
-
-        <Section
           id="fit-guide"
           eyebrow="Find your fit"
           title="Two questions. A practical recommendation."
@@ -406,6 +395,17 @@ export default function Home() {
               </Reveal>
             ))}
           </div>
+        </Section>
+
+        <Section
+          id="design-demo"
+          eyebrow="Craft you can see"
+          title="Design quality is easier to recognize than describe."
+          subtitle="A labeled demonstration of the kind of clarity and hierarchy EuroDigital builds for local businesses — not a reconstructed client history."
+        >
+          <Reveal>
+            <BeforeAfterCompare />
+          </Reveal>
         </Section>
 
         <Section

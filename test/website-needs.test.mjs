@@ -147,6 +147,7 @@ test("DeviceShowcase uses distinct viewport screenshots, not one cropped image",
   const studies = readFileSync(join(root, "src", "lib", "case-studies.ts"), "utf8");
   assert.match(showcase, /type="radio"/);
   assert.match(showcase, /not one image cropped/i);
+  assert.match(showcase, /max-w-\[min\(100%,320px\)\]/);
   assert.match(studies, /maestrosservices-desktop\.webp/);
   assert.match(studies, /maestrosservices-tablet\.webp/);
   assert.match(studies, /maestrosservices-mobile\.webp/);
@@ -162,6 +163,18 @@ test("WebsiteNeedsConfigurator uses native radio inputs", () => {
   );
   assert.match(source, /type="radio"/);
   assert.doesNotMatch(source, /role="radio"/);
+  assert.match(source, /min-\[390px\]:grid-cols-2/);
+});
+
+test("homepage conversion flow places fit guide before packages before design demo", () => {
+  const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const page = readFileSync(join(root, "src", "app", "page.tsx"), "utf8");
+  const fit = page.indexOf('id="fit-guide"');
+  const packages = page.indexOf('id="packages"');
+  const demo = page.indexOf('id="design-demo"');
+  assert.ok(fit > -1 && packages > -1 && demo > -1);
+  assert.ok(fit < packages, "fit-guide should precede packages");
+  assert.ok(packages < demo, "packages should precede design-demo");
 });
 
 test("viewport screenshot assets exist for showcase projects", () => {

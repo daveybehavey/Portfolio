@@ -203,9 +203,9 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
 
         <Section
           id="responsive"
-          eyebrow="Responsive experience"
-          title="The layout has to work where customers actually look."
-          subtitle="Switch between real screenshots of the live site captured at desktop, tablet, and mobile widths. Case-study copy above and below stays available without the preview."
+          eyebrow="Responsive proof"
+          title="How it looks where customers browse."
+          subtitle="Real live-site screenshots at desktop, tablet, and mobile widths — switch modes to compare."
         >
           <Reveal>
             <DeviceShowcase
