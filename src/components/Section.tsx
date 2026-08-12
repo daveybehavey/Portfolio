@@ -26,7 +26,11 @@ export function Section({
   return (
     <section
       id={id}
-      className={["relative py-16 sm:py-24 lg:py-28", className]
+      className={[
+        "relative py-16 sm:py-24 lg:py-28",
+        id ? "scroll-mt-28" : "",
+        className,
+      ]
         .filter(Boolean)
         .join(" ")}
     >
