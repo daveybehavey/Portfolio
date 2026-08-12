@@ -10,36 +10,53 @@ import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
 function BeforeMock() {
   return (
-    <div className="flex h-full min-h-[280px] flex-col bg-[#f3f3f3] text-[#222] sm:min-h-[340px]">
-      <div className="border-b border-[#ccc] bg-[#e8e8e8] px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-[#555]">
-        LocalBiz Homepage
+    <div className="flex h-full min-h-[280px] flex-col bg-[#f7f7f7] text-[#2a2a2a] sm:min-h-[340px]">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#d8d8d8] bg-[#efefef] px-3 py-2">
+        <div className="text-[12px] font-bold text-[#333]">Pacific Yard Care</div>
+        <nav
+          aria-hidden
+          className="flex max-w-full flex-wrap gap-x-2.5 gap-y-1 text-[9px] uppercase tracking-wide text-[#555]"
+        >
+          <span>Home</span>
+          <span>About</span>
+          <span>Services</span>
+          <span>Gallery</span>
+          <span>Testimonials</span>
+          <span>FAQ</span>
+          <span>Contact</span>
+        </nav>
       </div>
-      <div className="grid flex-1 gap-3 p-3 sm:grid-cols-[1fr_120px]">
+      <div className="grid flex-1 gap-3 p-3 sm:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-2">
-          <div className="h-4 w-2/3 bg-[#d0d0d0]" />
-          <div className="h-3 w-full bg-[#ddd]" />
-          <div className="h-3 w-5/6 bg-[#ddd]" />
-          <div className="mt-4 space-y-1.5 text-[11px] leading-snug text-[#444]">
-            <p>Welcome to our website!!</p>
-            <p>We do services. Call us sometime.</p>
-            <p className="text-[#06c] underline">Click here</p>
-            <p className="text-[#06c] underline">More info</p>
-          </div>
-          <div className="mt-4 inline-block rounded-sm border border-[#999] bg-[#eee] px-2 py-1 text-[10px] text-[#333]">
-            submit
-          </div>
+          <p className="text-[13px] font-semibold leading-snug text-[#222]">
+            Welcome to our website
+          </p>
+          <p className="text-[10px] leading-relaxed text-[#555]">
+            We are a local outdoor company offering many services for residential
+            and commercial customers in the area. Quality workmanship since we
+            started.
+          </p>
+          <ul className="mt-2 space-y-1 text-[10px] leading-snug text-[#444]">
+            <li>• Lawn care and maintenance packages</li>
+            <li>• Garden cleanups and seasonal work</li>
+            <li>• Soft landscaping and related services</li>
+            <li>• See the Services page for more details</li>
+          </ul>
+          <p className="pt-2 text-[10px] text-[#666]">
+            For inquiries, please visit the Contact page or email us through the
+            form there.
+          </p>
         </div>
         <div className="hidden flex-col gap-2 sm:flex">
-          <div className="aspect-square bg-[#cfcfcf]" />
-          <div className="h-2 w-full bg-[#ddd]" />
-          <div className="h-2 w-4/5 bg-[#ddd]" />
-          <div className="mt-auto border border-[#bbb] bg-white p-2 text-[9px] leading-tight text-[#666]">
-            Flash intro · Under construction · Best viewed in IE
+          <div className="min-h-[88px] flex-1 rounded-sm bg-[#d5d5d5]" />
+          <div className="rounded-sm border border-[#ccc] bg-white p-2 text-[9px] leading-snug text-[#555]">
+            <div className="font-semibold text-[#333]">Quick links</div>
+            <p className="mt-1">About our company · Photo gallery · Service list</p>
           </div>
         </div>
       </div>
-      <div className="border-t border-[#ccc] bg-[#e0e0e0] px-3 py-1.5 text-[9px] text-[#666]">
-        © LocalBiz · sitemap · guestbook
+      <div className="border-t border-[#d8d8d8] bg-[#ececec] px-3 py-1.5 text-[9px] text-[#666]">
+        © Pacific Yard Care · All rights reserved · Updated 2019
       </div>
     </div>
   );
@@ -123,14 +140,15 @@ export function BeforeAfterCompare() {
       </div>
 
       <div className="px-5 py-5 sm:px-7 sm:py-6">
-        <div className="flex flex-wrap items-end justifying-between gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h3 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
               What “outdated” vs “credible” feels like
             </h3>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-              Drag the handle to compare a weak generic layout with a clearer,
-              mobile-ready presentation local customers can trust.
+              Drag the handle to compare a weak, recognizable local-business
+              layout with clearer hierarchy, stronger offer, and a visible next
+              step.
             </p>
           </div>
           <div className="flex gap-2 text-[11px] font-semibold uppercase tracking-wider">

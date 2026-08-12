@@ -122,6 +122,18 @@ export function isContactProjectType(
   );
 }
 
+/** Resolve contact form projectType from a query string (with or without `?`). */
+export function resolveProjectTypeFromSearch(
+  search: string | null | undefined,
+): Exclude<ContactProjectTypeValue, ""> | "" {
+  if (!search) return "";
+  const params = new URLSearchParams(
+    search.startsWith("?") ? search.slice(1) : search,
+  );
+  const value = params.get("projectType");
+  return isContactProjectType(value) ? value : "";
+}
+
 export function recommendWebsiteNeed(
   presence: SitePresence,
   focus: NeedFocus,

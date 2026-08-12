@@ -205,12 +205,11 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
           id="responsive"
           eyebrow="Responsive experience"
           title="The layout has to work where customers actually look."
-          subtitle="Switch device widths to review hierarchy and framing. Content remains available as plain case-study copy above and below."
+          subtitle="Switch between real screenshots of the live site captured at desktop, tablet, and mobile widths. Case-study copy above and below stays available without the preview."
         >
           <Reveal>
             <DeviceShowcase
-              imageSrc={study.imageSrc}
-              imageAlt={study.imageAlt}
+              images={study.viewportImages}
               siteUrl={study.liveProof.url}
               projectName={study.projectName}
             />

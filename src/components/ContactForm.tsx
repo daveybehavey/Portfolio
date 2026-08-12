@@ -15,7 +15,7 @@ import { trackGenerateLead } from "@/lib/analytics";
 import { collectLeadAttribution } from "@/lib/lead-attribution";
 import {
   CONTACT_PROJECT_TYPES,
-  isContactProjectType,
+  resolveProjectTypeFromSearch,
 } from "@/lib/website-needs";
 
 const TURNSTILE_ACTION = "contact";
@@ -108,11 +108,7 @@ export function ContactForm({ email }: { email: string }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const fromQuery = params.get("projectType");
-    if (isContactProjectType(fromQuery)) {
-      setProjectTypeValue(fromQuery);
-    }
+    setProjectTypeValue(resolveProjectTypeFromSearch(window.location.search));
   }, []);
 
   const resetTurnstile = useCallback(() => {
@@ -243,6 +239,7 @@ export function ContactForm({ email }: { email: string }) {
         message: result.message || "Your inquiry was delivered.",
       });
       form.reset();
+      setProjectTypeValue("");
       submissionIdRef.current = null;
       resetTurnstile();
     } catch {

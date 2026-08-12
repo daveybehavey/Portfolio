@@ -11,40 +11,46 @@ import {
   websiteNeedContactHref,
 } from "@/lib/website-needs";
 
-function OptionButton({
-  selected,
-  label,
-  hint,
-  onSelect,
+function OptionCard({
+  id,
   name,
   value,
+  label,
+  hint,
+  checked,
+  onChange,
 }: {
-  selected: boolean;
-  label: string;
-  hint: string;
-  onSelect: () => void;
+  id: string;
   name: string;
   value: string;
+  label: string;
+  hint: string;
+  checked: boolean;
+  onChange: () => void;
 }) {
   return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selected}
-      name={name}
-      value={value}
-      onClick={onSelect}
+    <label
+      htmlFor={id}
       className={[
-        "group flex min-h-[44px] w-full flex-col items-start rounded-xl border px-4 py-3 text-left transition",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[rgb(var(--bg))]",
-        selected
+        "flex min-h-[44px] w-full cursor-pointer flex-col items-start rounded-xl border px-4 py-3 text-left transition",
+        "has-[:focus-visible]:outline-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500/35 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-[rgb(var(--bg))]",
+        checked
           ? "border-indigo-300 bg-indigo-50/80 shadow-sm shadow-indigo-900/5"
           : "border-slate-200/90 bg-white/70 hover:border-slate-300 hover:bg-white",
       ].join(" ")}
     >
+      <input
+        id={id}
+        type="radio"
+        name={name}
+        value={value}
+        checked={checked}
+        onChange={onChange}
+        className="sr-only"
+      />
       <span className="text-sm font-semibold text-slate-900">{label}</span>
       <span className="mt-0.5 text-xs leading-relaxed text-slate-600">{hint}</span>
-    </button>
+    </label>
   );
 }
 
@@ -78,20 +84,17 @@ export function WebsiteNeedsConfigurator() {
           <legend className="text-sm font-semibold text-slate-900">
             1. Current website
           </legend>
-          <div
-            role="radiogroup"
-            aria-label="Do you already have a website?"
-            className="mt-3 grid gap-2 sm:grid-cols-2"
-          >
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {SITE_PRESENCE_OPTIONS.map((option) => (
-              <OptionButton
+              <OptionCard
                 key={option.value}
+                id={`${baseId}-presence-${option.value}`}
                 name={`${baseId}-presence`}
                 value={option.value}
                 label={option.label}
                 hint={option.hint}
-                selected={presence === option.value}
-                onSelect={() => {
+                checked={presence === option.value}
+                onChange={() => {
                   setPresence(option.value);
                   setFocus(null);
                 }}
@@ -105,20 +108,17 @@ export function WebsiteNeedsConfigurator() {
             <legend className="text-sm font-semibold text-slate-900">
               2. What matters most right now?
             </legend>
-            <div
-              role="radiogroup"
-              aria-label="Primary website need"
-              className="mt-3 grid gap-2 sm:grid-cols-2"
-            >
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {focusOptions.map((option) => (
-                <OptionButton
+                <OptionCard
                   key={option.value}
+                  id={`${baseId}-focus-${option.value}`}
                   name={`${baseId}-focus`}
                   value={option.value}
                   label={option.label}
                   hint={option.hint}
-                  selected={focus === option.value}
-                  onSelect={() => setFocus(option.value)}
+                  checked={focus === option.value}
+                  onChange={() => setFocus(option.value)}
                 />
               ))}
             </div>

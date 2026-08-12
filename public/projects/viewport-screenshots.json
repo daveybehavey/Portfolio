@@ -1,0 +1,107 @@
+{
+  "capturedAt": "2026-08-12T04:29:06.598Z",
+  "note": "Above-the-fold screenshots of live project homepages at each CSS viewport. Not fabricated.",
+  "viewports": [
+    {
+      "mode": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "mode": "tablet",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "mode": "mobile",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "assets": [
+    {
+      "slug": "maestrosservices",
+      "mode": "desktop",
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "output": {
+        "path": "public/projects/maestrosservices-desktop.webp",
+        "width": 1200,
+        "height": 750,
+        "bytes": 88588
+      }
+    },
+    {
+      "slug": "maestrosservices",
+      "mode": "tablet",
+      "captureViewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "output": {
+        "path": "public/projects/maestrosservices-tablet.webp",
+        "width": 768,
+        "height": 1024,
+        "bytes": 67340
+      }
+    },
+    {
+      "slug": "maestrosservices",
+      "mode": "mobile",
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "output": {
+        "path": "public/projects/maestrosservices-mobile.webp",
+        "width": 390,
+        "height": 844,
+        "bytes": 32444
+      }
+    },
+    {
+      "slug": "starmapco",
+      "mode": "desktop",
+      "captureViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "output": {
+        "path": "public/projects/starmapco-desktop.webp",
+        "width": 1200,
+        "height": 750,
+        "bytes": 83926
+      }
+    },
+    {
+      "slug": "starmapco",
+      "mode": "tablet",
+      "captureViewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "output": {
+        "path": "public/projects/starmapco-tablet.webp",
+        "width": 768,
+        "height": 1024,
+        "bytes": 76820
+      }
+    },
+    {
+      "slug": "starmapco",
+      "mode": "mobile",
+      "captureViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "output": {
+        "path": "public/projects/starmapco-mobile.webp",
+        "width": 390,
+        "height": 844,
+        "bytes": 47370
+      }
+    }
+  ]
+}

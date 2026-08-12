@@ -32,6 +32,7 @@ function loadWebsiteNeeds() {
 const {
   recommendWebsiteNeed,
   isContactProjectType,
+  resolveProjectTypeFromSearch,
   websiteNeedContactHref,
 } = loadWebsiteNeeds();
 
@@ -100,4 +101,82 @@ test("isContactProjectType validates published values only", () => {
   assert.equal(isContactProjectType(""), false);
   assert.equal(isContactProjectType("not-a-type"), false);
   assert.equal(isContactProjectType(null), false);
+});
+
+test("resolveProjectTypeFromSearch prefills valid query values", () => {
+  assert.equal(
+    resolveProjectTypeFromSearch("?projectType=small-repair"),
+    "small-repair",
+  );
+  assert.equal(
+    resolveProjectTypeFromSearch("projectType=business-website&ed_cta=x"),
+    "business-website",
+  );
+});
+
+test("resolveProjectTypeFromSearch ignores invalid or missing projectType", () => {
+  assert.equal(resolveProjectTypeFromSearch("?projectType=not-real"), "");
+  assert.equal(resolveProjectTypeFromSearch("?foo=bar"), "");
+  assert.equal(resolveProjectTypeFromSearch(""), "");
+  assert.equal(resolveProjectTypeFromSearch(null), "");
+});
+
+test("ContactForm resets controlled projectType after success and keeps it on error", () => {
+  const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const form = readFileSync(join(root, "src", "components", "ContactForm.tsx"), "utf8");
+  assert.match(form, /resolveProjectTypeFromSearch\(window\.location\.search\)/);
+  assert.match(form, /value=\{projectTypeValue\}/);
+  assert.match(form, /onChange=\{\(event\) => setProjectTypeValue\(event\.target\.value\)\}/);
+  assert.match(form, /form\.reset\(\);\s*setProjectTypeValue\(""\);/s);
+  assert.match(
+    form,
+    /Your entries are still here; retry or use the email link/,
+  );
+  assert.doesNotMatch(
+    form,
+    /setProjectTypeValue\(""\);\s*setStatus\(\{\s*state: "error"/s,
+  );
+});
+
+test("DeviceShowcase uses distinct viewport screenshots, not one cropped image", () => {
+  const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const showcase = readFileSync(
+    join(root, "src", "components", "DeviceShowcase.tsx"),
+    "utf8",
+  );
+  const studies = readFileSync(join(root, "src", "lib", "case-studies.ts"), "utf8");
+  assert.match(showcase, /type="radio"/);
+  assert.match(showcase, /not one image cropped/i);
+  assert.match(studies, /maestrosservices-desktop\.webp/);
+  assert.match(studies, /maestrosservices-tablet\.webp/);
+  assert.match(studies, /maestrosservices-mobile\.webp/);
+  assert.match(studies, /starmapco-desktop\.webp/);
+  assert.match(studies, /starmapco-mobile\.webp/);
+});
+
+test("WebsiteNeedsConfigurator uses native radio inputs", () => {
+  const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const source = readFileSync(
+    join(root, "src", "components", "WebsiteNeedsConfigurator.tsx"),
+    "utf8",
+  );
+  assert.match(source, /type="radio"/);
+  assert.doesNotMatch(source, /role="radio"/);
+});
+
+test("viewport screenshot assets exist for showcase projects", () => {
+  const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const required = [
+    "maestrosservices-desktop.webp",
+    "maestrosservices-tablet.webp",
+    "maestrosservices-mobile.webp",
+    "starmapco-desktop.webp",
+    "starmapco-tablet.webp",
+    "starmapco-mobile.webp",
+  ];
+  for (const name of required) {
+    const stat = readFileSync(join(root, "public", "projects", name));
+    assert.ok(stat.byteLength > 10_000, `${name} should be a real optimized screenshot`);
+    assert.ok(stat.byteLength < 250_000, `${name} should stay compressed`);
+  }
 });
