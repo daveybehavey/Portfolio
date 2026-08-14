@@ -2,7 +2,13 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Container } from "@/components/Container";
 import { buildContactHref } from "@/lib/lead-attribution";
-import { SITE_TAGLINE } from "@/lib/site";
+import {
+  CONTACT_EMAIL,
+  CONTACT_PHONE_DISPLAY,
+  CONTACT_PHONE_HREF,
+  SERVICE_AREA_LABEL,
+  SITE_TAGLINE,
+} from "@/lib/site";
 
 export function SiteFooter() {
   return (
@@ -14,6 +20,24 @@ export function SiteFooter() {
             <p className="max-w-sm text-sm leading-relaxed text-slate-600">
               {SITE_TAGLINE}
             </p>
+            <p className="text-sm text-slate-600">{SERVICE_AREA_LABEL}, BC</p>
+            <div className="flex flex-col gap-1 text-sm text-slate-600 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1">
+              <a
+                href={CONTACT_PHONE_HREF}
+                className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+              >
+                {CONTACT_PHONE_DISPLAY}
+              </a>
+              <span className="hidden text-slate-300 sm:inline" aria-hidden>
+                ·
+              </span>
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="break-all font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+              >
+                {CONTACT_EMAIL}
+              </a>
+            </div>
             <div className="text-sm text-slate-500">
               © {new Date().getFullYear()} EuroDigital. All rights reserved.
             </div>

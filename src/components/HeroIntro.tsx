@@ -6,7 +6,7 @@ import { ButtonLink } from "@/components/Button";
 import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
 const badges = [
-  "Vancouver Island",
+  "Victoria & Vancouver Island",
   "Websites for local businesses",
   "Clear scope · practical handoff",
 ] as const;

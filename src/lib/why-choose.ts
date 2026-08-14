@@ -20,7 +20,7 @@ export const WHY_CHOOSE_POINTS = [
   },
   {
     title: "Local and direct",
-    body: "You work with one Vancouver Island-based builder instead of passing through sales, design, development, and support queues that lose context along the way.",
+    body: "You work with one Victoria & Vancouver Island-based builder instead of passing through sales, design, development, and support queues that lose context along the way.",
   },
   {
     title: "Clear project boundaries",
