@@ -32,7 +32,7 @@ import { SITE_URL, defaultOpenGraph } from "@/lib/site";
 const pageUrl = `${SITE_URL}${SERVICE_LANDING_PATH}`;
 
 export const metadata: Metadata = {
-  title: "Website design for Vancouver Island",
+  title: "Website design for Victoria & Vancouver Island",
   description: SERVICE_LANDING_DESCRIPTION,
   alternates: { canonical: SERVICE_LANDING_PATH },
   openGraph: {
@@ -81,10 +81,16 @@ export default function VancouverIslandWebsiteDesignPage() {
         name: "EuroDigital",
         url: SITE_URL,
       },
-      areaServed: {
-        "@type": "AdministrativeArea",
-        name: "Vancouver Island",
-      },
+      areaServed: [
+        {
+          "@type": "City",
+          name: "Victoria",
+        },
+        {
+          "@type": "AdministrativeArea",
+          name: "Vancouver Island",
+        },
+      ],
       serviceType: "Website design and launch",
     },
   };
@@ -102,7 +108,7 @@ export default function VancouverIslandWebsiteDesignPage() {
       >
         <Section
           titleAs="h1"
-          eyebrow="Vancouver Island"
+          eyebrow="Victoria & Vancouver Island"
           title={SERVICE_LANDING_TITLE}
           subtitle={SERVICE_LANDING_DESCRIPTION}
           divider={false}
@@ -120,9 +126,10 @@ export default function VancouverIslandWebsiteDesignPage() {
             </ButtonLink>
           </div>
           <p className="mt-6 max-w-2xl text-sm leading-relaxed text-slate-600">
-            One substantial service page for Island buyers — not a set of thin
-            city doorway pages. Prices and package language match the offers
-            already published on the homepage.
+            One substantial service page for Victoria and Island buyers — not a
+            set of thin city doorway pages. Prices and package language match
+            the offers already published on the homepage. EuroDigital is a
+            service-area business, not a staffed storefront.
           </p>
         </Section>
 

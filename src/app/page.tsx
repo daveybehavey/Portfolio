@@ -20,7 +20,12 @@ import { WebsiteNeedsConfigurator } from "@/components/WebsiteNeedsConfigurator"
 import { WhyChooseSection } from "@/components/WhyChooseSection";
 import { FULL_LAUNCH_INCLUDES, PACKAGES, PROJECT_ARCHETYPES, SMALL_SITE_REPAIR } from "@/lib/offer";
 import { projects } from "@/lib/projects";
-import { CONTACT_EMAIL, CONTACT_REPLY_NOTE } from "@/lib/site";
+import {
+  CONTACT_EMAIL,
+  CONTACT_PHONE_DISPLAY,
+  CONTACT_PHONE_HREF,
+  CONTACT_REPLY_NOTE,
+} from "@/lib/site";
 
 const homepageProjects = projects.filter(
   (project) => project.name === "MaestrosServices" || project.name === "StarMapCo",
@@ -469,6 +474,15 @@ export default function Home() {
                       analyticsLabel="Email contact"
                     >
                       Email {CONTACT_EMAIL}
+                    </ButtonA>
+                    <ButtonA
+                      href={CONTACT_PHONE_HREF}
+                      variant="secondary"
+                      magnetic
+                      analyticsLocation="contact"
+                      analyticsLabel="Call contact"
+                    >
+                      Call {CONTACT_PHONE_DISPLAY}
                     </ButtonA>
                     <ButtonLink
                       href="/website-design-vancouver-island"

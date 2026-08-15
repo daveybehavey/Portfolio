@@ -5,6 +5,7 @@ import { AttributionCapture } from "@/components/AttributionCapture";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import {
   CONTACT_EMAIL,
+  CONTACT_PHONE_E164,
   SITE_DESCRIPTION,
   SITE_URL,
   defaultOpenGraph,
@@ -82,7 +83,13 @@ export default function RootLayout({
         logo: `${SITE_URL}/brand/logo.png`,
         image: `${SITE_URL}/og-image.png`,
         email: CONTACT_EMAIL,
-        areaServed: ["Vancouver Island", "British Columbia", "Canada"],
+        telephone: CONTACT_PHONE_E164,
+        areaServed: [
+          "Victoria",
+          "Vancouver Island",
+          "British Columbia",
+          "Canada",
+        ],
         description: SITE_DESCRIPTION,
       },
       {
@@ -91,7 +98,7 @@ export default function RootLayout({
         url: SITE_URL,
         name: "EuroDigital",
         description:
-          "EuroDigital — small business website launches, packages, and portfolio for Vancouver Island service businesses and creative brands.",
+          "EuroDigital — small business website launches, packages, and portfolio for Victoria and Vancouver Island service businesses and creative brands.",
         publisher: { "@id": `${SITE_URL}/#organization` },
         inLanguage: "en-CA",
       },

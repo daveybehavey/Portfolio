@@ -4,10 +4,10 @@ export const SERVICE_LANDING_PATH =
   "/website-design-vancouver-island" as const;
 
 export const SERVICE_LANDING_TITLE =
-  "Website design for Vancouver Island small businesses" as const;
+  "Website design for Victoria & Vancouver Island small businesses" as const;
 
 export const SERVICE_LANDING_DESCRIPTION =
-  "EuroDigital plans and launches professional websites for Vancouver Island trades, service businesses, makers, and small shops — clear scope, practical Google setup, starting prices you can evaluate, and a handoff you own." as const;
+  "EuroDigital plans and launches professional websites for Victoria and Vancouver Island trades, service businesses, makers, and small shops — clear scope, practical Google setup, starting prices you can evaluate, and a handoff you own." as const;
 
 export const SERVICE_WHO_FITS = [
   "Trades, contractors, landscapers, cleaners, repair businesses, and other local services that need credibility and an easy quote or call path",
@@ -46,7 +46,7 @@ export const SERVICE_DEPENDENCIES = [
 ] as const;
 
 export const SERVICE_LOCAL_CONTEXT = [
-  "Vancouver Island customers often decide from a phone after comparing a few local options — speed, clarity, and contact paths matter more than agency theatrics",
+  "Victoria and Vancouver Island customers often decide from a phone after comparing a few local options — speed, clarity, and contact paths matter more than agency theatrics",
   "Service businesses usually win trust by explaining the offer, the area they serve, and how to request a quote without hunting through dead-end menus",
   "A practical Google Business Profile plus a coherent website is often more useful than a cluster of thin city doorway pages",
 ] as const;
@@ -73,7 +73,7 @@ export const SERVICE_PROCESS = [
 export const SERVICE_FAQS = [
   {
     q: "Do you only work with Vancouver Island businesses?",
-    a: "Vancouver Island small businesses are the core focus and the audience this page is written for. Remote-friendly projects can be considered when the fit is clear, but the standard offer is shaped around local service credibility, practical Google setup, and a handoff you can operate without an agency maze.",
+    a: "Victoria and Vancouver Island small businesses are the core focus and the audience this page is written for. Remote-friendly projects can be considered when the fit is clear, but the standard offer is shaped around local service credibility, practical Google setup, and a handoff you can operate without an agency maze.",
   },
   {
     q: "Do you take on small website fixes?",
