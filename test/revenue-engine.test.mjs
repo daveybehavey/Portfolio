@@ -68,6 +68,7 @@ test("source offers keep published package prices", () => {
 test("homepage surfaces small-repair path without collapsing launch offers", () => {
   const offer = readFileSync(path.join(root, "src/lib/offer.ts"), "utf8");
   assert.match(offer, /ctaLabel: \"Request a small repair\"/);
+  assert.match(offer, /ctaHref: \"\/\?projectType=small-repair#contact\"/);
   assert.match(offer, /From \$125 CAD/);
 
   const home = readFileSync(path.join(root, "src/app/page.tsx"), "utf8");

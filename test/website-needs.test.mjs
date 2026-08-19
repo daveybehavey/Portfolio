@@ -71,6 +71,10 @@ test("contact href carries projectType into home contact anchor", () => {
     websiteNeedContactHref("business-website"),
     "/?projectType=business-website#contact",
   );
+  assert.equal(
+    websiteNeedContactHref("small-repair"),
+    "/?projectType=small-repair#contact",
+  );
 });
 
 test("contact attribution preserves configurator projectType", () => {

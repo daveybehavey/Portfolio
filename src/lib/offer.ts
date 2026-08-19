@@ -26,7 +26,7 @@ export const SMALL_SITE_REPAIR = {
   excludesNote:
     "Starting price for a narrowly scoped repair. Platform, access, and the exact work can change the quote. A new page or website is priced under the launch packages below — not at $125.",
   ctaLabel: "Request a small repair",
-  ctaHref: "#contact",
+  ctaHref: "/?projectType=small-repair#contact",
 } as const;
 
 /** Bundled on Business Website and Online Store projects. */

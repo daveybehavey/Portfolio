@@ -20,14 +20,14 @@ const sans = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "EuroDigital — Small business website launches",
+    default: "EuroDigital — Website launches and small repairs",
     template: "%s — EuroDigital",
   },
   description: SITE_DESCRIPTION,
   alternates: { canonical: "/" },
   openGraph: {
     ...defaultOpenGraph,
-    title: "EuroDigital — Small business website launches",
+    title: "EuroDigital — Website launches and small repairs",
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     images: [
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "EuroDigital — Small business website launches",
+    title: "EuroDigital — Website launches and small repairs",
     description: SITE_DESCRIPTION,
     images: ["/og-image.png"],
   },
