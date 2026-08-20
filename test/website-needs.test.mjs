@@ -128,7 +128,11 @@ test("resolveProjectTypeFromSearch ignores invalid or missing projectType", () =
 test("ContactForm resets controlled projectType after success and keeps it on error", () => {
   const root = join(dirname(fileURLToPath(import.meta.url)), "..");
   const form = readFileSync(join(root, "src", "components", "ContactForm.tsx"), "utf8");
-  assert.match(form, /resolveProjectTypeFromSearch\(window\.location\.search\)/);
+  assert.match(form, /useSearchParams/);
+  assert.match(form, /resolveProjectTypeFromSearch\(/);
+  assert.match(form, /projectTypeFromSearch/);
+  assert.match(form, /setProjectTypeValue\(projectTypeFromSearch\)/);
+  assert.match(form, /\[projectTypeFromSearch\]/);
   assert.match(form, /value=\{projectTypeValue\}/);
   assert.match(form, /onChange=\{\(event\) => setProjectTypeValue\(event\.target\.value\)\}/);
   assert.match(form, /form\.reset\(\);\s*setProjectTypeValue\(""\);/s);
@@ -140,6 +144,27 @@ test("ContactForm resets controlled projectType after success and keeps it on er
     form,
     /setProjectTypeValue\(""\);\s*setStatus\(\{\s*state: "error"/s,
   );
+  // Mount-only window.location sync must not remain — soft-nav CTAs need query updates.
+  assert.doesNotMatch(
+    form,
+    /resolveProjectTypeFromSearch\(window\.location\.search\)/,
+  );
+});
+
+test("ContactForm syncs projectType from search params after initial render", () => {
+  const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const form = readFileSync(join(root, "src", "components", "ContactForm.tsx"), "utf8");
+  assert.match(form, /from \"next\/navigation\"/);
+  assert.match(form, /useSearchParams\(\)/);
+  assert.match(
+    form,
+    /const projectTypeFromSearch = resolveProjectTypeFromSearch\(/,
+  );
+  assert.match(
+    form,
+    /useEffect\(\(\) => \{\s*setProjectTypeValue\(projectTypeFromSearch\);\s*\}, \[projectTypeFromSearch\]\)/s,
+  );
+  assert.match(form, /<Suspense fallback=\{null\}>/);
 });
 
 test("DeviceShowcase uses distinct viewport screenshots, not one cropped image", () => {
