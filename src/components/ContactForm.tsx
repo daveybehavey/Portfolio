@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import Script from "next/script";
+import { useSearchParams } from "next/navigation";
 import {
   type FormEvent,
+  Suspense,
   useCallback,
   useEffect,
   useId,
@@ -85,8 +87,14 @@ function createSubmissionId(): string {
 const inputClassName =
   "w-full rounded-xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-900 shadow-sm shadow-slate-900/5 placeholder:text-slate-400 transition-colors focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20";
 
-export function ContactForm({ email }: { email: string }) {
+/**
+ * Sync project type from the URL on mount and on client navigations
+ * (e.g. Small Website Repairs CTA → ?projectType=small-repair#contact).
+ * Manual select changes stay until the query string itself changes.
+ */
+function ContactFormInner({ email }: { email: string }) {
   const id = useId();
+  const searchParams = useSearchParams();
   const turnstileContainerRef = useRef<HTMLDivElement>(null);
   const turnstileWidgetIdRef = useRef<string | null>(null);
   const submissionIdRef = useRef<string | null>(null);
@@ -106,10 +114,13 @@ export function ContactForm({ email }: { email: string }) {
   const statusId = `${id}-status`;
   const hintId = `${id}-hint`;
 
+  const projectTypeFromSearch = resolveProjectTypeFromSearch(
+    searchParams.toString() ? `?${searchParams.toString()}` : "",
+  );
+
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    setProjectTypeValue(resolveProjectTypeFromSearch(window.location.search));
-  }, []);
+    setProjectTypeValue(projectTypeFromSearch);
+  }, [projectTypeFromSearch]);
 
   const resetTurnstile = useCallback(() => {
     setTurnstileToken("");
@@ -452,5 +463,13 @@ export function ContactForm({ email }: { email: string }) {
         </p>
       </form>
     </>
+  );
+}
+
+export function ContactForm({ email }: { email: string }) {
+  return (
+    <Suspense fallback={null}>
+      <ContactFormInner email={email} />
+    </Suspense>
   );
 }

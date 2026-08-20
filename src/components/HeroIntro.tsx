@@ -8,6 +8,7 @@ import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 const badges = [
   "Victoria & Vancouver Island",
   "Websites for local businesses",
+  "Repairs from $125",
   "Clear scope · practical handoff",
 ] as const;
 
@@ -21,7 +22,7 @@ const subtext =
   "EuroDigital designs and launches fast, mobile-friendly websites for trades, service businesses, makers, and small shops — with a clear offer, practical Google setup, and accounts you control.";
 
 const footerLine =
-  "Direct local contact, fixed project scope, and no required monthly marketing retainer.";
+  "Small live-site repairs from $125 CAD when that’s enough. Direct local contact, and no required monthly marketing retainer.";
 
 export function HeroIntro() {
   const reduced = usePrefersReducedMotion();

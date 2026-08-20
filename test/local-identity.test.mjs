@@ -70,6 +70,17 @@ test("footer and contact surface phone tel link and email", () => {
     "utf8",
   );
   assert.match(hero, /Victoria & Vancouver Island/);
+  assert.match(hero, /Repairs from \$125/);
+  assert.match(hero, /Small live-site repairs from \$125 CAD/);
+});
+
+test("document title includes launches and small repairs", () => {
+  const layout = readFileSync(path.join(root, "src/app/layout.tsx"), "utf8");
+  assert.match(layout, /EuroDigital — Website launches and small repairs/);
+  assert.doesNotMatch(
+    layout,
+    /default:\s*"EuroDigital — Small business website launches"/,
+  );
 });
 
 test("service landing includes Victoria without doorway stuffing", () => {
