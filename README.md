@@ -82,6 +82,14 @@ npm run build
 npm run lighthouse
 ```
 
+## Production Status
+
+Cloudflare Pages native Web Analytics is active on the current production deployment. **GA4 remains disabled** unless it is explicitly enabled in a future authorized change.
+
+- Production source SHA: `348bff05ce4e8d01290cd66c1b79a99aafc68ae4`
+- Production deployment ID: `fc18bfa8-56e0-4786-b7d7-7130ece3bcb3`
+- Rollback deployment reference: `e6c9ca53-554c-4be9-8bc2-847074a80c7d`
+
 ## Operations Documentation
 
 Detailed production/contact documentation remains available under `docs/`:
