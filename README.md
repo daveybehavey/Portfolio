@@ -1,70 +1,68 @@
+<div align="center">
+
 # EuroDigital
 
-**Web development, e-commerce, SaaS, and digital-growth projects for small businesses.**
+**Web development, e-commerce, software, and digital-growth work for small businesses.**
 
-Live site: https://eurodigital.ca
+[Portfolio](https://eurodigital.ca) · [GitHub](https://github.com/daveybehavey) · British Columbia, Canada
 
-EuroDigital is my web-development portfolio and client-work brand. The work spans production websites, full-stack applications, e-commerce, payments, databases, analytics, SEO, automated testing, and cloud deployment.
+</div>
 
-This repository contains the EuroDigital marketing site itself, built with Next.js and deployed on Cloudflare Pages.
+---
 
 ## Selected Work
 
-### StarMapCo
-Custom star-map e-commerce application with a stateful product editor, checkout/fulfillment flows, automated QA, CI, accessibility work, and production recovery handling.
+| Project | What it demonstrates | Links |
+| --- | --- | --- |
+| **StarMapCo** | Stateful product editor, e-commerce, fulfillment, recovery flows, automated QA, CI, accessibility, SEO | [Live](https://starmapco.com) · [Code](https://github.com/daveybehavey/starMapAppV2) |
+| **NoteBill** | AI-assisted invoice generation, React/TypeScript, Express APIs, PostgreSQL, auth, regression testing | [Code](https://github.com/daveybehavey/Invoice) |
+| **AngelKissCreations** | Full-stack storefront, Supabase, PayPal checkout/webhooks, admin tools, Cloudflare deployment | [Live](https://anglkisscreations.ca) · [Code](https://github.com/daveybehavey/AngelKiss) |
+| **Maestros Services** | Astro/TypeScript, scalable local SEO, quote flows, GBP/GA4/GSC/Ads tooling, automated checks | [Live](https://maestrosservices.com) · [Code](https://github.com/daveybehavey/MaestrosServices) |
+| **Vancouver Island Pro Roofing** | Fast responsive lead-generation site, SEO fundamentals, optimized media, contact conversion | [Live](https://vancouverislandproroofing.com) · [Code](https://github.com/daveybehavey/justin-roofing) |
 
-- Live: https://starmapco.com
-- Repository: https://github.com/daveybehavey/starMapAppV2
+## What I Work With
 
-### NoteBill
-AI-assisted invoicing application that converts rough notes or uploaded invoice text into structured, editable invoices, with authentication, PostgreSQL persistence, automated regression coverage, and deployment tooling.
+**Frontend**  
+React · Next.js · Astro · TypeScript · JavaScript · HTML · CSS · Tailwind CSS
 
-- Repository: https://github.com/daveybehavey/Invoice
+**Backend & Data**  
+Node.js · Express · PostgreSQL · Supabase · REST APIs · authentication · webhooks
 
-### AngelKissCreations
-Full-stack e-commerce storefront with product administration, Supabase-backed data, PayPal checkout/webhooks, Cloudflare deployment, automated testing, Lighthouse checks, and image/storage tooling.
+**Commerce & Integrations**  
+Stripe · PayPal · Printful · Google APIs · Resend · Cloudflare
 
-- Live: https://anglkisscreations.ca
-- Repository: https://github.com/daveybehavey/AngelKiss
+**Quality & Delivery**  
+Git/GitHub · pull requests · automated tests · Playwright · Lighthouse · CI checks · production preflights
 
-### Maestros Services
-Production website and growth tooling for a Vancouver Island landscaping business, including localized service pages, quote flows, SEO/structured data, Google Business Profile tooling, GA4/Search Console reporting, and Google Ads integration work.
+## About This Repository
 
-- Live: https://maestrosservices.com
-- Repository: https://github.com/daveybehavey/MaestrosServices
+This repository contains the EuroDigital marketing and portfolio site. It is a production Next.js application deployed on Cloudflare Pages with a live contact flow, automated verification, accessibility/performance checks, and guarded deployment tooling.
 
-### Vancouver Island Pro Roofing
-Responsive local-service website focused on lead generation, mobile usability, SEO fundamentals, optimized media, and straightforward contact flows.
+### Stack
 
-- Live: https://vancouverislandproroofing.com
-- Repository: https://github.com/daveybehavey/justin-roofing
+| Area | Technology |
+| --- | --- |
+| Framework | Next.js 15, React 19 |
+| Language | TypeScript / JavaScript |
+| UI | Tailwind CSS, Framer Motion |
+| Hosting | Cloudflare Pages |
+| Contact | Pages Function, Turnstile, Resend |
+| QA | Node tests, Playwright, Lighthouse, ESLint, TypeScript checks |
 
-## EuroDigital Site Stack
+## Engineering Approach
 
-- **Framework:** Next.js 15
-- **UI:** React 19, Tailwind CSS, Framer Motion
-- **Language:** TypeScript / JavaScript
-- **Hosting:** Cloudflare Pages
-- **QA:** Node test runner, Playwright, Lighthouse, ESLint, TypeScript checks
-- **Contact:** Cloudflare Pages Function, Turnstile, Resend
+I use a verification-first workflow: changes are reviewed and tested before they are treated as production-ready.
 
-## Engineering Practices
-
-The project uses a verification-first workflow rather than treating deployment as the test step.
-
-- automated tests for contact and activation-readiness behavior
+- automated tests for critical behavior
 - linting and TypeScript validation
-- Lighthouse/performance checks
-- Playwright-driven screenshot and browser tooling
-- explicit preview/production preflight checks
-- guarded production deployment scripts
-- documented rollback and production-closeout procedures
+- browser and screenshot checks
+- Lighthouse/performance audits
+- explicit preview/production preflights
+- guarded deployment scripts and rollback documentation
 
-A reviewed production deployment recorded **160/160 tests passing**, and the production contact flow has been verified end to end.
+A reviewed EuroDigital production deployment recorded **160/160 tests passing**, and the live contact flow has been verified end to end.
 
 ## Local Development
-
-Use the pinned runtime versions from `package.json`, `.nvmrc`, and `.node-version`.
 
 ```bash
 npm ci
@@ -72,13 +70,9 @@ cp .env.example .env.local
 npm run dev
 ```
 
-The development server runs at:
+Development runs at `http://127.0.0.1:3011`.
 
-```text
-http://127.0.0.1:3011
-```
-
-## Validation
+### Validation
 
 ```bash
 npm test
@@ -88,17 +82,17 @@ npm run build
 npm run lighthouse
 ```
 
-Additional preview, contact-form, screenshot, and production-preflight commands are available through `package.json`.
+## Operations Documentation
 
-## Deployment & Operations
-
-The site is deployed through Cloudflare Pages using guarded deployment tooling. Normal builds, tests, and CI verification do **not** automatically deploy production.
-
-Detailed operational documentation is kept in:
+Detailed production/contact documentation remains available under `docs/`:
 
 - [`docs/contact-form-activation.md`](docs/contact-form-activation.md)
 - [`docs/production-closeout.md`](docs/production-closeout.md)
 
-## About
+---
 
-EuroDigital is based in British Columbia, Canada and focuses on practical small-business web products: sites that load quickly, work well on mobile, can be maintained, and connect to the services a business actually needs.
+<div align="center">
+
+**EuroDigital** · Practical web products built for real small-business workflows.
+
+</div>
