@@ -1,30 +1,30 @@
-EuroDigital — Vancouver Island, BC (Canada)
+EuroDigital — Victoria & Vancouver Island, BC (Canada)
 
-EuroDigital is a practical digital launch partner for small businesses on Vancouver Island — not a large agency, software firm, or monthly marketing company.
+EuroDigital designs and launches professional websites for Victoria and Vancouver Island service businesses, makers, and small shops — clear scope, practical Google setup, strong customer paths, and a handoff you own. Not a large agency, software firm, or monthly marketing retainer.
 
 Core offer:
-- Website and online store launches: professional sites, brand showcases, and full working ecommerce (products, cart, checkout, payments)
-- Includes: mobile-friendly design, contact or store flows, custom email forwarding, Google Analytics, Google Search Console, Google Business Profile when relevant, basic SEO, domain/hosting setup, handoff
+- Small business website launches and working online stores
+- Small Website Repairs for narrowly scoped fixes on existing sites
+- Includes (package-dependent): mobile-first design, contact or store flows, Analytics + Search Console, Google Business Profile support when it fits, basic SEO structure, domain/hosting setup, and a clear ownership handoff
 
 Most likely project types:
 1. Local service business websites (trades, contractors, landscapers, etc.) — example: MaestrosServices
-2. Creative brand or small shop websites (makers, artists, handmade sellers) — example: AnglKissCreations
-3. Ecommerce / online stores (working storefronts) — example: StarMapCo
+2. Creative brand or maker websites (showcase + inquiries) — example: AnglKissCreations
+3. Working online stores (catalog, cart, checkout, payments) — example: StarMapCo
 
-Packages (CAD):
-- One-Page Essentials — from $299 (single HTML/CSS/JS page, domain + hosting only; no analytics, GBP, contact form, or custom email)
-- Starter Website — private quote, typically $399–$699 (brochure site, not full store)
-- Business Launch — from $849 (service business lead site)
-- Creative / Brand Launch — from $849 (showcase + inquiries, not full cart/checkout)
-- Ecommerce Store Launch — from $999 (full storefront: catalog, cart, checkout, payments; stack chosen to fit — often without Shopify monthly platform fees)
-- Custom Launch — quoted (integrations, booking, complex mixes)
+Published starting prices (CAD; written scope before work starts):
+- Small Website Repairs — from $125 (existing-site fixes only; not a new-site price)
+- One-Page Launch — from $499
+- Business Website — from $1,250 (recommended for most established local businesses)
+- Online Store — from $2,000
+- Custom Project — quoted per project
 
-Why EuroDigital (vs platforms like Shopify):
-- Shopify Basic is about $49 CAD/month ($37/mo on annual billing) per shopify.com/ca/pricing — before apps/themes
-- EuroDigital offers one-time store launches without that recurring Shopify platform fee; ongoing costs are typically domain, modest hosting, and per-sale payment processing
-- Google setup, handoff, and local direct support are part of the launch model
-
-EuroDigital does not primarily position as complex app/SaaS development. NoteBill (invoice app) is a side project in the portfolio.
+Service area:
+- Victoria, Vancouver Island, British Columbia, Canada
+- Remote-friendly projects may be considered when the fit is clear
 
 Contact: contact@eurodigital.ca
+Phone: +1 (778) 678-6242
 Site: https://eurodigital.ca/
+Service landing: https://eurodigital.ca/website-design-vancouver-island
+Portfolio: https://eurodigital.ca/projects
