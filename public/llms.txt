@@ -1,10 +1,12 @@
 EuroDigital — Victoria & Vancouver Island, BC (Canada)
 
-EuroDigital designs and launches professional websites for Victoria and Vancouver Island service businesses, makers, and small shops — clear scope, practical Google setup, strong customer paths, and a handoff you own. Not a large agency, software firm, or monthly marketing retainer.
+EuroDigital builds professional websites and practical digital growth systems for Victoria and Vancouver Island service businesses, makers, and small shops — clear scope, search and analytics foundations, stronger customer paths, measurable setup, and a handoff you own. EuroDigital does not guarantee rankings or revenue, and ongoing growth support is optional rather than a required long-term retainer.
 
 Core offer:
 - Small business website launches and working online stores
+- Practical growth foundations that can include analytics, Search Console, local-search structure, conversion paths, attribution, and Google Business Profile support when appropriate
 - Small Website Repairs for narrowly scoped fixes on existing sites
+- Optional ongoing improvement support can be scoped separately when measurement shows it is useful
 - Includes (package-dependent): mobile-first design, contact or store flows, Analytics + Search Console, Google Business Profile support when it fits, basic SEO structure, domain/hosting setup, and a clear ownership handoff
 
 Most likely project types:
