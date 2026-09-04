@@ -42,6 +42,9 @@ test("llms.txt stays factually aligned with published offer entity data", () => 
   assert.match(offer, /Small Website Repairs/);
   assert.match(offer, /From \$125 CAD/);
 
+  assert.match(llms, /practical digital growth systems/i);
+  assert.match(llms, /does not guarantee rankings or revenue/i);
+  assert.match(llms, /ongoing growth support is optional/i);
   assert.match(llms, /One-Page Launch/);
   assert.match(llms, /from \$499/);
   assert.match(llms, /Business Website/);
@@ -71,6 +74,7 @@ test("root layout keeps indexable metadata and Organization/WebSite schema", () 
   assert.match(layout, /metadataBase:\s*new URL\(SITE_URL\)/);
   assert.match(layout, /alternates:\s*\{\s*canonical:\s*"\/"/);
   assert.match(layout, /robots:\s*\{\s*index:\s*true,\s*follow:\s*true\s*\}/);
+  assert.match(layout, /Websites and growth systems for local businesses/);
   assert.match(layout, /"@type":\s*"Organization"/);
   assert.match(layout, /"@type":\s*"WebSite"/);
   assert.doesNotMatch(layout, /\bnoindex\b|\bnofollow\b/);
