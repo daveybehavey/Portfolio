@@ -14,14 +14,14 @@ export const CONTACT_PHONE_HREF = `tel:${CONTACT_PHONE_E164}` as const;
 export const SERVICE_AREA_LABEL = "Victoria & Vancouver Island" as const;
 
 export const SITE_TAGLINE =
-  "Professional websites for Victoria & Vancouver Island businesses" as const;
+  "Websites and practical growth systems for Victoria & Vancouver Island businesses" as const;
 
 export const BRAND_LOGO_MARK = "/brand/logo-mark.webp" as const;
 
 export const BRAND_LOGO_SQUARE = "/brand/logo.png" as const;
 
 export const SITE_DESCRIPTION =
-  "EuroDigital designs and launches professional websites for Victoria and Vancouver Island service businesses, makers, and small shops — clear scope, practical Google setup, strong customer paths, and a handoff you own." as const;
+  "EuroDigital builds professional websites and practical digital growth systems for Victoria and Vancouver Island businesses — clear scope, search and analytics foundations, stronger customer paths, measurable setup, and a handoff you own." as const;
 
 export const defaultOpenGraph = {
   siteName: "EuroDigital",
