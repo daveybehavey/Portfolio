@@ -20,14 +20,14 @@ const sans = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "EuroDigital — Website launches and small repairs",
+    default: "EuroDigital — Websites and growth systems for local businesses",
     template: "%s — EuroDigital",
   },
   description: SITE_DESCRIPTION,
   alternates: { canonical: "/" },
   openGraph: {
     ...defaultOpenGraph,
-    title: "EuroDigital — Website launches and small repairs",
+    title: "EuroDigital — Websites and growth systems for local businesses",
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     images: [
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "EuroDigital — Website launches and small repairs",
+    title: "EuroDigital — Websites and growth systems for local businesses",
     description: SITE_DESCRIPTION,
     images: ["/og-image.png"],
   },
@@ -98,7 +98,7 @@ export default function RootLayout({
         url: SITE_URL,
         name: "EuroDigital",
         description:
-          "EuroDigital — small business website launches, packages, and portfolio for Victoria and Vancouver Island service businesses and creative brands.",
+          "EuroDigital — websites, search foundations, analytics, and practical growth systems for Victoria and Vancouver Island businesses.",
         publisher: { "@id": `${SITE_URL}/#organization` },
         inLanguage: "en-CA",
       },
