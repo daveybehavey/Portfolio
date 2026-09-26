@@ -26,7 +26,9 @@
     "pages:preview:dry-run": "node scripts/pages-deploy.mjs --target preview --dry-run",
     "pages:deploy:help": "node scripts/pages-deploy.mjs --help",
     "pages:production:build": "node scripts/pages-build.mjs --target production",
-    "pages:production:preflight": "node scripts/pages-production-preflight.mjs"
+    "pages:production:preflight": "node scripts/pages-production-preflight.mjs",
+    "pages:config:preflight": "node scripts/pages-config-preflight.mjs",
+    "pages:production:dry-run": "node scripts/pages-deploy.mjs --target production --dry-run"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",

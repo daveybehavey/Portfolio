@@ -2941,3 +2941,74 @@ test("pages-build.mjs rejects missing and flag-shaped --target values", async ()
   assert.notEqual(empty.status, 0);
   assert.match(empty.stderr || empty.stdout, /--target requires a value/);
 });
+
+test("package scripts expose config preflight and production dry-run without execute-deploy", async () => {
+  const pkg = JSON.parse(await readFile(path.join(process.cwd(), "package.json"), "utf8"));
+  const scripts = pkg.scripts || {};
+  assert.equal(scripts["pages:config:preflight"], "node scripts/pages-config-preflight.mjs");
+  assert.equal(
+    scripts["pages:production:dry-run"],
+    "node scripts/pages-deploy.mjs --target production --dry-run",
+  );
+  assert.equal(String(scripts["pages:config:preflight"]).includes("--execute-deploy"), false);
+  assert.equal(String(scripts["pages:production:dry-run"]).includes("--execute-deploy"), false);
+  assert.ok(String(scripts["pages:production:dry-run"]).includes("--dry-run"));
+});
+
+test("pages-config-preflight validates committed wrangler.jsonc without provider work", async () => {
+  const { spawnSync } = await import("node:child_process");
+  const help = spawnSync(process.execPath, ["scripts/pages-config-preflight.mjs", "--help"], {
+    encoding: "utf8",
+  });
+  assert.equal(help.status, 0);
+  assert.match(help.stdout, /wrangler\.jsonc/);
+  assert.match(help.stdout, /Does not build/);
+
+  const unknown = spawnSync(
+    process.execPath,
+    ["scripts/pages-config-preflight.mjs", "--execute-deploy"],
+    { encoding: "utf8" },
+  );
+  assert.notEqual(unknown.status, 0);
+  assert.match(unknown.stderr || unknown.stdout, /Unknown argument/);
+
+  const ok = spawnSync(process.execPath, ["scripts/pages-config-preflight.mjs"], {
+    encoding: "utf8",
+  });
+  assert.equal(ok.status, 0, ok.stderr || ok.stdout);
+  assert.match(ok.stdout, /Pages config preflight passed/);
+  assert.doesNotMatch(ok.stdout, /[Ww]rangler pages deploy/);
+});
+
+test("pages-production-preflight requires sha, rollback id, and authorize; never deploys", async () => {
+  const { spawnSync } = await import("node:child_process");
+  const help = spawnSync(process.execPath, ["scripts/pages-production-preflight.mjs", "--help"], {
+    encoding: "utf8",
+  });
+  assert.equal(help.status, 0);
+  assert.match(help.stdout, /Does not mutate Cloudflare/);
+
+  const missing = spawnSync(process.execPath, ["scripts/pages-production-preflight.mjs"], {
+    encoding: "utf8",
+  });
+  assert.notEqual(missing.status, 0);
+  assert.match(missing.stderr || missing.stdout, /(--expected-sha is required|--rollback-deployment-id is required)/);
+
+  const uuid = "fc18bfa8-56e0-4786-b7d7-7130ece3bcb3";
+  const sha = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef";
+  const ok = spawnSync(
+    process.execPath,
+    [
+      "scripts/pages-production-preflight.mjs",
+      "--expected-sha",
+      sha,
+      "--rollback-deployment-id",
+      uuid,
+      "--authorize-production-deploy",
+    ],
+    { encoding: "utf8" },
+  );
+  assert.equal(ok.status, 0, ok.stderr || ok.stdout);
+  assert.match(ok.stdout, /Pages production preflight passed/);
+  assert.doesNotMatch(ok.stdout + ok.stderr, /pages deploy/i);
+});

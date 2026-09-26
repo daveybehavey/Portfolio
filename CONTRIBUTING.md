@@ -67,6 +67,8 @@ The CI workflow is verification-only:
 - no Wrangler deploy, Cloudflare API, DNS, email-routing, or Pages mutation command is executed
 - package scripts never embed `--execute-deploy`; CI never invokes real Preview/Production Pages deployments
 - deployment wrappers are dry-run by default; actual provider execution requires `--execute-deploy` plus the target authorization flag (`--authorize-preview-deploy` or `--authorize-production-deploy`)
+- `npm run pages:config:preflight` validates committed `wrangler.jsonc` only (CI-safe; no build, no Wrangler, no provider mutation)
+- `npm run pages:production:dry-run -- --expected-sha <sha> --rollback-deployment-id <uuid>` exercises the guarded Production path and stops before Cloudflare (still requires the live `origin/main` checks); never embed `--execute-deploy` in package scripts
 - Preview and Production deploy guards in source require an in-command artifact build/rescan and reject dirty or non-ignored untracked working trees; CI still never executes those deploy commands
 - Production deploy refreshes live `origin/main` before initial Git guards and again after the artifact build/scan; cached remote-tracking refs are not deployment evidence, and remote advancement or force-push during preparation fails closed. Preview deploy does not use this remote-main gate
 - Production deploy requires an operator-supplied `--rollback-deployment-id` (current Production deployment UUID) with no source-code default; capture it from Cloudflare immediately before each run
