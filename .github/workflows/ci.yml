@@ -82,5 +82,8 @@ jobs:
       - name: Verify static export artifacts
         run: node scripts/verify-static-export.mjs
 
+      - name: Pages config preflight
+        run: npm run pages:config:preflight
+
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
