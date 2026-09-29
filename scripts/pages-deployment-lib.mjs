@@ -1246,7 +1246,7 @@ export function assertProductionDeployGuards(input) {
   } else if (input.expectedSha !== input.head) {
     errors.push("Local HEAD must equal the provided --expected-sha.");
   }
-  if (!input.authorizeProductionDeploy) {
+  if (input.requireAuthorization !== false && !input.authorizeProductionDeploy) {
     errors.push(
       "Missing one-time --authorize-production-deploy confirmation.",
     );
@@ -1718,6 +1718,7 @@ export async function runGuardedProductionDeploy({
     originMain: initialFetch.originMain,
     expectedSha,
     authorizeProductionDeploy,
+    requireAuthorization: executeDeploy,
     configOk: true,
   });
   if (!initialGuards.ok) {
@@ -1802,6 +1803,7 @@ export async function runGuardedProductionDeploy({
     originMain: postFetch.originMain,
     expectedSha,
     authorizeProductionDeploy,
+    requireAuthorization: executeDeploy,
     configOk: true,
   });
   if (!postGuards.ok) {

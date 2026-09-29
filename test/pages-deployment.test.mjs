@@ -906,18 +906,39 @@ test("tracked modification blocks production before Wrangler", async () => {
   assert.equal(result.wranglerInvoked, false);
 });
 
-test("missing authorization blocks production before Wrangler", async () => {
+test("production dry-run does not require deploy authorization", async () => {
   const harness = productionDeployHarness();
   const result = await runGuardedProductionDeploy({
     root: "/tmp/unused",
     expectedSha: "abc123",
     authorizeProductionDeploy: false,
-        rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
-      ...harness.deps,
+    rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+    executeDeploy: false,
+    ...harness.deps,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.stage, "dry-run");
+  assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.build, 1);
+  assert.equal(harness.calls.refreshes, 2);
+  assert.equal(harness.calls.process.length, 0);
+});
+
+test("missing authorization blocks production execution before Git build or Wrangler", async () => {
+  const harness = productionDeployHarness();
+  const result = await runGuardedProductionDeploy({
+    root: "/tmp/unused",
+    expectedSha: "abc123",
+    authorizeProductionDeploy: false,
+    rollbackDeploymentId: "f0ddd72c-3740-4340-a9f7-4e98b63cf807",
+    executeDeploy: true,
+    ...harness.deps,
   });
   assert.equal(result.ok, false);
-  assert.equal(result.stage, "initial-git");
+  assert.equal(result.stage, "config");
   assert.equal(result.wranglerInvoked, false);
+  assert.equal(harness.calls.build, 0);
+  assert.equal(harness.calls.refreshes, 0);
   assert.equal(harness.calls.process.length, 0);
 });
 
