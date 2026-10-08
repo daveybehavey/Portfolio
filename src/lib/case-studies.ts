@@ -14,6 +14,7 @@ export type CaseStudy = {
     label: string;
     disclosure: string;
   };
+  proofAtAGlance?: readonly string[];
   problem: string;
   constraints: readonly string[];
   implementation: readonly string[];
@@ -60,6 +61,11 @@ export const caseStudies: readonly CaseStudy[] = [
       disclosure:
         "MaestrosServices is a family landscaping and outdoor-services business. This case study describes website implementation work connected to that relationship. It is not an independent third-party client testimonial, and it does not claim audited business results.",
     },
+    proofAtAGlance: [
+      "Responsive service website",
+      "Dedicated quote-request path",
+      "Page descriptions and canonical URLs",
+    ],
     problem:
       "A local landscaping and outdoor-services business needed a clear website that explains the work, looks credible on a phone, and makes calls or quote requests easy — without pretending every visitor needs a long brochure site.",
     constraints: [

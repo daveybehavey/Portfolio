@@ -126,6 +126,28 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
             </p>
           </div>
 
+          {study.proofAtAGlance?.length ? (
+            <section
+              aria-labelledby="proof-at-a-glance"
+              className="mt-6 rounded-2xl border border-slate-200/90 bg-white/90 p-5"
+            >
+              <h2
+                id="proof-at-a-glance"
+                className="text-base font-semibold text-slate-900"
+              >
+                Proof at a glance
+              </h2>
+              <ul className="mt-3 grid gap-2 text-sm text-slate-700 sm:grid-cols-3">
+                {study.proofAtAGlance.map((item) => (
+                  <li key={item} className="flex gap-2">
+                    <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
           <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200/90 bg-white/90 shadow-sm">
             <div className="relative aspect-[16/9] w-full bg-slate-100">
               <Image
