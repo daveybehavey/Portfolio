@@ -46,6 +46,16 @@ test("Organization schema includes telephone without LocalBusiness or street add
   assert.match(layout, /telephone:\s*CONTACT_PHONE_E164/);
   assert.match(layout, /"Victoria"/);
   assert.match(layout, /"Vancouver Island"/);
+  assert.match(layout, /foundingDate:\s*"2026"/);
+  assert.match(layout, /name:\s*"David Heslop"/);
+  assert.match(layout, /addressLocality:\s*"Victoria"/);
+  assert.match(layout, /addressRegion:\s*"BC"/);
+  assert.match(layout, /addressCountry:\s*"CA"/);
+  assert.match(layout, /linkedin\.com\/company\/eurodigital-ca/);
+  assert.match(layout, /cylex-canada\.ca\/company\/eurodigital-25193729/);
+  assert.match(layout, /"@type":\s*"ProfessionalService"/);
+  assert.match(layout, /openingHours:\s*"Mo-Su 09:00-17:00"/);
+  assert.match(layout, /Project-based/);
   assert.doesNotMatch(layout, /\bLocalBusiness\b/);
   assert.doesNotMatch(layout, /streetAddress|postalCode/);
 });
@@ -119,7 +129,11 @@ test("built pages expose phone, tel, Victoria, and schema telephone", async (t) 
   assert.match(home, /Victoria/);
   assert.match(home, /Vancouver Island/);
   assert.match(home, new RegExp(`"telephone"\\s*:\\s*"${PHONE_E164.replace(/\+/g, "\\+")}"`));
+  assert.match(home, /"addressLocality"\s*:\s*"Victoria"/);
+  assert.match(home, /"@type"\s*:\s*"ProfessionalService"/);
+  assert.match(home, /"@type"\s*:\s*"FAQPage"/);
   assert.doesNotMatch(home, /"streetAddress"/);
+  assert.doesNotMatch(home, /"postalCode"/);
   assert.doesNotMatch(home, /\bLocalBusiness\b/);
 
   const service = readOutHtml("website-design-vancouver-island");

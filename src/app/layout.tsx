@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AttributionCapture } from "@/components/AttributionCapture";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { SERVICE_AREAS } from "@/lib/service-areas";
 import {
   CONTACT_EMAIL,
   CONTACT_PHONE_E164,
@@ -84,6 +85,21 @@ export default function RootLayout({
         image: `${SITE_URL}/og-image.png`,
         email: CONTACT_EMAIL,
         telephone: CONTACT_PHONE_E164,
+        foundingDate: "2026",
+        founder: {
+          "@type": "Person",
+          name: "David Heslop",
+        },
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Victoria",
+          addressRegion: "BC",
+          addressCountry: "CA",
+        },
+        sameAs: [
+          "https://www.linkedin.com/company/eurodigital-ca/",
+          "https://www.cylex-canada.ca/company/eurodigital-25193729.html",
+        ],
         areaServed: [
           "Victoria",
           "Vancouver Island",
@@ -101,6 +117,32 @@ export default function RootLayout({
           "EuroDigital — websites, search foundations, analytics, and practical growth systems for Victoria and Vancouver Island businesses.",
         publisher: { "@id": `${SITE_URL}/#organization` },
         inLanguage: "en-CA",
+      },
+      {
+        "@type": "ProfessionalService",
+        "@id": `${SITE_URL}/#professional-service`,
+        name: "EuroDigital",
+        url: SITE_URL,
+        description: SITE_DESCRIPTION,
+        email: CONTACT_EMAIL,
+        telephone: CONTACT_PHONE_E164,
+        priceRange: "Project-based (CAD; quoted per project, not hourly)",
+        openingHours: "Mo-Su 09:00-17:00",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Victoria",
+          addressRegion: "BC",
+          addressCountry: "CA",
+        },
+        areaServed: SERVICE_AREAS.map((name) => ({
+          "@type": "City",
+          name,
+        })),
+        founder: {
+          "@type": "Person",
+          name: "David Heslop",
+        },
+        parentOrganization: { "@id": `${SITE_URL}/#organization` },
       },
     ],
   };
