@@ -58,6 +58,15 @@ test("llms.txt stays factually aligned with published offer entity data", () => 
   assert.match(llms, /Vancouver Island/);
   assert.match(llms, /contact@eurodigital\.ca/);
   assert.match(llms, /https:\/\/eurodigital\.ca\//);
+  assert.match(llms, /Founded:\s*2026/);
+  assert.match(llms, /Founder:\s*David Heslop/);
+  assert.match(llms, /service-area \/ online-only/i);
+  assert.match(llms, /locality only/);
+  assert.match(llms, /Monday–Sunday 9:00–17:00/);
+  assert.match(llms, /flat \/ project-based \(not hourly\)/i);
+  assert.match(llms, /linkedin\.com\/company\/eurodigital-ca/);
+  assert.match(llms, /g\.page\/r\/CRysOvkXc9XzEAI\/review/);
+  assert.doesNotMatch(llms, /streetAddress|postalCode|V9C|Kangaroo/i);
 
   // Stale package names/prices from the previous GEO surface must not return.
   assert.doesNotMatch(llms, /One-Page Essentials/);
@@ -77,5 +86,43 @@ test("root layout keeps indexable metadata and Organization/WebSite schema", () 
   assert.match(layout, /Websites and growth systems for local businesses/);
   assert.match(layout, /"@type":\s*"Organization"/);
   assert.match(layout, /"@type":\s*"WebSite"/);
+  assert.match(layout, /"@type":\s*"ProfessionalService"/);
+  assert.match(layout, /SERVICE_AREAS/);
   assert.doesNotMatch(layout, /\bnoindex\b|\bnofollow\b/);
+});
+
+test("service areas constant lists eleven Island localities without street address", () => {
+  const areas = readFileSync(path.join(root, "src/lib/service-areas.ts"), "utf8");
+  const expected = [
+    "Victoria",
+    "Saanich",
+    "Oak Bay",
+    "Esquimalt",
+    "View Royal",
+    "Colwood",
+    "Langford",
+    "Metchosin",
+    "Highlands",
+    "Sooke",
+    "Sidney",
+  ];
+  assert.equal(expected.length, 11);
+  assert.match(areas, /SERVICE_AREAS/);
+  assert.doesNotMatch(areas, /streetAddress|postalCode/);
+  for (const name of expected) {
+    assert.match(areas, new RegExp(`"${name}"`));
+  }
+});
+
+test("homepage FAQ emits FAQPage schema for six published-topic questions", () => {
+  const home = readFileSync(path.join(root, "src/app/page.tsx"), "utf8");
+  const faqs = readFileSync(path.join(root, "src/lib/geo-faqs.ts"), "utf8");
+  assert.match(home, /GEO_FAQS/);
+  assert.match(home, /FAQPage/);
+  assert.match(faqs, /What website services does EuroDigital offer/);
+  assert.match(faqs, /How does the project process work/);
+  assert.match(faqs, /Is pricing hourly or project-based/);
+  assert.match(faqs, /Which areas does EuroDigital serve/);
+  assert.match(faqs, /How long does a website take/);
+  assert.match(faqs, /Is ongoing marketing or support included/);
 });

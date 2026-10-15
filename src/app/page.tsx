@@ -18,6 +18,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SkipLink } from "@/components/SkipLink";
 import { WebsiteNeedsConfigurator } from "@/components/WebsiteNeedsConfigurator";
 import { WhyChooseSection } from "@/components/WhyChooseSection";
+import { GEO_FAQS } from "@/lib/geo-faqs";
 import { FULL_LAUNCH_INCLUDES, PACKAGES, PROJECT_ARCHETYPES, SMALL_SITE_REPAIR } from "@/lib/offer";
 import { projects } from "@/lib/projects";
 import {
@@ -26,6 +27,38 @@ import {
   CONTACT_PHONE_HREF,
   CONTACT_REPLY_NOTE,
 } from "@/lib/site";
+
+const faqItems = [
+  ...GEO_FAQS,
+  {
+    q: "Do you take on small website fixes?",
+    a: "Yes. Not every website problem needs a redesign. Small, clearly scoped repairs on an existing site can start around $125 CAD, depending on the platform, access required, and work involved. If a small fix is enough, that is what we will recommend. Larger launches stay on the package prices below when a new build is genuinely the right fit.",
+  },
+  {
+    q: "Are these prices fixed?",
+    a: "They are starting points for a defined scope. Small website repairs start around $125 CAD for narrowly scoped existing-site work. One-Page Launch starts at $499 CAD, Business Website starts at $1,250 CAD, and Online Store starts at $2,000 CAD. Content volume, integrations, product count, migrations, and unusual requirements can change the quote. You receive written deliverables and a price before work starts.",
+  },
+  {
+    q: "What is included in the One-Page Launch?",
+    a: "One focused, mobile-friendly page with your offer, services or key information, contact links, basic metadata, and domain/hosting connection. It is intentionally lean. Multi-page content, advanced forms, analytics, Business Profile work, and integrations belong in a larger launch.",
+  },
+  {
+    q: "Who is the Business Website for?",
+    a: "It is the core offer for trades, local service businesses, professionals, and growing brands that need several pages, stronger trust content, a proper inquiry path, practical Google setup, and a documented handoff.",
+  },
+  {
+    q: "Can you build a working online store?",
+    a: "Yes. Online Store projects can include products, collections, cart, checkout, payments, shipping and tax basics, notifications, analytics, and a walkthrough for day-to-day operations. The stack is chosen to fit the business rather than forcing every shop into the same platform.",
+  },
+  {
+    q: "Can you help with Google Business Profile and local SEO?",
+    a: "Yes, within a practical launch scope: Business Profile support when appropriate, Analytics, Search Console, readable service-area content, technical metadata, and a site structure search engines can understand. EuroDigital does not promise rankings or sell vague SEO guarantees.",
+  },
+  {
+    q: "What does handoff include?",
+    a: "The relevant account access, domain and hosting notes, analytics setup, launch checklist, files or repository access, and a walkthrough appropriate to the project. The goal is to leave ownership understandable rather than keeping essential access hidden.",
+  },
+] as const;
 
 const homepageProjects = projects.filter(
   (project) => project.name === "MaestrosServices" || project.name === "StarMapCo",
@@ -57,46 +90,20 @@ const processSteps = [
   },
 ] as const;
 
-const faqItems = [
-  {
-    q: "Do you take on small website fixes?",
-    a: "Yes. Not every website problem needs a redesign. Small, clearly scoped repairs on an existing site can start around $125 CAD, depending on the platform, access required, and work involved. If a small fix is enough, that is what we will recommend. Larger launches stay on the package prices below when a new build is genuinely the right fit.",
-  },
-  {
-    q: "Are these prices fixed?",
-    a: "They are starting points for a defined scope. Small website repairs start around $125 CAD for narrowly scoped existing-site work. One-Page Launch starts at $499 CAD, Business Website starts at $1,250 CAD, and Online Store starts at $2,000 CAD. Content volume, integrations, product count, migrations, and unusual requirements can change the quote. You receive written deliverables and a price before work starts.",
-  },
-  {
-    q: "What is included in the One-Page Launch?",
-    a: "One focused, mobile-friendly page with your offer, services or key information, contact links, basic metadata, and domain/hosting connection. It is intentionally lean. Multi-page content, advanced forms, analytics, Business Profile work, and integrations belong in a larger launch.",
-  },
-  {
-    q: "Who is the Business Website for?",
-    a: "It is the core offer for trades, local service businesses, professionals, and growing brands that need several pages, stronger trust content, a proper inquiry path, practical Google setup, and a documented handoff.",
-  },
-  {
-    q: "Is this a monthly marketing or IT retainer?",
-    a: "No. The standard offer is a one-time scoped website launch. Ongoing updates, maintenance, content, or marketing can be quoted separately when they are genuinely useful, but they are not required to keep the project relationship alive.",
-  },
-  {
-    q: "How long does a website take?",
-    a: "Timing depends on scope and how quickly content and decisions arrive. A small one-page project can move quickly; a multi-page business site or store takes longer because content, review, products, payments, and launch setup require more coordination. The written estimate includes a realistic timeline and client dependencies.",
-  },
-  {
-    q: "Can you build a working online store?",
-    a: "Yes. Online Store projects can include products, collections, cart, checkout, payments, shipping and tax basics, notifications, analytics, and a walkthrough for day-to-day operations. The stack is chosen to fit the business rather than forcing every shop into the same platform.",
-  },
-  {
-    q: "Can you help with Google Business Profile and local SEO?",
-    a: "Yes, within a practical launch scope: Business Profile support when appropriate, Analytics, Search Console, readable service-area content, technical metadata, and a site structure search engines can understand. EuroDigital does not promise rankings or sell vague SEO guarantees.",
-  },
-  {
-    q: "What does handoff include?",
-    a: "The relevant account access, domain and hosting notes, analytics setup, launch checklist, files or repository access, and a walkthrough appropriate to the project. The goal is to leave ownership understandable rather than keeping essential access hidden.",
-  },
-] as const;
-
 export default function Home() {
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: GEO_FAQS.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
+
   return (
     <div className="relative min-h-screen overflow-x-clip">
       <PageBackground />
@@ -435,7 +442,7 @@ export default function Home() {
 
         <Section id="faq" eyebrow="FAQ" title="Straight answers before you inquire">
           <div className="max-w-3xl">
-            <Accordion items={faqItems} />
+            <Accordion items={[...faqItems]} />
           </div>
         </Section>
 
@@ -506,6 +513,11 @@ export default function Home() {
       </main>
 
       <SiteFooter />
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
     </div>
   );
 }
