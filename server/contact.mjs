@@ -273,7 +273,17 @@ async function readJsonBody(request) {
     };
   }
 
-  const raw = await request.text();
+  let raw;
+  try {
+    raw = await request.text();
+  } catch {
+    return {
+      ok: false,
+      status: 400,
+      code: "invalid_json",
+      message: "The request body is not valid JSON.",
+    };
+  }
   if (new TextEncoder().encode(raw).byteLength > MAX_REQUEST_BYTES) {
     return {
       ok: false,
