@@ -16,6 +16,7 @@ const links = [
     href: "/website-design-vancouver-island",
     label: "Island websites",
   },
+  { href: "/blog", label: "Blog" },
   { href: "/projects", label: "Portfolio" },
   { href: "/#faq", label: "FAQ" },
   {

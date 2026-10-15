@@ -23,9 +23,12 @@ test("sitemap homepage URL matches apex canonical without trailing slash", () =>
   assert.match(sitemap, /url:\s*SITE_URL/);
   assert.doesNotMatch(sitemap, /url:\s*`\$\{SITE_URL\}\/`/);
   assert.match(sitemap, /SERVICE_LANDING_PATH/);
+  assert.match(sitemap, /ADDITIONAL_SERVICE_PATHS/);
+  assert.match(sitemap, /BLOG_PATHS/);
   assert.match(sitemap, /CASE_STUDY_PATHS/);
   assert.match(sitemap, /\/projects/);
   assert.match(sitemap, /\/privacy/);
+  assert.match(sitemap, /\/blog/);
 });
 
 test("llms.txt stays factually aligned with published offer entity data", () => {

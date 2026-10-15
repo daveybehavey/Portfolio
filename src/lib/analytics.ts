@@ -18,7 +18,8 @@ export type AnalyticsLocation =
   | "portfolio"
   | "privacy"
   | "service"
-  | "case_study";
+  | "case_study"
+  | "blog";
 
 export type LeadMethod = "contact_form" | "mailto" | "mailto_direct";
 
