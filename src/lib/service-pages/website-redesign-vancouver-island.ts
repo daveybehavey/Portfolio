@@ -34,7 +34,7 @@ export const websiteRedesignContent = {
 
 Keeping the domain and some brand assets while rebuilding page structure, layout, and contact flows is often the right move. Business Website starting points (from $1,250 CAD) cover multi-page professional sites with inquiry paths and practical launch setup. Custom Project pricing applies when migrations, booking, or mixed brochure/store needs exceed a standard package.
 
-EuroDigital will not invent before/after conversion statistics. Proof stays limited to live implementation work — including sites built for Maestros Services, AnglKiss Creations, Vancouver Island Pro Roofing, and EuroPools Ltd — plus case studies that disclose relationship context.`,
+EuroDigital will not invent before/after conversion statistics. Proof stays limited to live implementation work — including sites built for Maestros Services, AnglKiss Creations, and Vancouver Island Pro Roofing — plus case studies that disclose relationship context.`,
       },
       {
         heading: "Repair when the site is sound and the issue is narrow",
