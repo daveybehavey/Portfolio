@@ -376,6 +376,70 @@ export default function Home() {
         <WhyChooseSection />
 
         <Section
+          id="services"
+          eyebrow="Services"
+          title="Focused pages for the work Island businesses actually ask for."
+          subtitle="Each page follows the same clear-scope approach as the main Island website offer — useful local detail, published prices where they apply, and no invented results."
+        >
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                href: "/website-design-vancouver-island",
+                title: "Island website design",
+                body: "Professional websites for Victoria and Vancouver Island small businesses — packages, process, and handoff.",
+              },
+              {
+                href: "/ecommerce-websites-vancouver-island",
+                title: "Ecommerce websites",
+                body: "Working online stores with catalog, checkout, payments, and an operating handoff.",
+              },
+              {
+                href: "/seo-services-vancouver-island",
+                title: "Practical SEO",
+                body: "Search foundations, measurement, and Profile alignment — without ranking guarantees.",
+              },
+              {
+                href: "/website-redesign-vancouver-island",
+                title: "Website redesign",
+                body: "Rebuild unclear or outdated sites — or hear when a small repair is enough.",
+              },
+              {
+                href: "/small-website-repairs",
+                title: "Small website repairs",
+                body: "Narrow fixes on an existing site from $125 CAD when a rebuild is not the answer.",
+              },
+              {
+                href: "/google-business-profile-setup-victoria",
+                title: "Google Business Profile",
+                body: "Victoria-focused Profile setup and cleanup that matches the website.",
+              },
+            ].map((item) => (
+              <Card key={item.href} className="flex h-full flex-col p-6">
+                <h2 className="text-lg font-semibold text-slate-900">
+                  {item.title}
+                </h2>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-700">
+                  {item.body}
+                </p>
+                <div className="mt-5">
+                  <ButtonLink href={item.href} variant="secondary">
+                    Open {item.title}
+                  </ButtonLink>
+                </div>
+              </Card>
+            ))}
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <ButtonLink href="/blog" variant="secondary">
+              Read the blog
+            </ButtonLink>
+            <ButtonLink href="/blog/website-cost-victoria-bc" variant="secondary">
+              Website cost guide
+            </ButtonLink>
+          </div>
+        </Section>
+
+        <Section
           id="work"
           eyebrow="Selected proof"
           title="Live projects you can inspect — without invented results."

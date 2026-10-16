@@ -229,10 +229,17 @@ export default function VancouverIslandWebsiteDesignPage() {
             {SMALL_SITE_REPAIR.price} for narrowly scoped changes to an existing
             site. {SMALL_SITE_REPAIR.principle}{" "}
             <Link
+              href="/small-website-repairs"
+              className="font-medium text-indigo-700 underline-offset-2 hover:underline"
+            >
+              Read the repairs page
+            </Link>{" "}
+            or{" "}
+            <Link
               href="/#packages"
               className="font-medium text-indigo-700 underline-offset-2 hover:underline"
             >
-              See the homepage repair path
+              see the homepage repair path
             </Link>
             .
           </div>
@@ -363,6 +370,41 @@ export default function VancouverIslandWebsiteDesignPage() {
                 </Card>
               </Reveal>
             ))}
+          </div>
+        </Section>
+
+        <Section
+          eyebrow="Related services"
+          title="Other pages that often pair with Island website design."
+        >
+          <div className="flex flex-wrap gap-3">
+            <ButtonLink
+              href="/ecommerce-websites-vancouver-island"
+              variant="secondary"
+            >
+              Ecommerce websites
+            </ButtonLink>
+            <ButtonLink href="/seo-services-vancouver-island" variant="secondary">
+              Practical SEO
+            </ButtonLink>
+            <ButtonLink
+              href="/website-redesign-vancouver-island"
+              variant="secondary"
+            >
+              Website redesign
+            </ButtonLink>
+            <ButtonLink href="/small-website-repairs" variant="secondary">
+              Small website repairs
+            </ButtonLink>
+            <ButtonLink
+              href="/google-business-profile-setup-victoria"
+              variant="secondary"
+            >
+              Google Business Profile
+            </ButtonLink>
+            <ButtonLink href="/blog" variant="secondary">
+              Blog
+            </ButtonLink>
           </div>
         </Section>
 

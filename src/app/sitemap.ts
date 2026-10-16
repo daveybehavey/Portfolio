@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
+import { BLOG_PATHS } from "@/lib/blog";
 import { CASE_STUDY_PATHS } from "@/lib/case-studies";
+import { ADDITIONAL_SERVICE_PATHS } from "@/lib/service-pages";
 import { SERVICE_LANDING_PATH } from "@/lib/service-landing";
 import { SITE_URL } from "@/lib/site";
 
@@ -21,6 +23,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.9,
     },
+    ...ADDITIONAL_SERVICE_PATHS.map((path) => ({
+      url: `${SITE_URL}${path}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.85,
+    })),
+    {
+      url: `${SITE_URL}/blog`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    },
+    ...BLOG_PATHS.map((path) => ({
+      url: `${SITE_URL}${path}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.65,
+    })),
     {
       url: `${SITE_URL}/projects`,
       lastModified: now,

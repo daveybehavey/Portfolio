@@ -130,6 +130,12 @@ test("internal links prevent orphan revenue routes", () => {
     .join("\n");
   for (const route of [
     "/website-design-vancouver-island",
+    "/ecommerce-websites-vancouver-island",
+    "/seo-services-vancouver-island",
+    "/website-redesign-vancouver-island",
+    "/small-website-repairs",
+    "/google-business-profile-setup-victoria",
+    "/blog",
     "/projects/maestrosservices",
     "/projects/starmapco",
   ]) {

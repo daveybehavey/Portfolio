@@ -51,6 +51,42 @@ export function SiteFooter() {
                 Island websites
               </Link>
               <Link
+                href="/ecommerce-websites-vancouver-island"
+                className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+              >
+                Ecommerce
+              </Link>
+              <Link
+                href="/seo-services-vancouver-island"
+                className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+              >
+                SEO
+              </Link>
+              <Link
+                href="/website-redesign-vancouver-island"
+                className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+              >
+                Redesign
+              </Link>
+              <Link
+                href="/small-website-repairs"
+                className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+              >
+                Repairs
+              </Link>
+              <Link
+                href="/google-business-profile-setup-victoria"
+                className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+              >
+                Business Profile
+              </Link>
+              <Link
+                href="/blog"
+                className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+              >
+                Blog
+              </Link>
+              <Link
                 href="/projects"
                 className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
               >
