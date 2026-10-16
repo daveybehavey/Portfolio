@@ -56,7 +56,7 @@ export const blogPosts: readonly BlogPost[] = [
         paragraphs: [
           "Start with the job the website must do. If customers only need to understand the offer and call or email, a One-Page Launch or Business Website is usually enough. If they need to buy online with cart and checkout, budget for Online Store. If three broken links are the whole problem, ask for Small Website Repairs.",
           "Victoria-area trades and local services often land on Business Website because they need several clear pages and a quote path. Makers sometimes start leaner and add commerce later. Ecommerce too early — before you can fulfill — creates operational pain that no homepage redesign fixes.",
-          "EuroDigital is a one-person studio founded in 2026 by David Heslop. The portfolio includes websites built for Maestros Services, AnglKiss Creations, Vancouver Island Pro Roofing, and EuroPools Ltd. Those are implementation references, not price benchmarks or result claims.",
+          "EuroDigital is a one-person studio founded in 2026 by David Heslop. The portfolio includes websites built for Maestros Services, AnglKiss Creations, and Vancouver Island Pro Roofing. Those are implementation references, not price benchmarks or result claims.",
         ],
       },
       {
@@ -215,7 +215,7 @@ export const blogPosts: readonly BlogPost[] = [
         heading: "What not to optimize for",
         paragraphs: [
           "Do not choose a path because a competitor has more pages, because a template sale ends Friday, or because an agency promised first-page rankings after a redesign. Choose the path that removes the real friction for Island customers who mostly decide on a phone.",
-          "Portfolio context without invented results: EuroDigital has built websites for Maestros Services, AnglKiss Creations, Vancouver Island Pro Roofing, and EuroPools Ltd. Inspect live work and case studies for implementation proof, not fabricated lift percentages.",
+          "Portfolio context without invented results: EuroDigital has built websites for Maestros Services, AnglKiss Creations, and Vancouver Island Pro Roofing. Inspect live work and case studies for implementation proof, not fabricated lift percentages.",
         ],
       },
       {

@@ -48,7 +48,7 @@ Larger content programs, ongoing posting calendars, or ads management are separa
         heading: "Victoria and Island service-area realities",
         body: `EuroDigital serves Victoria and Vancouver Island as a service-area business, not a staffed storefront. The same honesty applies to client Profiles: list the areas you serve, do not invent coverage, and avoid thin city doorway pages on the website that mainly exist for keywords.
 
-A landscaper serving Greater Victoria, a roofer covering the South Island, or a shop that ships Island-wide should say so clearly on both the Profile and the site. Portfolio websites EuroDigital has built — including Maestros Services, AnglKiss Creations, Vancouver Island Pro Roofing, and EuroPools Ltd — are examples of implementation work, not Profile ranking proof.`,
+A landscaper serving Greater Victoria, a roofer covering the South Island, or a shop that ships Island-wide should say so clearly on both the Profile and the site. Portfolio websites EuroDigital has built — including Maestros Services, AnglKiss Creations, and Vancouver Island Pro Roofing — are examples of implementation work, not Profile ranking proof.`,
       },
       {
         heading: "A checklist mindset owners can keep",

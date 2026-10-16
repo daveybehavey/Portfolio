@@ -54,7 +54,7 @@ There is no hourly SEO clock. Pricing stays project-based and written before wor
       },
       {
         heading: "What EuroDigital will not pretend",
-        body: `EuroDigital will not invent rankings, traffic percentages, lead volumes, or competitor scorecards. Portfolio proof stays limited to sites that were built — including Maestros Services, AnglKiss Creations, Vancouver Island Pro Roofing, and EuroPools Ltd — described as website implementation work, not SEO metrics.
+        body: `EuroDigital will not invent rankings, traffic percentages, lead volumes, or competitor scorecards. Portfolio proof stays limited to sites that were built — including Maestros Services, AnglKiss Creations, and Vancouver Island Pro Roofing — described as website implementation work, not SEO metrics.
 
 If another vendor promises page-one results in thirty days, treat that as a different product category. The work here is competent local web practice: make the site clear, measurable, and aligned with how Island customers look for a trade or shop.`,
       },

@@ -42,7 +42,7 @@ Examples that often fit: an outdated phone number on three pages, a service desc
 
 The same honesty applies in reverse. If you inquire about a redesign and the only real issue is a handful of corrections, you should hear that a repair is enough. The principle is simple: recommend the smallest solution that adequately solves the problem.
 
-Sites EuroDigital has built — including Maestros Services, AnglKiss Creations, Vancouver Island Pro Roofing, and EuroPools Ltd — are useful references for what a coherent site looks like when a rebuild is appropriate. They are not used here to invent repair metrics.`,
+Sites EuroDigital has built — including Maestros Services, AnglKiss Creations, and Vancouver Island Pro Roofing — are useful references for what a coherent site looks like when a rebuild is appropriate. They are not used here to invent repair metrics.`,
       },
       {
         heading: "How scoping and access work",
