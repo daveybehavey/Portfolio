@@ -6,7 +6,6 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { SERVICE_AREAS } from "@/lib/service-areas";
 import {
   CONTACT_EMAIL,
-  CONTACT_PHONE_E164,
   SITE_DESCRIPTION,
   SITE_URL,
   defaultOpenGraph,
@@ -84,7 +83,6 @@ export default function RootLayout({
         logo: `${SITE_URL}/brand/logo.png`,
         image: `${SITE_URL}/og-image.png`,
         email: CONTACT_EMAIL,
-        telephone: CONTACT_PHONE_E164,
         foundingDate: "2026",
         founder: {
           "@type": "Person",
@@ -125,7 +123,6 @@ export default function RootLayout({
         url: SITE_URL,
         description: SITE_DESCRIPTION,
         email: CONTACT_EMAIL,
-        telephone: CONTACT_PHONE_E164,
         priceRange: "Project-based (CAD; quoted per project, not hourly)",
         openingHours: "Mo-Su 09:00-17:00",
         address: {
