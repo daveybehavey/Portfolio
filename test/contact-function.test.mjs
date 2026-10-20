@@ -392,3 +392,38 @@ test("client keeps the direct email fallback", async () => {
   assert.match(source, /mailto:\$\{email\}/);
   assert.match(source, /Email directly/);
 });
+
+
+test("interrupted request bodies return safe invalid_json without external calls", async () => {
+  let calls = 0;
+  const broken = new Request("https://eurodigital.ca/api/contact", {
+    method: "POST",
+    headers: { Origin: origin, "Content-Type": "application/json" },
+    body: new ReadableStream({ start(controller) { controller.error(new Error("synthetic sensitive stream detail")); } }),
+    duplex: "half",
+  });
+  const response = await handleContactRequest(broken, env, async () => { calls++; throw new Error("external call prohibited"); });
+  assert.equal(calls, 0);
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.equal(body.ok, false);
+  assert.equal(body.code, "invalid_json");
+  assert.doesNotMatch(JSON.stringify(body), /sensitive|stream detail/);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), origin);
+});
+
+test("unknown-length oversized UTF-8 body still returns413 before providers", async () => {
+  const mock = fetchMock();
+  const response = await handleContactRequest(request(validBody, {rawBody: JSON.stringify({...validBody, message: "é".repeat(9000)})}), env, mock);
+  assert.equal(response.status, 413);
+  assert.equal((await response.json()).code, "request_too_large");
+  assert.equal(mock.calls.length, 0);
+});
+
+test("ordinary malformed JSON retains safe400 and no external calls", async () => {
+  const mock = fetchMock();
+  const response = await handleContactRequest(request(validBody, {rawBody: "{"}), env, mock);
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).code, "invalid_json");
+  assert.equal(mock.calls.length, 0);
+});
