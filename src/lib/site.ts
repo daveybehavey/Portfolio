@@ -2,14 +2,6 @@ export const SITE_URL = "https://eurodigital.ca" as const;
 
 export const CONTACT_EMAIL = "contact@eurodigital.ca" as const;
 
-/** Public GBP phone — display form for customer-facing UI. */
-export const CONTACT_PHONE_DISPLAY = "(778) 678-6242" as const;
-
-/** Public GBP phone — E.164 / schema.org telephone. */
-export const CONTACT_PHONE_E164 = "+17786786242" as const;
-
-export const CONTACT_PHONE_HREF = `tel:${CONTACT_PHONE_E164}` as const;
-
 /** Service-area geography for public copy (no street address). */
 export const SERVICE_AREA_LABEL = "Victoria & Vancouver Island" as const;
 

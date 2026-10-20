@@ -1,5 +1,7 @@
 /**
- * Local identity consistency — public phone, tel link, Victoria geo, schema telephone.
+ * Local identity consistency — email-only public contact, Victoria geo, schema shape.
+ * The owner's standing rule scopes the phone number to directory listings only, so
+ * the website must not publish it anywhere (display, tel: links, or schema).
  * Source-level guards always run; built HTML assertions run when out/ exists.
  */
 import assert from "node:assert/strict";
@@ -11,9 +13,14 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.join(root, "out");
 
-const PHONE_DISPLAY = "(778) 678-6242";
-const PHONE_E164 = "+17786786242";
-const TEL_HREF = "tel:+17786786242";
+// The stripped phone number, assembled from fragments so this test does not
+// itself keep a publishable copy of the number in the tree.
+const PHONE_PARTS = ["778", "678", "6242"];
+const PHONE_DISPLAY_RE = new RegExp(
+  `\\(?${PHONE_PARTS[0]}\\)?[\\s.-]${PHONE_PARTS[1]}[\\s.-]${PHONE_PARTS[2]}`,
+);
+const PHONE_E164_RE = new RegExp(`\\+1${PHONE_PARTS.join("")}`);
+const TEL_HREF_RE = new RegExp(`tel:\\+1${PHONE_PARTS.join("")}`);
 const EMAIL = "contact@eurodigital.ca";
 
 function readOutHtml(route) {
@@ -29,21 +36,21 @@ function readOutHtml(route) {
   throw new Error(`Missing built HTML for ${route}`);
 }
 
-test("site constants centralize public phone and Victoria service area", () => {
+test("site constants centralize email contact and Victoria service area, no phone", () => {
   const site = readFileSync(path.join(root, "src/lib/site.ts"), "utf8");
-  assert.match(site, /CONTACT_PHONE_DISPLAY\s*=\s*"\(778\) 678-6242"/);
-  assert.match(site, /CONTACT_PHONE_E164\s*=\s*"\+17786786242"/);
-  assert.match(site, /CONTACT_PHONE_HREF\s*=\s*`tel:\$\{CONTACT_PHONE_E164\}`/);
+  assert.doesNotMatch(site, /CONTACT_PHONE/);
+  assert.doesNotMatch(site, PHONE_DISPLAY_RE);
+  assert.doesNotMatch(site, PHONE_E164_RE);
   assert.match(site, /SERVICE_AREA_LABEL\s*=\s*"Victoria & Vancouver Island"/);
   assert.match(site, /Victoria and Vancouver Island/);
   assert.match(site, /CONTACT_EMAIL\s*=\s*"contact@eurodigital\.ca"/);
   assert.doesNotMatch(site, /streetAddress|postalCode|addressLocality/);
 });
 
-test("Organization schema includes telephone without LocalBusiness or street address", () => {
+test("Organization schema carries no telephone, LocalBusiness, or street address", () => {
   const layout = readFileSync(path.join(root, "src/app/layout.tsx"), "utf8");
   assert.match(layout, /"@type":\s*"Organization"/);
-  assert.match(layout, /telephone:\s*CONTACT_PHONE_E164/);
+  assert.doesNotMatch(layout, /telephone/);
   assert.match(layout, /"Victoria"/);
   assert.match(layout, /"Vancouver Island"/);
   assert.match(layout, /foundingDate:\s*"2026"/);
@@ -60,19 +67,19 @@ test("Organization schema includes telephone without LocalBusiness or street add
   assert.doesNotMatch(layout, /streetAddress|postalCode/);
 });
 
-test("footer and contact surface phone tel link and email", () => {
+test("footer and contact surfaces show email and no phone", () => {
   const footer = readFileSync(
     path.join(root, "src/components/SiteFooter.tsx"),
     "utf8",
   );
-  assert.match(footer, /CONTACT_PHONE_HREF/);
-  assert.match(footer, /CONTACT_PHONE_DISPLAY/);
+  assert.doesNotMatch(footer, /CONTACT_PHONE/);
+  assert.doesNotMatch(footer, /tel:/);
   assert.match(footer, /CONTACT_EMAIL/);
   assert.match(footer, /SERVICE_AREA_LABEL/);
 
   const home = readFileSync(path.join(root, "src/app/page.tsx"), "utf8");
-  assert.match(home, /CONTACT_PHONE_HREF/);
-  assert.match(home, /Call \{CONTACT_PHONE_DISPLAY\}/);
+  assert.doesNotMatch(home, /CONTACT_PHONE/);
+  assert.doesNotMatch(home, /Call \{/);
   assert.match(home, /Email \{CONTACT_EMAIL\}/);
 
   const hero = readFileSync(
@@ -109,7 +116,7 @@ test("service landing includes Victoria without doorway stuffing", () => {
   assert.doesNotMatch(page, /streetAddress|postalCode/);
 });
 
-test("built pages expose phone, tel, Victoria, and schema telephone", async (t) => {
+test("built pages expose email and Victoria with no phone anywhere", async (t) => {
   const requireStaticExport = process.env.REQUIRE_STATIC_EXPORT === "1";
 
   if (!existsSync(outDir)) {
@@ -123,12 +130,13 @@ test("built pages expose phone, tel, Victoria, and schema telephone", async (t) 
   }
 
   const home = readOutHtml("/");
-  assert.match(home, new RegExp(PHONE_DISPLAY.replace(/[()]/g, "\\$&")));
-  assert.match(home, new RegExp(TEL_HREF.replace(/\+/g, "\\+")));
+  assert.doesNotMatch(home, PHONE_DISPLAY_RE);
+  assert.doesNotMatch(home, PHONE_E164_RE);
+  assert.doesNotMatch(home, TEL_HREF_RE);
+  assert.doesNotMatch(home, /"telephone"/);
   assert.match(home, new RegExp(EMAIL.replace(/\./g, "\\.")));
   assert.match(home, /Victoria/);
   assert.match(home, /Vancouver Island/);
-  assert.match(home, new RegExp(`"telephone"\\s*:\\s*"${PHONE_E164.replace(/\+/g, "\\+")}"`));
   assert.match(home, /"addressLocality"\s*:\s*"Victoria"/);
   assert.match(home, /"@type"\s*:\s*"ProfessionalService"/);
   assert.match(home, /"@type"\s*:\s*"FAQPage"/);
@@ -138,6 +146,6 @@ test("built pages expose phone, tel, Victoria, and schema telephone", async (t) 
 
   const service = readOutHtml("website-design-vancouver-island");
   assert.match(service, /Victoria/);
-  assert.match(service, new RegExp(TEL_HREF.replace(/\+/g, "\\+")));
-  assert.match(service, new RegExp(PHONE_DISPLAY.replace(/[()]/g, "\\$&")));
+  assert.doesNotMatch(service, TEL_HREF_RE);
+  assert.doesNotMatch(service, PHONE_DISPLAY_RE);
 });
