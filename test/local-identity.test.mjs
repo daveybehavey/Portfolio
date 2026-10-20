@@ -5,7 +5,7 @@
  * Source-level guards always run; built HTML assertions run when out/ exists.
  */
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -22,6 +22,56 @@ const PHONE_DISPLAY_RE = new RegExp(
 const PHONE_E164_RE = new RegExp(`\\+1${PHONE_PARTS.join("")}`);
 const TEL_HREF_RE = new RegExp(`tel:\\+1${PHONE_PARTS.join("")}`);
 const EMAIL = "contact@eurodigital.ca";
+
+const TEXT_ASSET_EXTENSIONS = new Set([
+  ".css",
+  ".html",
+  ".js",
+  ".json",
+  ".jsx",
+  ".md",
+  ".mjs",
+  ".svg",
+  ".ts",
+  ".tsx",
+  ".txt",
+  ".webmanifest",
+  ".xml",
+]);
+
+function collectTextAssets(dir) {
+  const files = [];
+  for (const entry of readdirSync(dir)) {
+    const full = path.join(dir, entry);
+    if (statSync(full).isDirectory()) {
+      files.push(...collectTextAssets(full));
+    } else if (TEXT_ASSET_EXTENSIONS.has(path.extname(entry).toLowerCase())) {
+      files.push(full);
+    }
+  }
+  return files;
+}
+
+test("public and source text assets carry no phone anywhere", () => {
+  // Static assets under public/ are served verbatim (e.g. /llms.txt), and src/
+  // feeds every rendered surface — sweep both trees, not just built HTML.
+  for (const dirName of ["public", "src"]) {
+    const dir = path.join(root, dirName);
+    const files = collectTextAssets(dir);
+    assert.ok(files.length > 0, `expected text assets under ${dirName}/`);
+    for (const file of files) {
+      const content = readFileSync(file, "utf8");
+      const label = path.relative(root, file);
+      assert.doesNotMatch(content, PHONE_DISPLAY_RE, label);
+      assert.doesNotMatch(content, PHONE_E164_RE, label);
+      assert.doesNotMatch(content, TEL_HREF_RE, label);
+      assert.doesNotMatch(content, /Phone:/, label);
+    }
+  }
+  // The llms.txt contact block specifically: email present, no phone line.
+  const llms = readFileSync(path.join(root, "public/llms.txt"), "utf8");
+  assert.match(llms, new RegExp(`Contact: ${EMAIL.replace(/\./g, "\\.")}`));
+});
 
 function readOutHtml(route) {
   if (route === "" || route === "/") {
@@ -148,4 +198,13 @@ test("built pages expose email and Victoria with no phone anywhere", async (t) =
   assert.match(service, /Victoria/);
   assert.doesNotMatch(service, TEL_HREF_RE);
   assert.doesNotMatch(service, PHONE_DISPLAY_RE);
+
+  // Built static assets are served verbatim — check the exported llms.txt too.
+  const builtLlmsPath = path.join(outDir, "llms.txt");
+  assert.ok(existsSync(builtLlmsPath), "expected llms.txt in static export");
+  const builtLlms = readFileSync(builtLlmsPath, "utf8");
+  assert.doesNotMatch(builtLlms, PHONE_DISPLAY_RE);
+  assert.doesNotMatch(builtLlms, PHONE_E164_RE);
+  assert.doesNotMatch(builtLlms, /Phone:/);
+  assert.match(builtLlms, new RegExp(EMAIL.replace(/\./g, "\\.")));
 });
