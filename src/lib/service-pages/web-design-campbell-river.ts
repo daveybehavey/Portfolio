@@ -39,7 +39,7 @@ Choosing larger than you need wastes money; choosing smaller than your offer nee
         heading: "Built around the call, the quote request, or the checkout",
         body: `A north-Island service business often covers a wide area around the city, so the site has to say plainly where you work and how to reach you. That means service pages organized around what a customer needs to understand first, contact and quote-request paths that are never buried, and trust-focused layout instead of buzzword hero copy.
 
-The MaestrosServices case study shows that structure on a live family landscaping and outdoor-services business elsewhere on the Island: mobile-first service pages, clear quote paths, and honest service explanations. It is a family business website — the relationship is disclosed on the case study page, and it is presented as implementation work, not a results claim.`,
+The MaestrosServices case study is a service-website overview of a family landscaping and outdoor-services business elsewhere on the Island, covering topics such as service explanations, contact paths, mobile readability and metadata. It is a family business website — the relationship is disclosed on the case study page, and it is presented as a project overview, not a results claim.`,
       },
       {
         heading: "How a project runs when your designer is in Victoria",
@@ -100,7 +100,7 @@ Small changes later are covered by Small Website Repairs on an existing site. La
     },
     {
       title: "4) Launch and handoff",
-      body: "Domain, hosting, analytics, and access are organized with launch notes, so you understand and own what was set up.",
+      body: "Domain, hosting, access, and launch notes are organized so you understand and own what was set up. Analytics, Search Console and Business Profile work follow the package boundaries.",
     },
   ],
   faqs: [
@@ -110,7 +110,7 @@ Small changes later are covered by Small Website Repairs on an existing site. La
     },
     {
       q: "Have you built websites for Campbell River businesses?",
-      a: "Not yet. The case studies on this page are real Island work — a family landscaping business website and an owned ecommerce product — and both are labelled with their relationship context. They show how the work is done, not a Campbell River client list.",
+      a: "Not yet. The case studies on this page are project overviews — a family landscaping business website and an owned ecommerce product — and both are labelled with their relationship context. They cover project topics and scope, not a Campbell River client list.",
     },
     {
       q: "How much does a website cost?",

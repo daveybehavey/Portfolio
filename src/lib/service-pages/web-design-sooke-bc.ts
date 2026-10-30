@@ -39,7 +39,7 @@ Choosing larger than you need wastes money; choosing smaller than your offer nee
         heading: "Built around the call, the quote request, or the checkout",
         body: `A local service site earns its keep when a visitor can understand the offer and act on it from a phone. That means service pages organized around what a customer needs to understand first, contact and quote-request paths that are never buried, and trust-focused layout instead of buzzword hero copy.
 
-The MaestrosServices case study shows that structure on a live family landscaping and outdoor-services business: mobile-first service pages, clear quote paths, and honest service explanations. It is a family business website — the relationship is disclosed on the case study page, and it is presented as implementation work, not a results claim.`,
+The MaestrosServices case study is a service-website overview of a family landscaping and outdoor-services business, covering topics such as service explanations, contact paths, mobile readability and metadata. It is a family business website — the relationship is disclosed on the case study page, and it is presented as a project overview, not a results claim.`,
       },
       {
         heading: "Serving Sooke from the same corner of the Island",
@@ -100,7 +100,7 @@ Small changes later are covered by Small Website Repairs on an existing site. La
     },
     {
       title: "4) Launch and handoff",
-      body: "Domain, hosting, analytics, and access are organized with launch notes, so you understand and own what was set up.",
+      body: "Domain, hosting, access, and launch notes are organized so you understand and own what was set up. Analytics, Search Console and Business Profile work follow the package boundaries.",
     },
   ],
   faqs: [

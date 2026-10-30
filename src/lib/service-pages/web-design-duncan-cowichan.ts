@@ -30,10 +30,10 @@ export const webDesignDuncanContent = {
       "The useful questions are about size, structure, and proof you can check — starting with a live site built for a business that serves this valley.",
     blocks: [
       {
-        heading: "Proof you can check: a live site for a business serving Duncan",
-        body: `MaestrosServices is a family landscaping and outdoor-services business. Its own website states that it serves Duncan and nearby communities, and EuroDigital built that site: mobile-first service pages organized around what a local customer needs to understand first, clear quote-request paths, and trust-focused layout instead of buzzword hero copy.
+        heading: "A project overview for a business serving Duncan",
+        body: `MaestrosServices is a family landscaping and outdoor-services business, and its own website states that it serves Duncan and nearby communities. The MaestrosServices case study is a service-website overview covering topics such as service explanations, contact paths, mobile readability and metadata.
 
-Two disclosures matter and are kept on the case study page itself: MaestrosServices is a family business, so this is not an independent third-party testimonial, and the case study describes website implementation — it makes no claim about booked jobs, rankings, or revenue. Inspect the live site and judge the work on what is visible there.`,
+Two disclosures matter and are kept on the case study page itself: MaestrosServices is a family business, so it is not an independent third-party client testimonial, and the overview does not claim audited business results — no booked jobs, rankings, or revenue. The project link is on the case study page.`,
       },
       {
         heading: "One page, several pages, or a store — choosing the right size",
@@ -100,7 +100,7 @@ Small changes later are covered by Small Website Repairs on an existing site. La
     },
     {
       title: "4) Launch and handoff",
-      body: "Domain, hosting, analytics, and access are organized with launch notes, so you understand and own what was set up.",
+      body: "Domain, hosting, access, and launch notes are organized so you understand and own what was set up. Analytics, Search Console and Business Profile work follow the package boundaries.",
     },
   ],
   faqs: [
@@ -110,7 +110,7 @@ Small changes later are covered by Small Website Repairs on an existing site. La
     },
     {
       q: "Have you built a website for a business that serves Duncan?",
-      a: "Yes — one, and it is the honest extent of the claim. MaestrosServices, a family landscaping and outdoor-services business, publicly lists Duncan in its service area, and EuroDigital built its website. The case study discloses the family relationship and covers implementation only — no invented results.",
+      a: "Yes — one, and it is the honest extent of the claim. MaestrosServices, a family landscaping and outdoor-services business, publicly lists Duncan in its service area, and EuroDigital built its website. The case study discloses the family relationship and is a project overview — no invented results.",
     },
     {
       q: "How much does a website cost?",
