@@ -15,7 +15,7 @@ import { SITE_URL, defaultOpenGraph } from "@/lib/site";
 const pageUrl = `${SITE_URL}/projects`;
 
 const portfolioDescription =
-  "Live EuroDigital work — service and brand websites, working ecommerce stores, and side projects like NoteBill.";
+  "EuroDigital project overviews — service and brand websites, ecommerce stores, and side projects like NoteBill.";
 
 export const metadata: Metadata = {
   title: "Portfolio",
@@ -58,8 +58,8 @@ export default function ProjectsPage() {
         <Section
           titleAs="h1"
           eyebrow="Portfolio"
-          title="Live websites for real small businesses."
-          subtitle="Local service sites, creative brands, ecommerce stores, early work, and side projects — including working online stores, not just brochure sites."
+          title="Websites for real small businesses."
+          subtitle="Local service sites, creative brands, ecommerce stores, early work, and side projects — including online stores, not just brochure sites."
         >
           <div className="grid gap-4 sm:grid-cols-2">
             {featuredProjects.map((project, idx) => (
@@ -74,9 +74,9 @@ export default function ProjectsPage() {
               <strong className="font-semibold text-slate-900">
                 Core positioning:
               </strong>{" "}
-              projects like {leadExample.name} and {secondExample.name} show
-              lead-gen and brand launches; StarMapCo below is an example of a
-              working ecommerce storefront with products and checkout.
+              projects like {leadExample.name} and {secondExample.name} cover
+              lead-gen and brand launches; the StarMapCo overview below covers
+              catalog, checkout and operations topics.
             </div>
           ) : null}
         </Section>
@@ -84,7 +84,7 @@ export default function ProjectsPage() {
         <Section
           eyebrow="More builds"
           title="Storefronts, early work, and other launches."
-          subtitle="Each card links to the live site — portfolios should age with the internet, not against it."
+          subtitle="Each card links to the project site — portfolios should age with the internet, not against it."
         >
           <div className="grid gap-4 sm:grid-cols-2">
             {otherProjects.map((project, idx) => (
@@ -170,8 +170,8 @@ export default function ProjectsPage() {
 
         <Section
           eyebrow="Case studies"
-          title="Dedicated proof pages for the featured launches."
-          subtitle="Start with MaestrosServices (family landscaping/service website) or StarMapCo (owned ecommerce storefront), then continue through the rest of the portfolio."
+          title="Dedicated overview pages for the featured launches."
+          subtitle="Start with the MaestrosServices or StarMapCo case studies, then continue through the rest of the portfolio."
         >
           <div className="flex flex-wrap gap-3">
             <ButtonLink href="/projects/maestrosservices">

@@ -101,7 +101,7 @@ EuroDigital does not require a marketing retainer to finish. Later updates, Prof
     },
     {
       title: "4) Relaunch and handoff",
-      body: "Domain, hosting, analytics, Search Console, access, and launch notes are organized so you own the result.",
+      body: "Domain, hosting, access, and launch notes are organized so you own the result. Analytics, Search Console and Business Profile work follow the package boundaries.",
     },
   ],
   faqs: [
@@ -136,7 +136,7 @@ EuroDigital does not require a marketing retainer to finish. Later updates, Prof
   ],
   cta: {
     title: "Ready to diagnose a redesign?",
-    body: "Send the current URL, what feels broken, and what the site needs to help customers do. I usually reply within 1–2 business days with fit, whether repair or redesign makes more sense, and the next information needed for a written estimate.",
+    body: "Send the current URL, what feels broken, and what the site needs to help customers do. I aim to reply within 1–2 business days with fit, whether repair or redesign makes more sense, and the next information needed for a written estimate.",
     secondaryHref: "/blog/website-redesign-or-new-website",
     secondaryLabel: "Read the decision guide",
   },

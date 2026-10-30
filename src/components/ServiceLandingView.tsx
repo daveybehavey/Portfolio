@@ -381,7 +381,7 @@ export function ServiceLandingView({
 
         <Section
           eyebrow="Local context"
-          title="What Vancouver Island buyers usually need."
+          title="Local context for Vancouver Island buyers."
           subtitle="Useful local context without stuffing a separate thin page for every town."
         >
           <div className="grid gap-4">
@@ -397,9 +397,9 @@ export function ServiceLandingView({
 
         {content.showCaseStudies ? (
           <Section
-            eyebrow="Proof"
-            title="Inspect case studies with relationship context."
-            subtitle="Claims stay limited to implementation and live proof. Relationship disclosures are explicit on each page."
+            eyebrow="Project overviews"
+            title="Review case studies with relationship context."
+            subtitle="Project overviews and links. Relationship disclosures are explicit on each page."
           >
             <div className="grid gap-4 sm:grid-cols-2">
               {caseStudies.map((study) => (
@@ -426,7 +426,7 @@ export function ServiceLandingView({
                       rel="noopener noreferrer"
                       variant="secondary"
                     >
-                      Open live {study.projectName}
+                      Visit project URL
                     </ButtonA>
                   </div>
                 </Card>

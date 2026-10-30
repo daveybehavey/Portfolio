@@ -5,7 +5,7 @@ export const ecommerceWebsitesContent = {
   metaTitle: "Ecommerce websites for Vancouver Island shops",
   title: "Ecommerce websites for Vancouver Island small shops",
   description:
-    "EuroDigital builds working online stores for Vancouver Island makers, specialty retailers, and small brands — products, cart, checkout, payments, and a handoff you can operate without an agency maze.",
+    "EuroDigital builds online stores for Vancouver Island makers, specialty retailers, and small brands — products, cart, checkout, payments, and a handoff you can operate without an agency maze.",
   eyebrow: "Victoria & Vancouver Island",
   introNote:
     "One substantial ecommerce page for Island shops ready to sell online — not a thin keyword doorway. Prices match the published Online Store starting point. EuroDigital is a one-person studio in Victoria, not a staffed agency floor.",
@@ -26,11 +26,11 @@ export const ecommerceWebsitesContent = {
     eyebrow: "Practical storefronts",
     title: "What a useful Island ecommerce site actually has to do.",
     subtitle:
-      "Victoria and Vancouver Island customers compare options quickly on a phone. A store has to explain the product, remove friction at checkout, and leave you able to fulfill orders without calling a developer for every SKU change.",
+      "A store has to explain the product, remove friction at checkout, and leave you able to fulfill orders without calling a developer for every SKU change.",
     blocks: [
       {
         heading: "Start with the purchase path, not the homepage flourish",
-        body: `Most small shops on the Island do not lose sales because the hero animation was weak. They lose them because product pages bury the price, shipping is unclear, the cart feels unfinished, or the owner cannot edit inventory after launch.
+        body: `Design priorities include mobile readability, clear prices, shipping information and an obvious next step.
 
 EuroDigital scopes ecommerce around the path a real buyer takes: land on a product, understand what they get, add to cart, check out with a payment method that works in Canada, and receive confirmation. Design supports that path. It does not replace it.
 
@@ -42,7 +42,7 @@ If you mainly need credibility and quote requests rather than cart checkout, say
 
 For Island makers and specialty retailers, that usually means clear photos or placeholders you will replace, accurate descriptions you own, shipping and pickup notes that match how you fulfill, and tax handling scoped to where you sell.
 
-EuroDigital has built live storefront work such as StarMapCo, an owned ecommerce product. That demonstrates implementation — not invented conversion rates. AnglKiss Creations shows how a creative brand can present products without pretending every maker needs a full store on day one.`,
+The StarMapCo overview discusses storefront scope; it does not establish current operation. AnglKiss Creations shows how a creative brand can present products without pretending every maker needs a full store on day one.`,
       },
       {
         heading: "Payments, shipping, and handoff are part of the scope",
@@ -54,7 +54,7 @@ Custom Project pricing applies when booking, subscriptions, migrations, or unusu
       },
       {
         heading: "Local context without thin town pages",
-        body: `Vancouver Island buyers often decide between a few local options and a larger mainland or online competitor. Clarity about what you ship, where you pick up, and how fast you respond can matter as much as another feature block.
+        body: `Clarity about what you ship, where you pick up, and how fast you respond can matter as much as another feature block.
 
 EuroDigital prefers one truthful ecommerce page plus clear service-area language when it helps — not near-duplicate city doorway pages.`,
       },
@@ -82,9 +82,9 @@ EuroDigital prefers one truthful ecommerce page plus clear service-area language
     "Timely review feedback so launch dates stay realistic",
   ],
   localContext: [
-    "Island customers often browse on a phone between errands — product clarity, shipping notes, and checkout friction matter more than agency theatrics",
+    "Design priorities include mobile readability, clear prices, shipping information and an obvious next step.",
     "Makers and specialty shops usually win trust by explaining materials, lead times, and fulfillment honestly rather than copying generic ecommerce templates",
-    "A practical Analytics setup plus a coherent store is usually more useful than a cluster of thin location pages that do not help a buyer complete a purchase",
+    "EuroDigital pairs a practical Analytics setup with a coherent store rather than a cluster of thin location pages",
   ],
   process: [
     {
@@ -140,7 +140,7 @@ EuroDigital prefers one truthful ecommerce page plus clear service-area language
   ],
   cta: {
     title: "Ready to talk about a storefront?",
-    body: "Tell me what you sell, how you fulfill, and whether you need a working cart now or a simpler site first. I usually reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate.",
+    body: "Tell me what you sell, how you fulfill, and whether you need a working cart now or a simpler site first. I aim to reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate.",
     secondaryHref: "/projects/starmapco",
     secondaryLabel: "See the StarMapCo case study",
   },

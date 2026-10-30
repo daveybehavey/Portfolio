@@ -67,7 +67,7 @@ export default function BlogIndexPage() {
         <Section eyebrow="Inquire" title="Need the work behind the notes?">
           <InquiryCtaBand
             title="Request a project estimate"
-            body="Tell me what your business does and whether you need a repair, redesign, store, or Profile help. I usually reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate."
+            body="Tell me what your business does and whether you need a repair, redesign, store, or Profile help. I aim to reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate."
             analyticsLocation="blog"
           />
         </Section>

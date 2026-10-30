@@ -28,7 +28,7 @@ export const WHY_CHOOSE_POINTS = [
   },
   {
     title: "Practical Google setup",
-    body: "Business Profile support when appropriate, Analytics, Search Console, readable service-area content, and search-friendly metadata are treated as launch essentials rather than vague SEO promises.",
+    body: "Business Profile support, Analytics, and Search Console follow the package boundaries in the written scope; readable service-area content and search-friendly metadata are treated as launch essentials rather than vague SEO promises.",
   },
   {
     title: "Performance without clutter",

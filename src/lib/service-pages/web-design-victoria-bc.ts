@@ -39,7 +39,7 @@ Choosing larger than you need wastes money; choosing smaller than your offer nee
         heading: "Built around the call, the quote request, or the checkout",
         body: `A local service site earns its keep when a visitor can understand the offer and act on it from a phone. That means service pages organized around what a customer needs to understand first, contact and quote-request paths that are never buried, and trust-focused layout instead of buzzword hero copy.
 
-The MaestrosServices case study shows that structure on a live family landscaping and outdoor-services business: mobile-first service pages, clear quote paths, and honest service explanations. It is a family business website — the relationship is disclosed on the case study page, and it is presented as implementation work, not a results claim.`,
+The MaestrosServices case study is a service-website overview of a family landscaping and outdoor-services business, covering topics such as service explanations, contact paths, mobile readability and metadata. It is a family business website — the relationship is disclosed on the case study page, and it is presented as a project overview, not a results claim.`,
       },
       {
         heading: "Web development questions Victoria buyers also ask",
@@ -100,7 +100,7 @@ Small changes later are covered by Small Website Repairs on an existing site. La
     },
     {
       title: "4) Launch and handoff",
-      body: "Domain, hosting, analytics, and access are organized with launch notes, so you understand and own what was set up.",
+      body: "Domain, hosting, access, and launch notes are organized so you understand and own what was set up. Analytics, Search Console and Business Profile work follow the package boundaries.",
     },
   ],
   faqs: [
@@ -149,7 +149,7 @@ Small changes later are covered by Small Website Repairs on an existing site. La
   ],
   cta: {
     title: "Ready to talk about a Victoria website?",
-    body: "Tell me what your business does, who it serves, and what the website needs to help customers do. I usually reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate.",
+    body: "Tell me what your business does, who it serves, and what the website needs to help customers do. I aim to reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate.",
     secondaryHref: "/projects/maestrosservices",
     secondaryLabel: "Start with a case study",
   },

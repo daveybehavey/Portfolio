@@ -64,8 +64,8 @@ export function ProjectCard({ project }: { project: Project }) {
         </ul>
         {isInternal ? (
           <p className="mt-4 text-xs leading-relaxed text-slate-500">
-            Opens the internal case study with relationship disclosure and
-            live-site proof.
+            Opens the internal case study with relationship disclosure and a
+            project link.
           </p>
         ) : null}
       </div>
@@ -95,7 +95,7 @@ export function ProjectCard({ project }: { project: Project }) {
           rel="noopener noreferrer"
           className="self-start text-xs font-medium text-slate-700 underline-offset-4 hover:underline"
         >
-          Open live {project.name} site
+          Open {project.name} site
         </a>
       ) : null}
     </div>

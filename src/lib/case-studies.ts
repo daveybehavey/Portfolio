@@ -26,7 +26,7 @@ export type CaseStudy = {
   notClaimed: readonly string[];
   imageSrc: string;
   imageAlt: string;
-  /** Real live-site captures at representative CSS viewports for DeviceShowcase. */
+  /** Project image views for DeviceShowcase. */
   viewportImages: {
     desktop: { src: string; width: number; height: number; alt: string };
     tablet: { src: string; width: number; height: number; alt: string };
@@ -50,43 +50,34 @@ export const caseStudies: readonly CaseStudy[] = [
     slug: "maestrosservices",
     path: "/projects/maestrosservices",
     projectName: maestros.name,
-    title: "MaestrosServices — local service website case study",
-    description:
-      "How EuroDigital structured a mobile-first website for a family landscaping and outdoor-services business so visitors can understand the offer and request a quote.",
+    title: "MaestrosServices — service-website overview",
+    description: "MaestrosServices — service-website overview.",
     eyebrow: "Case study · Local services",
     relationship: {
       kind: "family-business",
       label: "Family business website",
       disclosure:
-        "MaestrosServices is a family landscaping and outdoor-services business. This case study describes website implementation work connected to that relationship. It is not an independent third-party client testimonial, and it does not claim audited business results.",
+        "MaestrosServices is a family landscaping and outdoor-services business. This page is a service-website overview. It is not an independent third-party client testimonial, and it does not claim audited business results.",
     },
     problem:
-      "A local landscaping and outdoor-services business needed a clear website that explains the work, looks credible on a phone, and makes calls or quote requests easy — without pretending every visitor needs a long brochure site.",
+      "A local landscaping and outdoor-services business needs a clear website that explains the work, looks credible on a phone, and makes calls or quote requests easy — without pretending every visitor needs a long brochure site.",
     constraints: [
       "Content had to stay honest about services rather than inventing awards or results",
       "The primary conversion path is contact and quote requests, not ecommerce",
-      "The site needed to load quickly and remain maintainable after handoff",
       "Claims on eurodigital.ca must stay limited to observable implementation and live-site structure",
     ],
     implementation: [
-      "Mobile-first service pages organized around what a local customer needs to understand first",
-      "Clear contact and quote-request paths rather than burying the next step",
-      "Trust-focused layout with readable service explanations instead of buzzword hero copy",
-      "Practical search-friendly structure and metadata suited to a local service business",
+      "Topics: service explanations, contact paths, mobile readability and metadata.",
     ],
     stack: [
-      "Static marketing website on a modern JAMstack delivery path",
-      "Responsive layout optimized for phone-first browsing",
-      "Contact and quote-request funnel for local lead generation",
-      "Domain, hosting, and handoff documentation as part of launch work",
+      "Planning priorities: delivery approach, maintainability and handoff responsibilities.",
     ],
     liveProof: {
       url: maestros.url,
-      summary:
-        "Inspect the live site at maestrosservices.com for layout, services presentation, and contact paths. Use only what is visible there when evaluating the work.",
+      summary: "Project URL: maestrosservices.com.",
     },
     limitations: [
-      "This page documents website implementation, not landscaping job volume or revenue",
+      "This page covers website topics, not landscaping job volume or revenue",
       "Seasonal demand, quoting practices, and offline sales motion remain outside the website alone",
       "EuroDigital does not publish fabricated before/after conversion or traffic charts for this project",
     ],
@@ -102,19 +93,19 @@ export const caseStudies: readonly CaseStudy[] = [
         src: "/projects/maestrosservices-desktop.webp",
         width: 1200,
         height: 750,
-        alt: "MaestrosServices homepage captured at desktop width (1440×900)",
+        alt: "MaestrosServices homepage project image view (desktop)",
       },
       tablet: {
         src: "/projects/maestrosservices-tablet.webp",
         width: 768,
         height: 1024,
-        alt: "MaestrosServices homepage captured at tablet width (768×1024)",
+        alt: "MaestrosServices homepage project image view (tablet)",
       },
       mobile: {
         src: "/projects/maestrosservices-mobile.webp",
         width: 390,
         height: 844,
-        alt: "MaestrosServices homepage captured at mobile width (390×844)",
+        alt: "MaestrosServices homepage project image view (mobile)",
       },
     },
   },
@@ -122,50 +113,47 @@ export const caseStudies: readonly CaseStudy[] = [
     slug: "starmapco",
     path: "/projects/starmapco",
     projectName: starmap.name,
-    title: "StarMapCo — owned ecommerce storefront case study",
-    description:
-      "How EuroDigital built StarMapCo as an owned ecommerce product and storefront with catalog, cart, checkout, and purchase flow — shown as working proof, not as an unrelated client engagement.",
-    eyebrow: "Case study · Owned ecommerce",
+    title: "StarMapCo — ecommerce project overview",
+    description: "StarMapCo — ecommerce project overview.",
+    eyebrow: "Case study · Ecommerce",
     relationship: {
       kind: "owned-product",
-      label: "Owned product / portfolio storefront",
+      label: "Ecommerce project overview",
       disclosure:
-        "StarMapCo is an owned EuroDigital ecommerce product and storefront used as working proof of online-store capability. It is not presented here as an unrelated third-party client engagement.",
+        "StarMapCo is an owned EuroDigital ecommerce product. It is not presented here as an unrelated third-party client engagement.",
     },
     problem:
-      "Brochure-style galleries are not enough when a business needs a real storefront. StarMapCo required product pages, collections, cart, checkout, payments, and a brand experience designed to support purchases.",
+      "Consider product information, cart, checkout, payments and day-to-day operations when defining an ecommerce scope.",
     constraints: [
-      "The store had to support a complete purchase path, not just product photography",
-      "Day-to-day operations (products, orders, fulfillment) needed a practical handoff shape",
-      "Public EuroDigital claims must remain limited to what the live store and repository support",
-      "Owned-product status must stay explicit so visitors are not misled about client relationships",
+      "A storefront scope should define product maintenance, order handling and fulfillment responsibilities.",
+      "Public EuroDigital claims must remain limited to what the project site and repository support",
     ],
     implementation: [
-      "Storefront information architecture for products, collections, and key commerce pages",
-      "Cart, checkout, and payment connection suited to a real purchase flow",
-      "Conversion-focused layout that keeps the next purchase step visible",
-      "Analytics, domain, and hosting setup consistent with a launch-and-operate storefront",
+      "This overview discusses product catalogs, collections and commerce pages.",
+      "Cart, checkout and payment connection are topics to verify when assessing a storefront.",
+      "Design priority: make the next purchase step clear.",
+      "Analytics requirements should be defined in the written scope.",
+      "Domain and hosting responsibilities belong in the launch scope.",
     ],
     stack: [
-      "Ecommerce storefront with product catalog and collections",
-      "Cart, checkout, and payment tooling appropriate to the store’s scope",
-      "Shipping, tax, and notification basics as configured for the project",
-      "Mobile-first presentation with search-friendly product and category pages",
+      "Product catalogs, collections and commerce pages",
+      "Cart, checkout and payment connection",
+      "Define applicable shipping, tax and notification requirements before implementation.",
+      "Design priorities: readable mobile layouts and clear product/category structure.",
     ],
     liveProof: {
       url: starmap.url,
-      summary:
-        "Inspect the live storefront at starmapco.com for catalog, cart, and checkout behavior. Treat the live site as the source of truth for what currently ships.",
+      summary: "Project URL: starmapco.com.",
     },
     limitations: [
-      "This case study describes storefront implementation, not monthly sales totals",
-      "Catalog size, shipping rules, and payment configuration continue to evolve with the product",
-      "Owned-product economics are not the same as an external merchant engagement",
+      "This overview covers storefront topics, not monthly sales totals",
+      "This overview does not establish the current catalog, shipping rules or payment configuration.",
+      "Project economics are not the same as an external merchant engagement",
     ],
     notClaimed: [
-      "No invented revenue, average order value, conversion rate, or customer-count statistics",
+      "No revenue, conversion-rate, customer-count or ranking results are presented here.",
       "No claim that StarMapCo is an arms-length client website owned by someone else",
-      "No ranking, traffic, or advertising-performance guarantees attached to this storefront",
+      "No traffic or advertising-performance guarantees attached to this overview",
     ],
     imageSrc: starmap.imageSrc,
     imageAlt: "StarMapCo ecommerce storefront preview",
@@ -174,19 +162,19 @@ export const caseStudies: readonly CaseStudy[] = [
         src: "/projects/starmapco-desktop.webp",
         width: 1200,
         height: 750,
-        alt: "StarMapCo homepage captured at desktop width (1440×900)",
+        alt: "StarMapCo homepage project image view (desktop)",
       },
       tablet: {
         src: "/projects/starmapco-tablet.webp",
         width: 768,
         height: 1024,
-        alt: "StarMapCo homepage captured at tablet width (768×1024)",
+        alt: "StarMapCo homepage project image view (tablet)",
       },
       mobile: {
         src: "/projects/starmapco-mobile.webp",
         width: 390,
         height: 844,
-        alt: "StarMapCo homepage captured at mobile width (390×844)",
+        alt: "StarMapCo homepage project image view (mobile)",
       },
     },
   },

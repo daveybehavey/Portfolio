@@ -19,7 +19,7 @@ const STORY_CHAPTERS = [
   { id: "decisions", label: "Constraints" },
   { id: "responsive", label: "Responsive" },
   { id: "implementation", label: "Stack" },
-  { id: "proof", label: "Live proof" },
+  { id: "proof", label: "Project link" },
 ] as const;
 
 export function CaseStudyView({ study }: { study: CaseStudy }) {
@@ -55,12 +55,6 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
     description: study.description,
     url: `${SITE_URL}${study.path}`,
     about: study.projectName,
-    creator: {
-      "@type": "Organization",
-      name: "EuroDigital",
-      url: SITE_URL,
-    },
-    isBasedOn: study.liveProof.url,
   };
 
   return (
@@ -203,9 +197,9 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
 
         <Section
           id="responsive"
-          eyebrow="Responsive proof"
+          eyebrow="Project images"
           title="How it looks where customers browse."
-          subtitle="Real live-site screenshots at desktop, tablet, and mobile widths — switch modes to compare."
+          subtitle="Project image views — switch modes to compare."
         >
           <Reveal>
             <DeviceShowcase
@@ -220,7 +214,7 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
           id="implementation"
           eyebrow="Stack and operations"
           title="What was put in place."
-          subtitle="Implementation accomplishments, not invented business outcomes."
+          subtitle="Topics covered in this overview."
         >
           <Reveal>
             <Card className="p-6 sm:p-8">
@@ -238,8 +232,8 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
 
         <Section
           id="proof"
-          eyebrow="Live proof"
-          title="Inspect the working site."
+          eyebrow="Project link"
+          title="Project link."
           subtitle={study.liveProof.summary}
         >
           <div className="flex flex-wrap gap-3">
@@ -250,7 +244,7 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
               analyticsLocation="case_study"
               analyticsLabel={`Open live ${study.projectName}`}
             >
-              Open live {study.projectName}
+              Visit project URL
             </ButtonA>
             <ButtonLink href="/projects" variant="secondary">
               Back to portfolio
@@ -299,7 +293,7 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
         <Section eyebrow="Next step" title="If this is the kind of launch you need.">
           <InquiryCtaBand
             title="Tell me what your business needs to launch."
-            body="Share what you do, who you serve, and what the website should help customers do. You will get a fit response and the next information needed for a written estimate."
+            body="Share what you do, who you serve, and what the website should help customers do. Share these details to help assess fit and scope."
             analyticsLocation="case_study"
             secondaryHref={SERVICE_LANDING_PATH}
             secondaryLabel="Read the service page"

@@ -125,7 +125,7 @@ export function BlogPostView({ post }: { post: BlogPost }) {
         <Section eyebrow="Inquire" title="Want this scoped for your business?">
           <InquiryCtaBand
             title="Request a project estimate"
-            body="Tell me what your business does, what the site or Profile needs to help customers do, and whether you need a repair or a larger launch. I usually reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate."
+            body="Tell me what your business does, what the site or Profile needs to help customers do, and whether you need a repair or a larger launch. I aim to reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate."
             analyticsLocation="blog"
             secondaryHref="/projects"
             secondaryLabel="Browse portfolio"

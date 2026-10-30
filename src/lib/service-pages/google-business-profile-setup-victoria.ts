@@ -143,7 +143,7 @@ Small Website Repairs cover narrow site fixes. Business Website and redesign pag
   ],
   cta: {
     title: "Need Profile setup or cleanup in Victoria?",
-    body: "Tell me whether the Profile exists, what looks wrong, and your website URL. I usually reply within 1–2 business days with fit, likely scope, and whether the work stands alone or belongs inside a website package.",
+    body: "Tell me whether the Profile exists, what looks wrong, and your website URL. I aim to reply within 1–2 business days with fit, likely scope, and whether the work stands alone or belongs inside a website package.",
     secondaryHref: "/blog/google-business-profile-checklist-vancouver-island",
     secondaryLabel: "Start with the checklist",
   },
