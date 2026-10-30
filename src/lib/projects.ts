@@ -20,11 +20,11 @@ export const projects: readonly Project[] = [
     tagline: "Landscaping & outdoor services",
     url: "https://maestrosservices.com",
     outcome:
-      "Local service business site built to explain offerings, build trust, and turn visitors into calls and quote requests.",
+      "MaestrosServices service-website overview — service explanations, contact paths, and metadata topics.",
     bullets: [
-      "Clear services + contact paths",
-      "Trust-focused layout",
-      "Mobile-first lead capture",
+      "Service explanations",
+      "Contact paths",
+      "Mobile readability and metadata",
     ],
     label: "Local services",
     imageSrc: "/projects/maestrosservices.webp",
@@ -63,11 +63,11 @@ export const projects: readonly Project[] = [
     tagline: "Ecommerce · personalized gifts",
     url: "https://starmapco.com",
     outcome:
-      "Working online store — product catalog, purchase flow, and a polished brand experience built to convert visitors into orders.",
+      "StarMapCo project overview — catalog, checkout and operations topics.",
     bullets: [
-      "Storefront + product pages",
-      "Checkout & payments setup",
-      "Conversion-focused layout",
+      "Product catalogs, collections and commerce pages",
+      "Cart, checkout and payment connection topics",
+      "Design priority: make the next purchase step clear.",
     ],
     label: "Ecommerce store",
     imageSrc: "/projects/starmapco.webp",

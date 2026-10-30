@@ -17,26 +17,26 @@ const MODES: ReadonlyArray<{
   value: DeviceMode;
   label: string;
   frameClass: string;
-  /** Capture viewport used for the screenshot (CSS pixels). */
+  /** Display label for the selected view. */
   captureLabel: string;
 }> = [
   {
     value: "desktop",
     label: "Desktop",
     frameClass: "w-full max-w-[720px]",
-    captureLabel: "1440×900",
+    captureLabel: "Desktop view",
   },
   {
     value: "tablet",
     label: "Tablet",
     frameClass: "w-full max-w-[420px]",
-    captureLabel: "768×1024",
+    captureLabel: "Tablet view",
   },
   {
     value: "mobile",
     label: "Mobile",
     frameClass: "w-full max-w-[min(100%,320px)]",
-    captureLabel: "390×844",
+    captureLabel: "Mobile view",
   },
 ];
 
@@ -70,20 +70,20 @@ export function DeviceShowcase({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-indigo-700/90">
-            Live viewport captures
+            Project image views
           </p>
           <h3 className="mt-0.5 text-base font-semibold tracking-tight text-slate-900 sm:text-lg">
-            {projectName} at real device widths
+            {projectName} image views
           </h3>
           <p className="mt-0.5 max-w-xl text-xs leading-relaxed text-slate-600 sm:text-sm">
-            Real above-the-fold screenshots — not one image cropped into a
+            Separate above-the-fold image views — not one image cropped into a
             smaller frame.
           </p>
         </div>
 
         <fieldset className="min-w-0 shrink-0">
           <legend className="sr-only">
-            Screenshot viewport for {projectName}
+            Image view for {projectName}
           </legend>
           <div className="flex flex-wrap gap-1.5">
             {MODES.map((entry) => {
@@ -164,8 +164,8 @@ export function DeviceShowcase({
       </div>
 
       <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
-        Static live-homepage captures at desktop, tablet, and mobile widths.
-        Open the live site for the full interactive experience.
+        Project image views. Visit the project URL for the full interactive
+        experience.
       </p>
     </div>
   );
