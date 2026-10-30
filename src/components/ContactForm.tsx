@@ -58,7 +58,19 @@ type ContactResponse = {
   ok?: boolean;
   code?: string;
   message?: string;
+  reference?: string;
+  fieldErrors?: Record<string, string>;
+  retryAfterSeconds?: number;
 };
+
+function FieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) return null;
+  return (
+    <p id={id} className="text-xs font-medium text-red-700">
+      {message}
+    </p>
+  );
+}
 
 function createSubmissionId(): string {
   const cryptoApi = globalThis.crypto;
@@ -98,12 +110,14 @@ function ContactFormInner({ email }: { email: string }) {
   const turnstileContainerRef = useRef<HTMLDivElement>(null);
   const turnstileWidgetIdRef = useRef<string | null>(null);
   const submissionIdRef = useRef<string | null>(null);
+  const submissionFingerprintRef = useRef<string | null>(null);
   const [turnstileReady, setTurnstileReady] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [status, setStatus] = useState<SubmissionStatus>({
     state: "idle",
     message: "",
   });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [projectTypeValue, setProjectTypeValue] = useState("");
 
   const nameId = `${id}-name`;
@@ -113,6 +127,22 @@ function ContactFormInner({ email }: { email: string }) {
   const messageId = `${id}-message`;
   const statusId = `${id}-status`;
   const hintId = `${id}-hint`;
+  const nameErrorId = `${nameId}-error`;
+  const emailErrorId = `${emailId}-error`;
+  const businessErrorId = `${businessId}-error`;
+  const projectTypeErrorId = `${projectTypeId}-error`;
+  const messageErrorId = `${messageId}-error`;
+  const turnstileErrorId = `${id}-turnstile-error`;
+  const submissionErrorId = `${id}-submission-error`;
+
+  const clearFieldError = useCallback((field: string) => {
+    setFieldErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }, []);
 
   const projectTypeFromSearch = resolveProjectTypeFromSearch(
     searchParams.toString() ? `?${searchParams.toString()}` : "",
@@ -209,20 +239,34 @@ function ContactFormInner({ email }: { email: string }) {
 
     const form = event.currentTarget;
     const data = new FormData(form);
-    const submissionId = submissionIdRef.current ?? createSubmissionId();
-    submissionIdRef.current = submissionId;
-    const payload = {
+    const businessFields = {
       name: String(data.get("name") || ""),
       email: String(data.get("email") || ""),
       business: String(data.get("business") || ""),
       projectType: String(data.get("projectType") || ""),
       message: String(data.get("message") || ""),
+    };
+    // Keep one submission ID across unchanged retries so the server can
+    // reconcile a retry with the original attempt; mint a new ID as soon as
+    // any business field changes so an edited inquiry is never reconciled
+    // against the earlier content.
+    const fingerprint = JSON.stringify(businessFields);
+    if (
+      !submissionIdRef.current ||
+      submissionFingerprintRef.current !== fingerprint
+    ) {
+      submissionIdRef.current = createSubmissionId();
+      submissionFingerprintRef.current = fingerprint;
+    }
+    const payload = {
+      ...businessFields,
       website: String(data.get("website") || ""),
       turnstileToken,
-      submissionId,
+      submissionId: submissionIdRef.current,
       attribution: collectLeadAttribution(),
     };
 
+    setFieldErrors({});
     setStatus({ state: "submitting", message: "Sending your inquiry…" });
 
     try {
@@ -234,6 +278,7 @@ function ContactFormInner({ email }: { email: string }) {
       const result = (await response.json().catch(() => ({}))) as ContactResponse;
 
       if (!response.ok || !result.ok) {
+        setFieldErrors(result.fieldErrors ?? {});
         setStatus({
           state: "error",
           message:
@@ -247,11 +292,14 @@ function ContactFormInner({ email }: { email: string }) {
       trackGenerateLead({ method: "contact_form", location: "contact" });
       setStatus({
         state: "success",
-        message: result.message || "Your inquiry was delivered.",
+        message:
+          result.message ||
+          "Your inquiry was accepted by our email service for delivery.",
       });
       form.reset();
       setProjectTypeValue("");
       submissionIdRef.current = null;
+      submissionFingerprintRef.current = null;
       resetTurnstile();
     } catch {
       setStatus({
@@ -301,8 +349,12 @@ function ContactFormInner({ email }: { email: string }) {
             minLength={2}
             maxLength={100}
             className={inputClassName}
+            aria-invalid={fieldErrors.name ? true : undefined}
+            aria-describedby={fieldErrors.name ? nameErrorId : undefined}
+            onChange={() => clearFieldError("name")}
             required
           />
+          <FieldError id={nameErrorId} message={fieldErrors.name} />
         </div>
 
         <div className="grid gap-1.5">
@@ -318,8 +370,12 @@ function ContactFormInner({ email }: { email: string }) {
             placeholder="you@example.com"
             maxLength={254}
             className={inputClassName}
+            aria-invalid={fieldErrors.email ? true : undefined}
+            aria-describedby={fieldErrors.email ? emailErrorId : undefined}
+            onChange={() => clearFieldError("email")}
             required
           />
+          <FieldError id={emailErrorId} message={fieldErrors.email} />
         </div>
 
         <div className="grid gap-1.5">
@@ -338,8 +394,12 @@ function ContactFormInner({ email }: { email: string }) {
             minLength={2}
             maxLength={160}
             className={inputClassName}
+            aria-invalid={fieldErrors.business ? true : undefined}
+            aria-describedby={fieldErrors.business ? businessErrorId : undefined}
+            onChange={() => clearFieldError("business")}
             required
           />
+          <FieldError id={businessErrorId} message={fieldErrors.business} />
         </div>
 
         <div className="grid gap-1.5">
@@ -354,7 +414,14 @@ function ContactFormInner({ email }: { email: string }) {
             name="projectType"
             className={inputClassName}
             value={projectTypeValue}
-            onChange={(event) => setProjectTypeValue(event.target.value)}
+            onChange={(event) => {
+              setProjectTypeValue(event.target.value);
+              clearFieldError("projectType");
+            }}
+            aria-invalid={fieldErrors.projectType ? true : undefined}
+            aria-describedby={
+              fieldErrors.projectType ? projectTypeErrorId : undefined
+            }
             required
           >
             {projectTypes.map((projectType) => (
@@ -367,6 +434,10 @@ function ContactFormInner({ email }: { email: string }) {
               </option>
             ))}
           </select>
+          <FieldError
+            id={projectTypeErrorId}
+            message={fieldErrors.projectType}
+          />
         </div>
 
         <div className="grid gap-1.5">
@@ -384,8 +455,12 @@ function ContactFormInner({ email }: { email: string }) {
             minLength={20}
             maxLength={5000}
             className={`${inputClassName} resize-y`}
+            aria-invalid={fieldErrors.message ? true : undefined}
+            aria-describedby={fieldErrors.message ? messageErrorId : undefined}
+            onChange={() => clearFieldError("message")}
             required
           />
+          <FieldError id={messageErrorId} message={fieldErrors.message} />
         </div>
 
         <div
@@ -408,6 +483,10 @@ function ContactFormInner({ email }: { email: string }) {
               Spam protection
             </span>
             <div ref={turnstileContainerRef} />
+            <FieldError
+              id={turnstileErrorId}
+              message={fieldErrors.turnstileToken}
+            />
           </div>
         ) : (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -436,16 +515,21 @@ function ContactFormInner({ email }: { email: string }) {
         </div>
 
         <p id={hintId} className="text-xs leading-relaxed text-slate-500">
-          The online form uses Cloudflare Turnstile for spam protection and a
-          server-side email provider for delivery. Read the{" "}
+          The online form uses Cloudflare Turnstile and Resend. Success
+          confirms acceptance by the email service; errors preserve your
+          entries. You can also email directly. Read the{" "}
           <Link
             href="/privacy"
             className="font-medium text-indigo-600 hover:text-indigo-700"
           >
             privacy notice
           </Link>
-          . The direct email link remains available as a fallback.
+          .
         </p>
+        <FieldError
+          id={submissionErrorId}
+          message={fieldErrors.submissionId}
+        />
         <p
           id={statusId}
           role="status"

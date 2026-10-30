@@ -53,8 +53,8 @@ export default function PrivacyPage() {
               directly. When the online form is enabled, it sends the name, email
               address, business or industry, selected project type, message, and a
               random submission identifier to a narrow Cloudflare Pages Function.
-              The visitor&apos;s email address is used as the reply-to address and is
-              never accepted as the trusted sender address.
+              Your email address is used for replies. The sender and recipient are
+              fixed business addresses configured on the server.
             </p>
             <p className="mt-3 leading-relaxed text-slate-700">
               Submissions may also include a short internal attribution note: which
@@ -64,8 +64,8 @@ export default function PrivacyPage() {
               safe path). This helps understand which website pages or campaigns
               generate inquiries. Attribution values are validated and length-limited
               on the server, appear only in the internal inquiry email, and are not
-              used to authorize delivery or choose recipients. Google Analytics 4 is
-              not enabled for this purpose.
+              used to authorize delivery or choose recipients. The contact receiver
+              does not send inquiry fields or attribution to Google Analytics.
             </p>
 
             <h2 className="mt-10 text-xl font-semibold text-slate-900">
@@ -87,7 +87,7 @@ export default function PrivacyPage() {
               required before the message is delivered.
             </p>
             <p className="mt-3 leading-relaxed text-slate-700">
-              Valid inquiries are sent through{" "}
+              Inquiries that pass validation and abuse checks are submitted to{" "}
               <a
                 href="https://resend.com/legal/privacy-policy"
                 className="font-medium text-indigo-600 hover:text-indigo-700"
@@ -96,7 +96,8 @@ export default function PrivacyPage() {
               >
                 Resend
               </a>{" "}
-              to {CONTACT_EMAIL}. EuroDigital does not write inquiry contents to a
+              for delivery to {CONTACT_EMAIL}. Success confirms provider acceptance,
+              rather than inbox arrival. EuroDigital does not write inquiry contents to a
               website database. The message is retained in the receiving mailbox,
               and Cloudflare or Resend may retain operational records according to
               their services, account settings, and legal obligations.
@@ -152,8 +153,8 @@ export default function PrivacyPage() {
               The site is hosted on Cloudflare Pages. Cloudflare may process
               ordinary technical request information, such as an IP address and user
               agent, while hosting, securing, and delivering the website and while
-              protecting it from abuse. Contact endpoint responses are marked not to
-              be cached.
+              protecting it from abuse. Contact endpoint responses use{" "}
+              <span className="font-mono text-[0.95em]">Cache-Control: no-store</span>.
             </p>
 
             <h2 className="mt-10 text-xl font-semibold text-slate-900">

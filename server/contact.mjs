@@ -289,7 +289,7 @@ async function readJsonBody(request) {
     return {
       ok: false,
       status: 400,
-      code: "invalid_json",
+      code: "invalid_request",
       message: "The request body is not valid JSON.",
     };
   }
@@ -362,14 +362,32 @@ async function sendEmail({ values, config, fetchImpl }) {
       body: JSON.stringify(payload),
     });
   } catch {
-    return { ok: false };
+    // Network failure or timeout: Resend may or may not have accepted the
+    // message, so delivery is unconfirmed rather than failed. The submission
+    // ID is the Resend idempotency key, so a retry with the same ID checks
+    // this submission instead of sending a duplicate.
+    return { ok: false, unconfirmed: true };
   }
 
   if (!response.ok) {
-    return { ok: false, status: response.status };
+    return { ok: false, unconfirmed: false, status: response.status };
   }
 
-  return { ok: true };
+  let result;
+  try {
+    result = await response.json();
+  } catch {
+    return { ok: false, unconfirmed: true };
+  }
+
+  // Only a usable provider message ID confirms acceptance. An OK response
+  // without one cannot be treated as a confirmed handoff.
+  const providerMessageId = cleanText(result?.id);
+  if (!providerMessageId) {
+    return { ok: false, unconfirmed: true };
+  }
+
+  return { ok: true, providerMessageId };
 }
 
 export async function handleContactRequest(request, env, fetchImpl = fetch) {
@@ -385,8 +403,9 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
   if (!config.ok) {
     return jsonResponse(503, {
       ok: false,
-      code: "form_unavailable",
-      message: "The online form is not configured. Please use the email link instead.",
+      code: "temporarily_unavailable",
+      message:
+        "The online form is temporarily unavailable. Please use the email link instead.",
     });
   }
 
@@ -394,8 +413,8 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
   if (!origin || !config.allowedOrigins.includes(origin)) {
     return jsonResponse(403, {
       ok: false,
-      code: "origin_not_allowed",
-      message: "This request origin is not allowed.",
+      code: "source_rejected",
+      message: "This request origin is not allowed. Please use the email link instead.",
     });
   }
 
@@ -431,7 +450,7 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
         message: validated.spam
           ? "The submission could not be accepted."
           : "Review the form fields and try again.",
-        errors: validated.errors,
+        fieldErrors: validated.errors,
       },
       origin,
     );
@@ -447,33 +466,34 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
 
   if (!turnstile.ok) {
     return jsonResponse(
-      turnstile.unavailable ? 503 : 400,
+      turnstile.unavailable ? 503 : 403,
       {
         ok: false,
         code: turnstile.unavailable
-          ? "verification_unavailable"
-          : "verification_failed",
+          ? "temporarily_unavailable"
+          : "challenge_failed",
         message: turnstile.unavailable
-          ? "Spam protection is temporarily unavailable. Please use the email link or try again."
-          : "Spam protection could not verify this submission. Please try again.",
+          ? "Spam protection is temporarily unavailable. Your entries are still here; retry or use the email link."
+          : "Complete the spam-protection check again. Your entries are still here.",
       },
       origin,
     );
   }
 
-  const delivered = await sendEmail({
+  const delivery = await sendEmail({
     values: validated.values,
     config,
     fetchImpl,
   });
-  if (!delivered.ok) {
+  if (!delivery.ok) {
     return jsonResponse(
-      502,
+      503,
       {
         ok: false,
-        code: "delivery_failed",
-        message:
-          "The message could not be delivered. Your entries are still here; please retry or use the email link.",
+        code: delivery.unconfirmed ? "delivery_unconfirmed" : "delivery_failed",
+        message: delivery.unconfirmed
+          ? "We could not confirm delivery. Your entries are still here. Retry to check this submission before sending another."
+          : "We could not hand your inquiry to our email service. Your entries are still here; retry or email directly.",
       },
       origin,
     );
@@ -483,8 +503,9 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
     200,
     {
       ok: true,
-      code: "delivered",
-      message: "Your inquiry was delivered. Expect a reply within 1–2 business days.",
+      code: "accepted",
+      message: `Your inquiry was accepted by our email service for delivery. Reference: ${validated.values.submissionId}.`,
+      reference: validated.values.submissionId,
     },
     origin,
   );

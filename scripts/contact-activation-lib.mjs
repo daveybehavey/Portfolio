@@ -390,7 +390,7 @@ export async function runSmokeChecks({ target, allowedHosts, fetchImpl = fetch, 
     {
       name: "origin rejection",
       expectedStatus: 403,
-      expectedCode: "origin_not_allowed",
+      expectedCode: "source_rejected",
       init: {
         method: "POST",
         headers: { Origin: "https://invalid.example", "Content-Type": "application/json" },
@@ -410,7 +410,7 @@ export async function runSmokeChecks({ target, allowedHosts, fetchImpl = fetch, 
     {
       name: "malformed JSON rejection",
       expectedStatus: 400,
-      expectedCode: "invalid_json",
+      expectedCode: "invalid_request",
       init: {
         method: "POST",
         headers: { Origin: validated.baseUrl.origin, "Content-Type": "application/json" },

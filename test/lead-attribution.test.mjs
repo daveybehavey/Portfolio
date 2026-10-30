@@ -294,7 +294,7 @@ test("client CTA coverage helpers encode distinct surfaces", async () => {
 
   const privacy = await readFile(join(root, "src/app/privacy/page.tsx"), "utf8");
   assert.match(privacy, /internal attribution note/i);
-  assert.match(privacy, /Google Analytics 4 is\s+not enabled/i);
+  assert.match(privacy, /contact receiver\s+does\s+not send inquiry fields or attribution to Google Analytics/i);
   assert.doesNotMatch(privacy, /GA4 is enabled/);
 
   const leadLib = await readFile(join(root, "src/lib/lead-attribution.ts"), "utf8");

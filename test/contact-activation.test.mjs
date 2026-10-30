@@ -142,9 +142,9 @@ test("smoke target requires an exact explicit host allowlist", () => {
 test("smoke runner sends only non-delivery requests and verifies response controls", async () => {
   const expected = [
     [405, "method_not_allowed"],
-    [403, "origin_not_allowed"],
+    [403, "source_rejected"],
     [415, "unsupported_media_type"],
-    [400, "invalid_json"],
+    [400, "invalid_request"],
     [422, "validation_failed"],
   ];
   const calls = [];

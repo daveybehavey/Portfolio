@@ -134,7 +134,7 @@ test("ContactForm resets controlled projectType after success and keeps it on er
   assert.match(form, /setProjectTypeValue\(projectTypeFromSearch\)/);
   assert.match(form, /\[projectTypeFromSearch\]/);
   assert.match(form, /value=\{projectTypeValue\}/);
-  assert.match(form, /onChange=\{\(event\) => setProjectTypeValue\(event\.target\.value\)\}/);
+  assert.match(form, /onChange=\{\(event\) => \{\s*setProjectTypeValue\(event\.target\.value\);/s);
   assert.match(form, /form\.reset\(\);\s*setProjectTypeValue\(""\);/s);
   assert.match(
     form,
