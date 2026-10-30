@@ -21,6 +21,12 @@ import { SITE_URL } from "@/lib/site";
 function packagesForMode(mode: ServiceLandingContent["packagesMode"]) {
   if (mode === "none") return [];
   if (mode === "all") return [...PACKAGES];
+  if (mode === "city") {
+    // City pages show only the published launch offers. Custom Project is
+    // deliberately excluded so a quoted-per-project engagement never reads
+    // as a priced package; repairs still render separately below.
+    return PACKAGES.filter((pkg) => pkg.name !== "Custom Project");
+  }
   if (mode === "store") {
     return PACKAGES.filter(
       (pkg) => pkg.name === "Online Store" || pkg.name === "Custom Project",
@@ -77,10 +83,15 @@ export function ServiceLandingView({
         name: "EuroDigital",
         url: SITE_URL,
       },
-      areaServed: [
-        { "@type": "City", name: "Victoria" },
-        { "@type": "AdministrativeArea", name: "Vancouver Island" },
-      ],
+      areaServed: content.areaServed
+        ? content.areaServed.map((area) => ({
+            "@type": area.type,
+            name: area.name,
+          }))
+        : [
+            { "@type": "City", name: "Victoria" },
+            { "@type": "AdministrativeArea", name: "Vancouver Island" },
+          ],
       serviceType: content.serviceType,
     },
   };
@@ -291,7 +302,8 @@ export function ServiceLandingView({
             </div>
             {content.packagesMode === "all" ||
             content.packagesMode === "business" ||
-            content.packagesMode === "store" ? (
+            content.packagesMode === "store" ||
+            content.packagesMode === "city" ? (
               <div className="mt-6 rounded-2xl border border-slate-200/90 bg-slate-50/80 p-5 text-sm leading-relaxed text-slate-700">
                 <strong className="font-semibold text-slate-900">
                   Business Website and Online Store essentials:
@@ -299,7 +311,8 @@ export function ServiceLandingView({
                 {FULL_LAUNCH_INCLUDES.join(" · ")}
               </div>
             ) : null}
-            {content.packagesMode === "all" ? (
+            {content.packagesMode === "all" ||
+            content.packagesMode === "city" ? (
               <div className="mt-4 rounded-2xl border border-slate-200/90 bg-white p-5 text-sm leading-relaxed text-slate-700">
                 <strong className="font-semibold text-slate-900">
                   {SMALL_SITE_REPAIR.name}:
