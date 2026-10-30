@@ -126,10 +126,12 @@ export default function VancouverIslandWebsiteDesignPage() {
             </ButtonLink>
           </div>
           <p className="mt-6 max-w-2xl text-sm leading-relaxed text-slate-600">
-            One substantial service page for Victoria and Island buyers — not a
-            set of thin city doorway pages. Prices and package language match
-            the offers already published on the homepage. EuroDigital is a
-            service-area business, not a staffed storefront.
+            One substantial service page for Victoria and Island buyers, plus a
+            small set of substantial city pages where searchers demonstrably
+            look for a local provider — not thin city doorway pages. Prices and
+            package language match the offers already published on the
+            homepage. EuroDigital is a service-area business, not a staffed
+            storefront.
           </p>
         </Section>
 
@@ -404,6 +406,33 @@ export default function VancouverIslandWebsiteDesignPage() {
             </ButtonLink>
             <ButtonLink href="/blog" variant="secondary">
               Blog
+            </ButtonLink>
+          </div>
+        </Section>
+
+        <Section
+          eyebrow="City pages"
+          title="Website design by city."
+          subtitle="Substantial pages for the Island communities where searchers look for a local provider — each with its own scope, proof limits, and service-area disclosure."
+        >
+          <div className="flex flex-wrap gap-3">
+            <ButtonLink href="/web-design-victoria-bc" variant="secondary">
+              Web design in Victoria
+            </ButtonLink>
+            <ButtonLink href="/web-design-nanaimo" variant="secondary">
+              Web design in Nanaimo
+            </ButtonLink>
+            <ButtonLink href="/web-design-comox-valley" variant="secondary">
+              Web design in the Comox Valley
+            </ButtonLink>
+            <ButtonLink href="/web-design-duncan-cowichan" variant="secondary">
+              Web design in Duncan
+            </ButtonLink>
+            <ButtonLink href="/web-design-campbell-river" variant="secondary">
+              Web design in Campbell River
+            </ButtonLink>
+            <ButtonLink href="/web-design-sooke-bc" variant="secondary">
+              Web design in Sooke
             </ButtonLink>
           </div>
         </Section>
