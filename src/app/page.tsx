@@ -530,9 +530,10 @@ export default function Home() {
                   </p>
                   <p className="mt-3 text-sm text-slate-600">{CONTACT_REPLY_NOTE}</p>
                   <p className="mt-3 text-xs leading-relaxed text-slate-500">
-                    Online inquiries are sent through a narrow server endpoint with Turnstile spam
-                    protection and email delivery. If online submission is unavailable, the direct
-                    email link remains available as a fallback.
+                    The online form validates submissions, checks Cloudflare Turnstile, and sends
+                    accepted inquiries through Resend to contact@eurodigital.ca. Sending failures
+                    are shown in the form. If online submission is unavailable, the direct email
+                    link remains available as a fallback.
                   </p>
                   <div className="mt-5 flex flex-wrap gap-3">
                     <ButtonA

@@ -71,11 +71,15 @@ async function json(response) {
   return response.json();
 }
 
-test("valid payload is delivered with server-side verification and delivery idempotency", async () => {
+test("valid payload is accepted with server-side verification and delivery idempotency", async () => {
   const mock = fetchMock();
   const response = await handleContactRequest(request(), env, mock);
   assert.equal(response.status, 200);
-  assert.equal((await json(response)).code, "delivered");
+  const body = await json(response);
+  assert.equal(body.code, "accepted");
+  assert.equal(body.reference, validBody.submissionId);
+  assert.match(body.message, /accepted by our email service for delivery/);
+  assert.doesNotMatch(body.message, /reply within/);
   assert.equal(mock.calls.length, 2);
   assert.match(mock.calls[0].url, /siteverify/);
   const verificationBody = JSON.parse(mock.calls[0].init.body);
@@ -102,7 +106,7 @@ test("rejects unsupported methods", async () => {
 test("fails closed when production configuration is missing", async () => {
   const response = await handleContactRequest(request(), {}, fetchMock());
   assert.equal(response.status, 503);
-  assert.equal((await json(response)).code, "form_unavailable");
+  assert.equal((await json(response)).code, "temporarily_unavailable");
 });
 
 test("rejects disallowed origins", async () => {
@@ -112,6 +116,7 @@ test("rejects disallowed origins", async () => {
     fetchMock(),
   );
   assert.equal(response.status, 403);
+  assert.equal((await json(response)).code, "source_rejected");
 });
 
 test("rejects non-JSON and malformed JSON requests", async () => {
@@ -127,6 +132,7 @@ test("rejects non-JSON and malformed JSON requests", async () => {
     fetchMock(),
   );
   assert.equal(malformed.status, 400);
+  assert.equal((await json(malformed)).code, "invalid_request");
 });
 
 test("rejects oversized requests before external calls", async () => {
@@ -148,9 +154,9 @@ test("returns field errors for invalid payloads", async () => {
   );
   assert.equal(response.status, 422);
   const body = await json(response);
-  assert.ok(body.errors.name);
-  assert.ok(body.errors.email);
-  assert.ok(body.errors.message);
+  assert.ok(body.fieldErrors.name);
+  assert.ok(body.fieldErrors.email);
+  assert.ok(body.fieldErrors.message);
 });
 
 test("honeypot submissions are rejected without external calls", async () => {
@@ -174,8 +180,8 @@ test("rejects failed, duplicate, wrong-host, and wrong-action Turnstile results"
   ]) {
     const mock = fetchMock({ turnstile });
     const response = await handleContactRequest(request(), env, mock);
-    assert.equal(response.status, 400);
-    assert.equal((await json(response)).code, "verification_failed");
+    assert.equal(response.status, 403);
+    assert.equal((await json(response)).code, "challenge_failed");
     assert.equal(mock.calls.length, 1);
     assert.match(mock.calls[0].url, /siteverify/);
   }
@@ -216,7 +222,7 @@ test("official safe Turnstile dummy path succeeds after Siteverify", async () =>
     mock,
   );
   assert.equal(response.status, 200);
-  assert.equal((await json(response)).code, "delivered");
+  assert.equal((await json(response)).code, "accepted");
   assert.equal(mock.calls.length, 2);
   assert.match(mock.calls[0].url, /siteverify/);
   assert.match(mock.calls[1].url, /api\.resend\.com\/emails/);
@@ -244,8 +250,8 @@ test("real recipient prevents Turnstile dummy metadata bypass", async () => {
     },
     mock,
   );
-  assert.equal(response.status, 400);
-  assert.equal((await json(response)).code, "verification_failed");
+  assert.equal(response.status, 403);
+  assert.equal((await json(response)).code, "challenge_failed");
   assert.equal(mock.calls.length, 1);
   assert.match(mock.calls[0].url, /siteverify/);
 });
@@ -260,8 +266,8 @@ test("non-test sender prevents Turnstile dummy metadata bypass", async () => {
     },
     mock,
   );
-  assert.equal(response.status, 400);
-  assert.equal((await json(response)).code, "verification_failed");
+  assert.equal(response.status, 403);
+  assert.equal((await json(response)).code, "challenge_failed");
   assert.equal(mock.calls.length, 1);
   assert.match(mock.calls[0].url, /siteverify/);
 });
@@ -276,8 +282,8 @@ test("non-dummy token prevents Turnstile dummy metadata bypass", async () => {
     officialDummyTestEnv,
     mock,
   );
-  assert.equal(response.status, 400);
-  assert.equal((await json(response)).code, "verification_failed");
+  assert.equal(response.status, 403);
+  assert.equal((await json(response)).code, "challenge_failed");
   assert.equal(mock.calls.length, 1);
   assert.match(mock.calls[0].url, /siteverify/);
 });
@@ -290,8 +296,8 @@ test("production credentials retain strict hostname and action validation", asyn
   ]) {
     const mock = fetchMock({ turnstile });
     const response = await handleContactRequest(request(), env, mock);
-    assert.equal(response.status, 400);
-    assert.equal((await json(response)).code, "verification_failed");
+    assert.equal(response.status, 403);
+    assert.equal((await json(response)).code, "challenge_failed");
     assert.equal(mock.calls.length, 1);
   }
 });
@@ -303,17 +309,42 @@ test("reports temporary Turnstile and email provider failures without exposing d
     async () => new Response("unavailable", { status: 503 }),
   );
   assert.equal(turnstileResponse.status, 503);
+  assert.equal((await json(turnstileResponse)).code, "temporarily_unavailable");
 
   const resendMock = fetchMock({
     resendStatus: 500,
     resend: { message: "provider internals" },
   });
   const resendResponse = await handleContactRequest(request(), env, resendMock);
-  assert.equal(resendResponse.status, 502);
-  assert.doesNotMatch(
-    JSON.stringify(await json(resendResponse)),
-    /provider internals/,
-  );
+  assert.equal(resendResponse.status, 503);
+  const resendBody = await json(resendResponse);
+  assert.equal(resendBody.code, "delivery_failed");
+  assert.doesNotMatch(JSON.stringify(resendBody), /provider internals/);
+});
+
+test("provider network failure after possible acceptance is unconfirmed, not failed", async () => {
+  const mock = async (url) => {
+    if (String(url).includes("siteverify")) {
+      return Response.json({
+        success: true,
+        hostname: "eurodigital.ca",
+        action: "contact",
+      });
+    }
+    throw new Error("network unreachable");
+  };
+  const response = await handleContactRequest(request(), env, mock);
+  assert.equal(response.status, 503);
+  const body = await json(response);
+  assert.equal(body.code, "delivery_unconfirmed");
+  assert.match(body.message, /could not confirm delivery/i);
+});
+
+test("provider acceptance without a message ID is unconfirmed, not success", async () => {
+  const mock = fetchMock({ resend: {} });
+  const response = await handleContactRequest(request(), env, mock);
+  assert.equal(response.status, 503);
+  assert.equal((await json(response)).code, "delivery_unconfirmed");
 });
 
 test("HTML output escapes untrusted visitor content", () => {
@@ -391,4 +422,23 @@ test("client keeps the direct email fallback", async () => {
   );
   assert.match(source, /mailto:\$\{email\}/);
   assert.match(source, /Email directly/);
+});
+
+test("client renders server field errors and provider-handoff success wording", async () => {
+  const source = await readFile(
+    new URL("../src/components/ContactForm.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /fieldErrors/);
+  assert.match(source, /accepted by our email service for delivery/);
+  assert.doesNotMatch(source, /Your inquiry was delivered\./);
+});
+
+test("client mints a new submission ID when business fields change", async () => {
+  const source = await readFile(
+    new URL("../src/components/ContactForm.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /submissionFingerprintRef/);
+  assert.match(source, /submissionFingerprintRef\.current !== fingerprint/);
 });
