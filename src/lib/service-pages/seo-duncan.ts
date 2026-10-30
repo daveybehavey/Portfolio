@@ -8,7 +8,7 @@ export const seoDuncanContent = {
     "SEO Duncan businesses can actually inspect: clear site structure, metadata, Analytics and Search Console, and Business Profile alignment — scoped in writing, without ranking guarantees or vague retainers.",
   eyebrow: "Duncan, BC",
   introNote:
-    "Search work at EuroDigital is scoped and practical. It supports a website launch or cleanup you can own — not a promise that you will rank first for competitive phrases. EuroDigital is a one-person studio founded in 2026 by David Heslop in Victoria, serving Duncan as a service-area business; there is no Duncan office. One proof point is genuinely local: EuroDigital built the website for MaestrosServices, a family business whose own site lists Duncan in its service area — as website implementation, not as an SEO result.",
+    "Search work at EuroDigital is scoped and practical. It supports a website launch or cleanup you can own — not a promise that you will rank first for competitive phrases. EuroDigital is a one-person studio founded in 2026 by David Heslop in Victoria, serving Duncan as a service-area business; there is no Duncan office. One project overview is genuinely local: EuroDigital built the website for MaestrosServices, a family business whose own site lists Duncan in its service area — a website project overview, not an SEO result.",
   serviceType: "Practical SEO and search foundations",
   areaServed: [{ type: "City", name: "Duncan" }],
   whoFits: [
@@ -57,7 +57,7 @@ EuroDigital can include Business Profile alignment when it fits a launch or clea
         heading: "How pricing works — and what the proof on this page is",
         body: `There is no standalone SEO price list and no hourly SEO clock. Search foundations are usually bundled into website work: Business Website projects can include basic local SEO structure, Analytics, Search Console, and Business Profile support when appropriate, and Small Website Repairs can cover metadata fixes and broken-link cleanup on an existing site. The prices shown on this page are those published website and repair offers — a reference for how projects are priced, not a menu of SEO fees.
 
-The MaestrosServices case study below is website implementation proof: a site EuroDigital built for a family business that serves Duncan, with the family relationship disclosed on the case study page. It is not SEO performance proof, and no ranking, traffic, or lead figures are attached to it — here or anywhere else on this site.`,
+The MaestrosServices case study below is a project overview: a site EuroDigital built for a family business that serves Duncan, with the family relationship disclosed on the case study page. It presents no SEO performance claims, and no ranking, traffic, or lead figures are attached to it — here or anywhere else on this site.`,
       },
     ],
   },
