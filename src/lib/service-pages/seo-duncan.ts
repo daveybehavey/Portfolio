@@ -119,7 +119,7 @@ The MaestrosServices case study below is website implementation proof: a site Eu
     },
     {
       q: "Do you have an office in Duncan, or Duncan SEO clients?",
-      a: "No office — EuroDigital is Victoria-based and serves Duncan remotely. The MaestrosServices case study is a website built for a business that serves Duncan; it is presented as implementation work with the family relationship disclosed, not as a Duncan SEO result, and no SEO client results are claimed.",
+      a: "No office — EuroDigital is Victoria-based and serves Duncan remotely. The MaestrosServices case study is a website built for a business that serves Duncan; it is presented as a project overview with the family relationship disclosed, not as a Duncan SEO result, and no SEO client results are claimed.",
     },
     {
       q: "Can you help with Google Business Profile?",

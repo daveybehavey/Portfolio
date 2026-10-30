@@ -5,10 +5,10 @@ export const webDesignDuncanContent = {
   metaTitle: "Web design Duncan & Cowichan Valley — EuroDigital",
   title: "Web design Duncan — websites for Cowichan Valley small businesses",
   description:
-    "Web design Duncan businesses can evaluate before they commit: published starting prices, a written scope before work expands, and a live case study for a business that serves Duncan.",
+    "Web design Duncan businesses can evaluate before they commit: published starting prices, a written scope before work expands, and a project overview for a business that serves Duncan.",
   eyebrow: "Duncan & the Cowichan Valley, BC",
   introNote:
-    "EuroDigital is a one-person studio founded in 2026 by David Heslop in Victoria, serving Duncan as a service-area business — there is no Duncan office. Unlike most pages in this set, this one has a genuinely local proof point: EuroDigital built the website for MaestrosServices, a family business whose own site lists Duncan among the communities it serves.",
+    "EuroDigital is a one-person studio founded in 2026 by David Heslop in Victoria, serving Duncan as a service-area business — there is no Duncan office. Unlike most pages in this set, this one has a genuinely local project overview: EuroDigital built the website for MaestrosServices, a family business whose own site lists Duncan among the communities it serves.",
   serviceType: "Website design and launch",
   areaServed: [{ type: "City", name: "Duncan" }],
   whoFits: [
@@ -27,7 +27,7 @@ export const webDesignDuncanContent = {
     eyebrow: "Choosing the right build",
     title: "What a Duncan website project actually involves.",
     subtitle:
-      "The useful questions are about size, structure, and proof you can check — starting with a live site built for a business that serves this valley.",
+      "The useful questions are about size, structure, and a project overview you can look at — starting with a live site built for a business that serves this valley.",
     blocks: [
       {
         heading: "A project overview for a business serving Duncan",
