@@ -15,7 +15,7 @@ Business facts:
 - Google reviews: https://g.page/r/CRysOvkXc9XzEAI/review
 
 Core offer:
-- Small business website launches and working online stores
+- Small business website launches and online stores
 - Practical growth foundations that can include analytics, Search Console, local-search structure, conversion paths, attribution, and Google Business Profile support when appropriate
 - Small Website Repairs for narrowly scoped fixes on existing sites
 - Optional ongoing improvement support can be scoped separately when measurement shows it is useful
@@ -24,7 +24,7 @@ Core offer:
 Most likely project types:
 1. Local service business websites (trades, contractors, landscapers, etc.) — example: MaestrosServices
 2. Creative brand or maker websites (showcase + inquiries) — example: AnglKissCreations
-3. Working online stores (catalog, cart, checkout, payments) — example: StarMapCo
+3. Online stores (catalog, cart, checkout, payments) — example: StarMapCo
 
 Published starting prices (CAD; written scope before work starts):
 - Small Website Repairs — from $125 (existing-site fixes only; not a new-site price)

@@ -54,7 +54,7 @@ const faqItems = [
   },
   {
     q: "What does handoff include?",
-    a: "The relevant account access, domain and hosting notes, analytics setup, launch checklist, files or repository access, and a walkthrough appropriate to the project. The goal is to leave ownership understandable rather than keeping essential access hidden.",
+    a: "The relevant account access, domain and hosting notes, launch checklist, files or repository access, and a walkthrough appropriate to the project. Launch and handoff cover the items included in your package and written scope. Analytics, Search Console and Business Profile work follow the package boundaries. The goal is to leave ownership understandable rather than keeping essential access hidden.",
   },
 ] as const;
 
@@ -65,7 +65,7 @@ const homepageProjects = projects.filter(
 const heroFacts = [
   { key: "Built for", value: "Local businesses" },
   { key: "Scope", value: "Clear project" },
-  { key: "Setup", value: "Google + domain" },
+  { key: "Setup", value: "Domain + hosting" },
   { key: "Handoff", value: "You own it" },
 ] as const;
 
@@ -84,7 +84,7 @@ const processSteps = [
   },
   {
     title: "4) Launch and handoff",
-    body: "Domain, hosting, analytics, Search Console, account access, launch notes, and a walkthrough are organized so you understand what you own.",
+    body: "Domain, hosting, account access, launch notes, and a walkthrough are organized so you understand what you own. Analytics, Search Console and Business Profile work follow the package boundaries.",
   },
 ] as const;
 
@@ -162,9 +162,9 @@ export default function Home() {
 
         <Section
           id="examples"
-          eyebrow="Live examples"
+          eyebrow="Examples"
           title="Three practical ways EuroDigital can help you launch."
-          subtitle="Local service businesses are the core focus, with polished brand sites and working ecommerce available when those are the right fit. Every example below is live and inspectable."
+          subtitle="Local service businesses are the core focus, with polished brand sites and ecommerce available when those are the right fit. Every example below is a project overview with a link."
         >
           <div className="grid gap-4 lg:grid-cols-3">
             {PROJECT_ARCHETYPES.map((archetype, idx) => (
@@ -186,7 +186,7 @@ export default function Home() {
                       rel="noopener noreferrer"
                       className="absolute left-5 top-5 rounded-full border border-white/30 bg-white/20 px-3 py-1 text-xs font-medium text-white shadow-sm backdrop-blur-md transition hover:bg-white/35"
                     >
-                      Open live site
+                      Open project site
                     </a>
                   </div>
 
@@ -389,7 +389,7 @@ export default function Home() {
               {
                 href: "/ecommerce-websites-vancouver-island",
                 title: "Ecommerce websites",
-                body: "Working online stores with catalog, checkout, payments, and an operating handoff.",
+                body: "Online stores with catalog, checkout, payments, and an operating handoff.",
               },
               {
                 href: "/seo-services-vancouver-island",
@@ -439,15 +439,15 @@ export default function Home() {
 
         <Section
           id="work"
-          eyebrow="Selected proof"
-          title="Live projects you can inspect — without invented results."
-          subtitle="The work below demonstrates service-business lead structure and a complete ecommerce purchase flow. Claims stay limited to what the live projects and repository can support."
+          eyebrow="Selected projects"
+          title="Featured project overviews — without invented results."
+          subtitle="The overviews below cover service-business lead structure and ecommerce topics. Claims stay limited to what the projects and repository can support."
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm text-slate-600">
               Detailed case studies and the full portfolio stay limited to
-              supportable claims. MaestrosServices is a family business site;
-              StarMapCo is an owned ecommerce product.
+              supportable claims. Relationship context is stated on each case
+              study page.
             </div>
             <div className="flex flex-wrap gap-3">
               <ButtonLink
@@ -512,7 +512,7 @@ export default function Home() {
           id="contact"
           eyebrow="Project estimate"
           title="Tell me what your business needs."
-          subtitle="A short note about your business, current website, whether you need a small repair or a larger launch, and timing is enough to start. You will receive a fit response and the next information needed for a written estimate."
+          subtitle="A short note about your business, current website, whether you need a small repair or a larger launch, and timing is enough to start. Share these details to help assess fit and scope."
         >
           <Reveal>
             <Card className="p-8 sm:p-12">

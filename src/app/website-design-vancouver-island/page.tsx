@@ -297,7 +297,7 @@ export default function VancouverIslandWebsiteDesignPage() {
 
         <Section
           eyebrow="Local context"
-          title="What Vancouver Island buyers usually need from a website."
+          title="Local context for Vancouver Island buyers."
           subtitle="Useful local context without stuffing a separate thin page for every town."
         >
           <div className="grid gap-4">
@@ -312,9 +312,9 @@ export default function VancouverIslandWebsiteDesignPage() {
         </Section>
 
         <Section
-          eyebrow="Proof"
-          title="Inspect case studies with relationship context."
-          subtitle="Claims stay limited to implementation and live proof. Relationship disclosures are explicit on each page."
+          eyebrow="Project overviews"
+          title="Review case studies with relationship context."
+          subtitle="Project overviews and links. Relationship disclosures are explicit on each page."
         >
           <div className="grid gap-4 sm:grid-cols-2">
             {caseStudies.map((study) => (
@@ -338,7 +338,7 @@ export default function VancouverIslandWebsiteDesignPage() {
                     rel="noopener noreferrer"
                     variant="secondary"
                   >
-                    Open live {study.projectName}
+                    Visit project URL
                   </ButtonA>
                 </div>
               </Card>
@@ -450,7 +450,7 @@ export default function VancouverIslandWebsiteDesignPage() {
         <Section eyebrow="Inquire" title="Ready to talk about a launch?">
           <InquiryCtaBand
             title="Request a project estimate"
-            body="Tell me what your business does, who it serves, and what the website needs to help customers do. I usually reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate."
+            body="Tell me what your business does, who it serves, and what the website needs to help customers do. I aim to reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate."
             analyticsLocation="service"
             secondaryHref="/projects/maestrosservices"
             secondaryLabel="Start with a case study"

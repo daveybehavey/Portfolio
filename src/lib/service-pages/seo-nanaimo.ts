@@ -149,7 +149,7 @@ The case studies below are website implementation proof: sites that were built, 
   ],
   cta: {
     title: "Want a practical search foundation — not a ranking promise?",
-    body: "Tell me what your business does, which areas you serve, and whether you need a new site, a cleanup, or Profile help. I usually reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate.",
+    body: "Tell me what your business does, which areas you serve, and whether you need a new site, a cleanup, or Profile help. I aim to reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate.",
     secondaryHref: "/web-design-nanaimo",
     secondaryLabel: "See Nanaimo website design",
   },

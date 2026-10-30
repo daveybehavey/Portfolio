@@ -148,7 +148,7 @@ Small changes later are covered by Small Website Repairs on an existing site. La
   ],
   cta: {
     title: "Ready to talk about a Nanaimo website?",
-    body: "Tell me what your business does, who it serves, and what the website needs to help customers do. I usually reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate.",
+    body: "Tell me what your business does, who it serves, and what the website needs to help customers do. I aim to reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate.",
     secondaryHref: "/projects/maestrosservices",
     secondaryLabel: "Start with a case study",
   },

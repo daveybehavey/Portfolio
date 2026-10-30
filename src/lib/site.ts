@@ -23,4 +23,4 @@ export const defaultOpenGraph = {
 };
 
 export const CONTACT_REPLY_NOTE =
-  "I usually reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate." as const;
+  "I aim to reply within 1–2 business days with fit, likely scope, and the next information needed for a written estimate." as const;

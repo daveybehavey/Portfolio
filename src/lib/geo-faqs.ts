@@ -9,7 +9,7 @@ export const GEO_FAQS = [
   },
   {
     q: "How does the project process work?",
-    a: "Fit and discovery first: you share the business, customers, current setup, goals, and a few references. Then a written scope locks pages, customer actions, content responsibilities, setup work, timeline, exclusions, and price before the build expands. The site is designed mobile-first around credibility, services or products, clear calls to action, and a practical search-friendly structure. Launch and handoff organize domain, hosting, analytics, Search Console, account access, launch notes, and a walkthrough so you understand what you own.",
+    a: "Fit and discovery first: you share the business, customers, current setup, goals, and a few references. Then a written scope locks pages, customer actions, content responsibilities, setup work, timeline, exclusions, and price before the build expands. The site is designed mobile-first around credibility, services or products, clear calls to action, and a practical search-friendly structure. Launch and handoff organize domain, hosting, account access, launch notes, and a walkthrough so you understand what you own. Analytics, Search Console and Business Profile work follow the package boundaries.",
   },
   {
     q: "Is pricing hourly or project-based?",

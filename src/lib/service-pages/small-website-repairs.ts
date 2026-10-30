@@ -116,7 +116,7 @@ If the repair touches titles and descriptions, it can support practical search h
     },
     {
       q: "Can you repair WordPress, Squarespace, Shopify, or custom sites?",
-      a: "Often yes, depending on access and platform limits. The quote reflects what is possible on your stack. Some platforms make small changes easy; others make them expensive enough that a rebuild should be considered.",
+      a: "Share the platform and required changes so feasibility and access needs can be assessed. The quote reflects what is possible on your stack. Some platforms make small changes easy; others make them expensive enough that a rebuild should be considered.",
     },
     {
       q: "Do repairs include SEO ranking work?",
@@ -133,7 +133,7 @@ If the repair touches titles and descriptions, it can support practical search h
   ],
   cta: {
     title: "Request a small repair",
-    body: "Share the URL and the specific issue. I usually reply within 1–2 business days with whether it fits the repair path, a likely scope, and a written price — or an honest redirect to a larger package.",
+    body: "Share the URL and the specific issue. I aim to reply within 1–2 business days with whether it fits the repair path, a likely scope, and a written price — or an honest redirect to a larger package.",
     secondaryHref: "/?projectType=small-repair#contact",
     secondaryLabel: "Open the repair inquiry form",
   },

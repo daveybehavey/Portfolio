@@ -61,7 +61,7 @@ export const PROJECT_ARCHETYPES = [
   },
   {
     id: "ecommerce",
-    title: "Working online store",
+    title: "Online store scope",
     example: "StarMapCo",
     body: "For small shops ready for a real storefront with product pages, cart, checkout, payments, and a practical operating handoff — not just a gallery of products.",
     imageSrc: "/projects/starmapco.webp",

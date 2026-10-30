@@ -46,9 +46,9 @@ export const SERVICE_DEPENDENCIES = [
 ] as const;
 
 export const SERVICE_LOCAL_CONTEXT = [
-  "Victoria and Vancouver Island customers often decide from a phone after comparing a few local options — speed, clarity, and contact paths matter more than agency theatrics",
+  "Design priorities include mobile readability, clear prices, shipping information and an obvious next step.",
   "Service businesses usually win trust by explaining the offer, the area they serve, and how to request a quote without hunting through dead-end menus",
-  "A practical Google Business Profile plus a coherent website is often more useful than a cluster of thin city doorway pages",
+  "EuroDigital pairs a practical Google Business Profile with a coherent website rather than a cluster of thin city doorway pages",
 ] as const;
 
 export const SERVICE_PROCESS = [
@@ -66,7 +66,7 @@ export const SERVICE_PROCESS = [
   },
   {
     title: "4) Launch and handoff",
-    body: "Domain, hosting, analytics, Search Console, account access, launch notes, and a walkthrough are organized so you understand what you own.",
+    body: "Domain, hosting, account access, launch notes, and a walkthrough are organized so you understand what you own. Analytics, Search Console and Business Profile work follow the package boundaries.",
   },
 ] as const;
 
@@ -97,7 +97,7 @@ export const SERVICE_FAQS = [
   },
   {
     q: "Can I see real examples first?",
-    a: "Yes. Review the live MaestrosServices and StarMapCo case studies and the portfolio index. Those pages explain relationship context, implementation, live proof links, and what is deliberately not claimed.",
+    a: "Yes. Review the MaestrosServices and StarMapCo case studies and the portfolio index. Those pages explain relationship context, topics covered, project links, and what is deliberately not claimed.",
   },
 ] as const;
 
