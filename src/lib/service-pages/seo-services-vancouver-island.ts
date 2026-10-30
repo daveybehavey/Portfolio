@@ -118,7 +118,7 @@ If another vendor promises page-one results in thirty days, treat that as a diff
     },
     {
       q: "Will you build a page for every Island town?",
-      a: "No. One substantial, truthful page plus clear service-area language is preferred over thin near-duplicate doorway pages.",
+      a: "No. One substantial, truthful page plus clear service-area language is preferred over thin near-duplicate doorway pages. A small number of substantial city pages exist where searchers demonstrably look for a local provider — Nanaimo, Courtenay, and Duncan have SEO pages in this set — each with its own scope, proof limits, and service-area disclosure.",
     },
     {
       q: "Can you help with Google Business Profile?",
@@ -132,6 +132,9 @@ If another vendor promises page-one results in thirty days, treat that as a diff
       href: "/google-business-profile-setup-victoria",
       label: "Google Business Profile setup",
     },
+    { href: "/seo-nanaimo", label: "SEO in Nanaimo" },
+    { href: "/seo-courtenay-bc", label: "SEO in Courtenay" },
+    { href: "/seo-duncan", label: "SEO in Duncan" },
     { href: "/website-design-vancouver-island", label: "Island website design" },
     {
       href: "/blog/google-business-profile-checklist-vancouver-island",
