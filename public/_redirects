@@ -1,0 +1,6 @@
+# Cloudflare Pages redirects (applied at the edge; no static page exists
+# for these paths). The site has no /contact page — the contact section
+# lives on the homepage and the site's own navigation points to /#contact —
+# so send any external link that still uses /contact there instead of 404.
+/contact /#contact 301
+/contact/ /#contact 301
