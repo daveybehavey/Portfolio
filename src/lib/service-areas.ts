@@ -1,7 +1,9 @@
 /**
  * Vancouver Island service localities for ProfessionalService areaServed.
- * Greater Victoria / south Island municipalities (11) aligned with the owner's
- * services/areas catalog pattern — locality names only, no street addresses.
+ * Greater Victoria / south Island municipalities plus the mid-Island
+ * Oceanside communities of Parksville and Qualicum Beach (13), aligned with
+ * the owner's services/areas catalog pattern — locality names only, no
+ * street addresses.
  */
 export const SERVICE_AREAS = [
   "Victoria",
@@ -15,6 +17,8 @@ export const SERVICE_AREAS = [
   "Highlands",
   "Sooke",
   "Sidney",
+  "Parksville",
+  "Qualicum Beach",
 ] as const;
 
 export type ServiceArea = (typeof SERVICE_AREAS)[number];
