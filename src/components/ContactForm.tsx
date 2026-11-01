@@ -59,6 +59,7 @@ type ContactResponse = {
   code?: string;
   message?: string;
   reference?: string;
+  providerMessageId?: string;
   fieldErrors?: Record<string, string>;
   retryAfterSeconds?: number;
 };

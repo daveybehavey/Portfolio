@@ -78,6 +78,7 @@ test("valid payload is accepted with server-side verification and delivery idemp
   const body = await json(response);
   assert.equal(body.code, "accepted");
   assert.equal(body.reference, validBody.submissionId);
+  assert.equal(body.providerMessageId, "email-id");
   assert.match(body.message, /accepted by our email service for delivery/);
   assert.doesNotMatch(body.message, /reply within/);
   assert.equal(mock.calls.length, 2);
@@ -222,7 +223,9 @@ test("official safe Turnstile dummy path succeeds after Siteverify", async () =>
     mock,
   );
   assert.equal(response.status, 200);
-  assert.equal((await json(response)).code, "accepted");
+  const dummyBody = await json(response);
+  assert.equal(dummyBody.code, "accepted");
+  assert.equal(dummyBody.providerMessageId, "email-id");
   assert.equal(mock.calls.length, 2);
   assert.match(mock.calls[0].url, /siteverify/);
   assert.match(mock.calls[1].url, /api\.resend\.com\/emails/);
@@ -319,6 +322,7 @@ test("reports temporary Turnstile and email provider failures without exposing d
   assert.equal(resendResponse.status, 503);
   const resendBody = await json(resendResponse);
   assert.equal(resendBody.code, "delivery_failed");
+  assert.equal(resendBody.providerMessageId, undefined);
   assert.doesNotMatch(JSON.stringify(resendBody), /provider internals/);
 });
 
@@ -344,7 +348,9 @@ test("provider acceptance without a message ID is unconfirmed, not success", asy
   const mock = fetchMock({ resend: {} });
   const response = await handleContactRequest(request(), env, mock);
   assert.equal(response.status, 503);
-  assert.equal((await json(response)).code, "delivery_unconfirmed");
+  const body = await json(response);
+  assert.equal(body.code, "delivery_unconfirmed");
+  assert.equal(body.providerMessageId, undefined);
 });
 
 test("HTML output escapes untrusted visitor content", () => {

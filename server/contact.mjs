@@ -506,6 +506,12 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
       code: "accepted",
       message: `Your inquiry was accepted by our email service for delivery. Reference: ${validated.values.submissionId}.`,
       reference: validated.values.submissionId,
+      // The provider message ID is the only handle that can be looked up in
+      // the sending account afterwards. The submission reference is a local
+      // idempotency key and is not searchable in the provider's send log, so
+      // discarding the provider ID here would make a downstream delivery
+      // loss untraceable. It is issued only on confirmed acceptance.
+      providerMessageId: delivery.providerMessageId,
     },
     origin,
   );
