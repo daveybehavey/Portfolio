@@ -407,6 +407,53 @@ test("a retry replays the recorded attribution instead of fresh attribution", as
   assert.match(row.attribution, /"utmSource":"newsletter"/);
 });
 
+test("a retry replays recorded attribution byte-for-byte at a sanitize boundary", async () => {
+  const events = [];
+  const db = fakeDb(events);
+  const env = envWithDb(db);
+  // sanitizeUtm normalizes whitespace and then clamps to 100 characters,
+  // so this campaign is stored as exactly 100 characters ending in a
+  // space. Re-sanitizing the stored value would trim that trailing space
+  // and change the email body under the same idempotency key; the replay
+  // must use the recorded value untouched.
+  const recordedBody = {
+    ...validBody,
+    attribution: { utmCampaign: `${"a".repeat(99)} b` },
+  };
+
+  const first = await handleContactRequest(
+    request(recordedBody),
+    env,
+    fetchMock(events, { resendThrows: true }),
+  );
+  assert.equal(first.status, 503);
+  assert.equal((await first.json()).code, "delivery_unconfirmed");
+
+  const stored = JSON.parse(db.rows.get(validBody.submissionId).attribution);
+  assert.equal(stored.utmCampaign, `${"a".repeat(99)} `);
+  assert.equal(stored.utmCampaign.length, 100);
+
+  const retryMock = fetchMock(events);
+  const retry = await handleContactRequest(
+    request({ ...validBody, attribution: { utmCampaign: "fresh-value" } }),
+    env,
+    retryMock,
+  );
+  assert.equal(retry.status, 200);
+  assert.equal((await retry.json()).code, "accepted");
+
+  const resendCalls = retryMock.calls.filter((call) =>
+    call.url.includes("resend.com"),
+  );
+  assert.equal(resendCalls.length, 1);
+  const emailBody = JSON.parse(resendCalls[0].init.body);
+  assert.ok(
+    emailBody.text.includes(`UTM campaign: ${"a".repeat(99)} `),
+    "replayed email keeps the recorded campaign, trailing space included",
+  );
+  assert.doesNotMatch(emailBody.text, /fresh-value/);
+});
+
 test("a storage read failure sends nothing and reports temporarily unavailable", async () => {
   const events = [];
   const db = fakeDb(events, { failSelect: true });

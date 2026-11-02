@@ -455,12 +455,26 @@ function sameRecordedPayload(row, values) {
   );
 }
 
+// The recorded attribution was sanitized before it was stored, and it
+// must be replayed exactly as recorded: sanitizing it a second time is
+// not idempotent (normalize-then-clamp can store a value that ends in a
+// space, which a second pass trims), and any difference changes the
+// email body under the same idempotency key. Only the shape is
+// re-checked here; stored string values pass through untouched.
 function recordedAttribution(row) {
   if (!row?.attribution) {
     return {};
   }
   try {
-    return sanitizeAttribution(JSON.parse(row.attribution));
+    const parsed = JSON.parse(row.attribution);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return {};
+    }
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        ([, value]) => typeof value === "string",
+      ),
+    );
   } catch {
     return {};
   }
