@@ -473,7 +473,7 @@ test("concurrent same-ID requests: the insert loser is rejected, never sent", as
   // The first request records and sends its payload. The concurrent
   // request whose insert no-ops against that record is judged against
   // the recorded payload, rejected with the conflict, and never reaches
-  // the provider \u2014 a read-then-insert order would have let both
+  // the provider — a read-then-insert order would have let both
   // racers observe "no record" and send divergent bodies under one key.
   assert.equal(resA.status, 200);
   assert.equal(resB.status, 409);

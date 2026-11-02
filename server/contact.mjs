@@ -607,8 +607,8 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
       // The insert is the claim (INSERT OR IGNORE): whichever request
       // records the submission ID first owns the recorded payload. The
       // row is then read back, so a request that loses a concurrent race
-      // sees the winning record \u2014 not the empty read a read-then-insert
-      // order would hand both racers \u2014 and is rejected or replays
+      // sees the winning record — not the empty read a read-then-insert
+      // order would hand both racers — and is rejected or replays
       // exactly like a sequential retry.
       await recordPendingEnquiry(
         intakeDb,
