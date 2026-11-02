@@ -108,7 +108,8 @@ function fakeDb(events, control = {}) {
                 const [status, providerMessageId, failureReason, , submissionId] =
                   params;
                 const row = rows.get(submissionId);
-                if (row) {
+                // Mirrors the SQL guard: an 'accepted' row is never updated.
+                if (row && row.status !== "accepted") {
                   Object.assign(row, {
                     status,
                     provider_message_id: providerMessageId,
@@ -246,6 +247,33 @@ test("acceptance that cannot be recorded is reported unconfirmed and a retry rec
       `contact/${validBody.submissionId}`,
     );
   }
+});
+
+test("a later failed retry cannot overwrite a confirmed acceptance", async () => {
+  const events = [];
+  const db = fakeDb(events);
+  const env = envWithDb(db);
+
+  const first = await handleContactRequest(request(), env, fetchMock(events));
+  assert.equal(first.status, 200);
+  assert.equal((await first.json()).code, "accepted");
+
+  // The browser never saw the 200, so the form retries with the same
+  // submission ID — and this attempt's provider call fails transiently.
+  const retry = await handleContactRequest(
+    request(),
+    env,
+    fetchMock(events, { resendThrows: true }),
+  );
+  assert.equal(retry.status, 503);
+  assert.equal((await retry.json()).code, "delivery_unconfirmed");
+
+  // The confirmed acceptance and its provider message ID survive intact.
+  assert.equal(db.rows.size, 1);
+  const row = db.rows.get(validBody.submissionId);
+  assert.equal(row.status, "accepted");
+  assert.equal(row.provider_message_id, "email-id");
+  assert.equal(row.failure_reason, null);
 });
 
 test("without a CONTACT_DB binding the handler keeps the previous behavior", async () => {

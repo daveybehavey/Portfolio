@@ -428,13 +428,17 @@ async function recordPendingEnquiry(db, values, now) {
     .run();
 }
 
+// A confirmed acceptance is terminal: if the browser loses the success
+// response and retries with the same submission ID, a transient failure on
+// that retry must not overwrite the acceptance or erase the provider
+// message ID, so this update never touches an 'accepted' row.
 async function recordEnquiryOutcome(db, submissionId, outcome, now) {
   await db
     .prepare(
       `UPDATE contact_enquiries
          SET status = ?, provider_message_id = ?, failure_reason = ?,
              updated_at = ?
-       WHERE submission_id = ?`,
+       WHERE submission_id = ? AND status != 'accepted'`,
     )
     .bind(
       outcome.status,

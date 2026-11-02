@@ -50,6 +50,11 @@ and Turnstile:
    writes are best-effort — the pending record is retained regardless, and
    the visitor-facing delivery error is unchanged.
 
+A recorded `accepted` outcome is terminal: the outcome update never
+modifies an `accepted` row, so if the browser loses the success response
+and retries with the same submission ID, a transient failure on that retry
+cannot erase the confirmed acceptance or its provider message ID.
+
 Without a `CONTACT_DB` binding (Preview/local), intake is skipped and the
 handler behaves exactly as it did before this change.
 
