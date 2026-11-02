@@ -132,6 +132,7 @@ If another vendor promises page-one results in thirty days, treat that as a diff
       href: "/google-business-profile-setup-victoria",
       label: "Google Business Profile setup",
     },
+    { href: "/seo-victoria-bc", label: "SEO in Victoria" },
     { href: "/seo-nanaimo", label: "SEO in Nanaimo" },
     { href: "/seo-courtenay-bc", label: "SEO in Courtenay" },
     { href: "/seo-duncan", label: "SEO in Duncan" },

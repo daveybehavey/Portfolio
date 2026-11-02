@@ -18,6 +18,8 @@ function AttributionObserverInner() {
       search: searchParams?.toString() ? `?${searchParams.toString()}` : "",
       documentReferrer:
         typeof document !== "undefined" ? document.referrer : "",
+      currentOrigin:
+        typeof window !== "undefined" ? window.location.origin : "",
     });
   }, [pathname, searchParams]);
 

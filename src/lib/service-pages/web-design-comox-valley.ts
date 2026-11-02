@@ -137,7 +137,9 @@ Small changes later are covered by Small Website Repairs on an existing site. La
   relatedLinks: [
     { href: "/website-design-vancouver-island", label: "Island website design hub" },
     { href: "/web-design-victoria-bc", label: "Web design in Victoria" },
+    { href: "/web-design-langford", label: "Web design in Langford" },
     { href: "/web-design-nanaimo", label: "Web design in Nanaimo" },
+    { href: "/web-design-parksville-qualicum", label: "Web design in Parksville and Qualicum Beach" },
     { href: "/web-design-duncan-cowichan", label: "Web design in Duncan" },
     { href: "/web-design-campbell-river", label: "Web design in Campbell River" },
     { href: "/web-design-sooke-bc", label: "Web design in Sooke" },

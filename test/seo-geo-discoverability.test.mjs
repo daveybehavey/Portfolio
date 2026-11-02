@@ -3,7 +3,7 @@
  * Keeps AI-facing entity copy aligned with published offer constants.
  */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -128,4 +128,54 @@ test("homepage FAQ emits FAQPage schema for six published-topic questions", () =
   assert.match(faqs, /Which areas does EuroDigital serve/);
   assert.match(faqs, /How long does a website take/);
   assert.match(faqs, /Is ongoing marketing or support included/);
+});
+
+test("every service page has an inbound link from a hub or a peer page", () => {
+  // S96-3 finding 3: /web-design-langford, /web-design-parksville-qualicum,
+  // and /seo-victoria-bc shipped in the sitemap with no inbound internal
+  // link. Guard the whole graph so a future page cannot ship orphaned.
+  const pagesDir = path.join(root, "src/lib/service-pages");
+  const files = readdirSync(pagesDir).filter(
+    (file) => file.endsWith(".ts") && file !== "index.ts",
+  );
+
+  const pathByFile = new Map();
+  const linksByFile = new Map();
+  for (const file of files) {
+    const source = readFileSync(path.join(pagesDir, file), "utf8");
+    const pathMatch = source.match(/^\s*path:\s*"([^"]+)"/m);
+    assert.ok(pathMatch, `${file} declares a page path`);
+    pathByFile.set(file, pathMatch[1]);
+    const block = source.match(/relatedLinks:\s*\[([\s\S]*?)\n {2}\]/);
+    assert.ok(block, `${file} declares relatedLinks`);
+    linksByFile.set(
+      file,
+      new Set([...block[1].matchAll(/href:\s*"([^"]+)"/g)].map((m) => m[1])),
+    );
+  }
+
+  // The website-design hub page hand-lists its city pages; those count as
+  // inbound links too.
+  const hub = readFileSync(
+    path.join(root, "src/app/website-design-vancouver-island/page.tsx"),
+    "utf8",
+  );
+  const hubHrefs = new Set(
+    [...hub.matchAll(/href="([^"]+)"/g)].map((m) => m[1]),
+  );
+
+  const orphans = [];
+  for (const [file, pagePath] of pathByFile) {
+    let inbound = hubHrefs.has(pagePath);
+    if (!inbound) {
+      for (const [otherFile, hrefs] of linksByFile) {
+        if (otherFile !== file && hrefs.has(pagePath)) {
+          inbound = true;
+          break;
+        }
+      }
+    }
+    if (!inbound) orphans.push(pagePath);
+  }
+  assert.deepEqual(orphans, []);
 });

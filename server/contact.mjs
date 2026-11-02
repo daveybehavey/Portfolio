@@ -428,6 +428,58 @@ async function recordPendingEnquiry(db, values, now) {
     .run();
 }
 
+async function readRecordedEnquiry(db, submissionId) {
+  const row = await db
+    .prepare(
+      `SELECT submission_id, name, email, business, project_type, message,
+              attribution
+         FROM contact_enquiries
+        WHERE submission_id = ?`,
+    )
+    .bind(submissionId)
+    .first();
+  return row || null;
+}
+
+// The recorded payload is authoritative for a submission ID. The Resend
+// idempotency key is derived from that ID, so a retry must replay the
+// recorded enquiry — a changed payload under the same key would hand the
+// provider a different email body than the one the key was minted for.
+function sameRecordedPayload(row, values) {
+  return (
+    row.name === values.name &&
+    row.email === values.email &&
+    row.business === values.business &&
+    row.project_type === values.projectType &&
+    row.message === values.message
+  );
+}
+
+// The recorded attribution was sanitized before it was stored, and it
+// must be replayed exactly as recorded: sanitizing it a second time is
+// not idempotent (normalize-then-clamp can store a value that ends in a
+// space, which a second pass trims), and any difference changes the
+// email body under the same idempotency key. Only the shape is
+// re-checked here; stored string values pass through untouched.
+function recordedAttribution(row) {
+  if (!row?.attribution) {
+    return {};
+  }
+  try {
+    const parsed = JSON.parse(row.attribution);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return {};
+    }
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        ([, value]) => typeof value === "string",
+      ),
+    );
+  } catch {
+    return {};
+  }
+}
+
 // A confirmed acceptance is terminal: if the browser loses the success
 // response and retries with the same submission ID, a transient failure on
 // that retry must not overwrite the acceptance or erase the provider
@@ -543,14 +595,49 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
   // Record the enquiry durably before handing it to the email provider. If
   // the record cannot be written, do not send: an enquiry that exists only
   // in the provider's hands is exactly the loss this intake exists to stop.
+  // When a record already exists for this submission ID, it is
+  // authoritative: a retry carrying different enquiry details is rejected
+  // rather than resent under the same Resend idempotency key, and a retry
+  // with matching details replays the recorded payload (including its
+  // attribution) so the resent body is the recorded one.
   const intakeDb = getIntakeDb(env);
+  let sendValues = validated.values;
   if (intakeDb) {
     try {
+      // The insert is the claim (INSERT OR IGNORE): whichever request
+      // records the submission ID first owns the recorded payload. The
+      // row is then read back, so a request that loses a concurrent race
+      // sees the winning record — not the empty read a read-then-insert
+      // order would hand both racers — and is rejected or replays
+      // exactly like a sequential retry.
       await recordPendingEnquiry(
         intakeDb,
         validated.values,
         new Date().toISOString(),
       );
+      const recorded = await readRecordedEnquiry(
+        intakeDb,
+        validated.values.submissionId,
+      );
+      if (!recorded) {
+        throw new Error("recorded enquiry missing after insert");
+      }
+      if (!sameRecordedPayload(recorded, validated.values)) {
+        return jsonResponse(
+          409,
+          {
+            ok: false,
+            code: "submission_conflict",
+            message:
+              "This submission was already recorded with different details, so the changed version cannot be sent under the same reference. Refresh the page to start a new inquiry; the recorded version is the one on file.",
+          },
+          origin,
+        );
+      }
+      sendValues = {
+        ...validated.values,
+        attribution: recordedAttribution(recorded),
+      };
     } catch {
       return jsonResponse(
         503,
@@ -566,7 +653,7 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
   }
 
   const delivery = await sendEmail({
-    values: validated.values,
+    values: sendValues,
     config,
     fetchImpl,
   });

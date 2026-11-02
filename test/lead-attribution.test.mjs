@@ -230,6 +230,31 @@ test("CTA location allowlisting rejects unknown locations", () => {
   assert.equal(sanitizeCtaLocation("HEADER"), "");
 });
 
+test("blog CTA location survives server sanitization end to end", () => {
+  // The blog index sends analyticsLocation="blog" and the client type
+  // allows it; the server allowlist must not silently discard it.
+  assert.equal(sanitizeCtaLocation("blog"), "blog");
+  const cleaned = sanitizeAttribution({
+    pagePath: "/blog",
+    ctaLabel: "Request a project estimate",
+    ctaLocation: "blog",
+  });
+  assert.equal(cleaned.ctaLocation, "blog");
+
+  const result = validateContactPayload({
+    ...validBody,
+    attribution: { pagePath: "/blog", ctaLocation: "blog" },
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.values.attribution.ctaLocation, "blog");
+
+  const email = buildEmailPayload(
+    { ...validBody, attribution: cleaned },
+    { fromEmail: env.CONTACT_FROM_EMAIL, toEmail: env.CONTACT_TO_EMAIL },
+  );
+  assert.match(email.text, /CTA location: blog/);
+});
+
 test("attribution omitted from email when empty; included when present", () => {
   const empty = buildEmailPayload(
     { ...validBody, attribution: {} },
@@ -452,6 +477,53 @@ test("client sanitizeClientReferrer matches server sanitizeReferrer outputs", as
         `mismatch for ${sample}`,
       );
     }
+  } finally {
+    await cleanup();
+  }
+});
+
+test("observeLocation never stores a same-origin referrer as an external source", async () => {
+  const { mod, cleanup } = await loadClientLeadAttribution();
+  try {
+    const { observeLocation, collectLeadAttribution, resetLeadAttributionSessionForTests } = mod;
+
+    // A full navigation from another EuroDigital page is first-party
+    // movement, not external acquisition, so it must not be recorded.
+    resetLeadAttributionSessionForTests();
+    observeLocation({
+      pathname: "/",
+      search: "",
+      documentReferrer: "https://eurodigital.ca/web-design-victoria-bc",
+      currentOrigin: "https://eurodigital.ca",
+    });
+    assert.equal(collectLeadAttribution().referrer, undefined);
+
+    // A genuinely external referrer is still recorded (sanitized).
+    resetLeadAttributionSessionForTests();
+    observeLocation({
+      pathname: "/",
+      search: "",
+      documentReferrer: "https://www.google.com/search?q=web+design+victoria",
+      currentOrigin: "https://eurodigital.ca",
+    });
+    assert.equal(
+      collectLeadAttribution().referrer,
+      "https://www.google.com/search",
+    );
+
+    // The comparison is by origin, not by string prefix: a lookalike host
+    // that merely starts with the site's name stays external.
+    resetLeadAttributionSessionForTests();
+    observeLocation({
+      pathname: "/",
+      search: "",
+      documentReferrer: "https://eurodigital.ca.evil.example/landing",
+      currentOrigin: "https://eurodigital.ca",
+    });
+    assert.equal(
+      collectLeadAttribution().referrer,
+      "https://eurodigital.ca.evil.example/landing",
+    );
   } finally {
     await cleanup();
   }

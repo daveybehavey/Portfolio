@@ -58,7 +58,8 @@ function fetchMock(events, options = {}) {
 }
 
 // Minimal in-memory stand-in for the D1 binding surface the handler uses
-// (prepare -> bind -> run), keyed by submission_id like the real table.
+// (prepare -> bind -> run / first), keyed by submission_id like the real
+// table.
 function fakeDb(events, control = {}) {
   const rows = new Map();
   return {
@@ -67,6 +68,14 @@ function fakeDb(events, control = {}) {
       return {
         bind(...params) {
           return {
+            async first() {
+              if (sql.includes("SELECT") && sql.includes("contact_enquiries")) {
+                events.push("db:select");
+                if (control.failSelect) throw new Error("d1 select failed");
+                return rows.get(params[0]) ?? null;
+              }
+              throw new Error(`unexpected SQL: ${sql}`);
+            },
             async run() {
               if (sql.includes("INSERT OR IGNORE INTO contact_enquiries")) {
                 events.push("db:insert");
@@ -274,6 +283,223 @@ test("a later failed retry cannot overwrite a confirmed acceptance", async () =>
   assert.equal(row.status, "accepted");
   assert.equal(row.provider_message_id, "email-id");
   assert.equal(row.failure_reason, null);
+});
+
+test("a retry with changed details under the same submission ID is rejected and sends nothing", async () => {
+  const events = [];
+  const db = fakeDb(events);
+  const env = envWithDb(db);
+
+  // First attempt: the provider outcome is unconfirmed, so the row is
+  // retained as unconfirmed and the visitor is told to retry.
+  const first = await handleContactRequest(
+    request(),
+    env,
+    fetchMock(events, { resendThrows: true }),
+  );
+  assert.equal(first.status, 503);
+  assert.equal((await first.json()).code, "delivery_unconfirmed");
+
+  // The retry edits the message but keeps the same submission ID. The
+  // recorded payload is authoritative, so the changed version must not be
+  // sent under the same Resend idempotency key.
+  const retryMock = fetchMock(events);
+  const retry = await handleContactRequest(
+    request({
+      ...validBody,
+      message:
+        "Actually, we also need an online store added to the quote please.",
+    }),
+    env,
+    retryMock,
+  );
+  assert.equal(retry.status, 409);
+  assert.equal((await retry.json()).code, "submission_conflict");
+  assert.equal(
+    retryMock.calls.filter((call) => call.url.includes("resend.com")).length,
+    0,
+  );
+
+  // The recorded enquiry is untouched: original message, original status.
+  assert.equal(db.rows.size, 1);
+  const row = db.rows.get(validBody.submissionId);
+  assert.equal(row.message, validBody.message);
+  assert.equal(row.status, "unconfirmed");
+  assert.equal(row.provider_message_id, null);
+});
+
+test("a changed-details retry after acceptance is rejected and the acceptance stands", async () => {
+  const events = [];
+  const db = fakeDb(events);
+  const env = envWithDb(db);
+
+  const first = await handleContactRequest(request(), env, fetchMock(events));
+  assert.equal(first.status, 200);
+  assert.equal((await first.json()).code, "accepted");
+
+  const retryMock = fetchMock(events);
+  const retry = await handleContactRequest(
+    request({ ...validBody, business: "A Different Business Entirely" }),
+    env,
+    retryMock,
+  );
+  assert.equal(retry.status, 409);
+  assert.equal((await retry.json()).code, "submission_conflict");
+  assert.equal(
+    retryMock.calls.filter((call) => call.url.includes("resend.com")).length,
+    0,
+  );
+
+  const row = db.rows.get(validBody.submissionId);
+  assert.equal(row.business, validBody.business);
+  assert.equal(row.status, "accepted");
+  assert.equal(row.provider_message_id, "email-id");
+});
+
+test("a retry replays the recorded attribution instead of fresh attribution", async () => {
+  const events = [];
+  const db = fakeDb(events);
+  const env = envWithDb(db);
+  const recordedBody = {
+    ...validBody,
+    attribution: { pagePath: "/web-design", utmSource: "newsletter" },
+  };
+
+  const first = await handleContactRequest(
+    request(recordedBody),
+    env,
+    fetchMock(events, { resendThrows: true }),
+  );
+  assert.equal(first.status, 503);
+  assert.equal((await first.json()).code, "delivery_unconfirmed");
+
+  // Same enquiry details, but the retry collects different attribution
+  // (the client fingerprint does not cover attribution). The resent email
+  // must carry the recorded attribution so the body under the idempotency
+  // key is the recorded one.
+  const retryMock = fetchMock(events);
+  const retry = await handleContactRequest(
+    request({
+      ...validBody,
+      attribution: { pagePath: "/seo-services", utmSource: "changed-later" },
+    }),
+    env,
+    retryMock,
+  );
+  assert.equal(retry.status, 200);
+  assert.equal((await retry.json()).code, "accepted");
+
+  const resendCalls = retryMock.calls.filter((call) =>
+    call.url.includes("resend.com"),
+  );
+  assert.equal(resendCalls.length, 1);
+  const emailBody = JSON.parse(resendCalls[0].init.body);
+  assert.match(emailBody.text, /Page path: \/web-design/);
+  assert.match(emailBody.text, /UTM source: newsletter/);
+  assert.doesNotMatch(emailBody.text, /changed-later|\/seo-services/);
+  assert.equal(
+    resendCalls[0].init.headers["Idempotency-Key"],
+    `contact/${validBody.submissionId}`,
+  );
+
+  const row = db.rows.get(validBody.submissionId);
+  assert.equal(row.status, "accepted");
+  assert.match(row.attribution, /"utmSource":"newsletter"/);
+});
+
+test("a retry replays recorded attribution byte-for-byte at a sanitize boundary", async () => {
+  const events = [];
+  const db = fakeDb(events);
+  const env = envWithDb(db);
+  // sanitizeUtm normalizes whitespace and then clamps to 100 characters,
+  // so this campaign is stored as exactly 100 characters ending in a
+  // space. Re-sanitizing the stored value would trim that trailing space
+  // and change the email body under the same idempotency key; the replay
+  // must use the recorded value untouched.
+  const recordedBody = {
+    ...validBody,
+    attribution: { utmCampaign: `${"a".repeat(99)} b` },
+  };
+
+  const first = await handleContactRequest(
+    request(recordedBody),
+    env,
+    fetchMock(events, { resendThrows: true }),
+  );
+  assert.equal(first.status, 503);
+  assert.equal((await first.json()).code, "delivery_unconfirmed");
+
+  const stored = JSON.parse(db.rows.get(validBody.submissionId).attribution);
+  assert.equal(stored.utmCampaign, `${"a".repeat(99)} `);
+  assert.equal(stored.utmCampaign.length, 100);
+
+  const retryMock = fetchMock(events);
+  const retry = await handleContactRequest(
+    request({ ...validBody, attribution: { utmCampaign: "fresh-value" } }),
+    env,
+    retryMock,
+  );
+  assert.equal(retry.status, 200);
+  assert.equal((await retry.json()).code, "accepted");
+
+  const resendCalls = retryMock.calls.filter((call) =>
+    call.url.includes("resend.com"),
+  );
+  assert.equal(resendCalls.length, 1);
+  const emailBody = JSON.parse(resendCalls[0].init.body);
+  assert.ok(
+    emailBody.text.includes(`UTM campaign: ${"a".repeat(99)} `),
+    "replayed email keeps the recorded campaign, trailing space included",
+  );
+  assert.doesNotMatch(emailBody.text, /fresh-value/);
+});
+
+test("concurrent same-ID requests: the insert loser is rejected, never sent", async () => {
+  const events = [];
+  const db = fakeDb(events);
+  const env = envWithDb(db);
+  const changedBody = {
+    ...validBody,
+    message: "Changed details racing under the same submission ID.",
+  };
+
+  const mockA = fetchMock(events);
+  const mockB = fetchMock(events);
+  const [resA, resB] = await Promise.all([
+    handleContactRequest(request(validBody), env, mockA),
+    handleContactRequest(request(changedBody), env, mockB),
+  ]);
+
+  // The first request records and sends its payload. The concurrent
+  // request whose insert no-ops against that record is judged against
+  // the recorded payload, rejected with the conflict, and never reaches
+  // the provider — a read-then-insert order would have let both
+  // racers observe "no record" and send divergent bodies under one key.
+  assert.equal(resA.status, 200);
+  assert.equal(resB.status, 409);
+  assert.equal((await resB.json()).code, "submission_conflict");
+  assert.equal(
+    mockB.calls.filter((call) => call.url.includes("resend.com")).length,
+    0,
+  );
+  assert.equal(
+    mockA.calls.filter((call) => call.url.includes("resend.com")).length,
+    1,
+  );
+  const row = db.rows.get(validBody.submissionId);
+  assert.equal(row.message, validBody.message);
+  assert.equal(row.status, "accepted");
+});
+
+test("a storage read failure sends nothing and reports temporarily unavailable", async () => {
+  const events = [];
+  const db = fakeDb(events, { failSelect: true });
+  const mock = fetchMock(events);
+  const response = await handleContactRequest(request(), envWithDb(db), mock);
+
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).code, "temporarily_unavailable");
+  assert.equal(events.includes("fetch:resend"), false);
 });
 
 test("without a CONTACT_DB binding the handler keeps the previous behavior", async () => {
