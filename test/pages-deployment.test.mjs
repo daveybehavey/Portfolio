@@ -34,6 +34,9 @@ import {
   runGuardedProductionDeploy,
   scanBuildAssets,
   validatePagesConfig,
+  CONTACT_DB_BINDING,
+  CONTACT_DB_ID,
+  CONTACT_DB_NAME,
   CONTACT_MAILTO_HREF,
   ONLINE_FORM_DISABLED_MESSAGE,
   buildPagesStaticExport,
@@ -47,6 +50,14 @@ function baseConfig(overrides = {}) {
     name: PROJECT_NAME,
     pages_build_output_dir: "./out",
     compatibility_date: COMPATIBILITY_DATE,
+    d1_databases: [
+      {
+        binding: CONTACT_DB_BINDING,
+        database_name: CONTACT_DB_NAME,
+        database_id: CONTACT_DB_ID,
+        migrations_dir: "./migrations",
+      },
+    ],
     vars: { ...PRODUCTION_VARS },
     env: {
       preview: {
@@ -169,6 +180,30 @@ test("reviewed Pages configuration validates", () => {
   const report = validatePagesConfig(baseConfig());
   assert.equal(report.ok, true, JSON.stringify(report.checks.filter((c) => c.status === "fail")));
   assert.equal(report.summary.failed, 0);
+});
+
+test("validator rejects a missing or repointed contact-intake D1 binding", () => {
+  const missing = baseConfig();
+  delete missing.d1_databases;
+  const missingReport = validatePagesConfig(missing);
+  assert.equal(missingReport.ok, false);
+  assert.ok(
+    missingReport.checks.some(
+      (item) => item.status === "fail" && item.name === "PRODUCTION_CONTACT_DB_BINDING",
+    ),
+  );
+
+  const repointed = baseConfig();
+  repointed.d1_databases = [
+    { binding: CONTACT_DB_BINDING, database_name: CONTACT_DB_NAME, database_id: OTHER_ROLLBACK_DEPLOYMENT_ID },
+  ];
+  const repointedReport = validatePagesConfig(repointed);
+  assert.equal(repointedReport.ok, false);
+  assert.ok(
+    repointedReport.checks.some(
+      (item) => item.status === "fail" && item.name === "PRODUCTION_CONTACT_DB_BINDING",
+    ),
+  );
 });
 
 test("validator rejects missing preview plain-text vars", () => {

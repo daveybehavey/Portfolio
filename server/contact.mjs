@@ -390,6 +390,66 @@ async function sendEmail({ values, config, fetchImpl }) {
   return { ok: true, providerMessageId };
 }
 
+// --- Durable intake -------------------------------------------------------
+// When the CONTACT_DB D1 binding is present (Production; the committed-config
+// preflight requires it there), every validated, challenge-passed enquiry is
+// recorded BEFORE the email send and its outcome is recorded afterwards, so
+// a provider-side loss can never erase the only copy of an enquiry. Without
+// a binding (Preview/local), intake is skipped and delivery behaves exactly
+// as before.
+
+function getIntakeDb(env) {
+  const db = env?.CONTACT_DB;
+  return db && typeof db.prepare === "function" ? db : null;
+}
+
+async function recordPendingEnquiry(db, values, now) {
+  await db
+    .prepare(
+      `INSERT OR IGNORE INTO contact_enquiries
+         (submission_id, created_at, updated_at, name, email, business,
+          project_type, message, source_page, attribution, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+    )
+    .bind(
+      values.submissionId,
+      now,
+      now,
+      values.name,
+      values.email,
+      values.business,
+      values.projectType,
+      values.message,
+      values.attribution?.pagePath || null,
+      hasAttribution(values.attribution)
+        ? JSON.stringify(values.attribution)
+        : null,
+    )
+    .run();
+}
+
+// A confirmed acceptance is terminal: if the browser loses the success
+// response and retries with the same submission ID, a transient failure on
+// that retry must not overwrite the acceptance or erase the provider
+// message ID, so this update never touches an 'accepted' row.
+async function recordEnquiryOutcome(db, submissionId, outcome, now) {
+  await db
+    .prepare(
+      `UPDATE contact_enquiries
+         SET status = ?, provider_message_id = ?, failure_reason = ?,
+             updated_at = ?
+       WHERE submission_id = ? AND status != 'accepted'`,
+    )
+    .bind(
+      outcome.status,
+      outcome.providerMessageId || null,
+      outcome.failureReason || null,
+      now,
+      submissionId,
+    )
+    .run();
+}
+
 export async function handleContactRequest(request, env, fetchImpl = fetch) {
   if (request.method !== "POST") {
     return jsonResponse(405, {
@@ -480,12 +540,55 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
     );
   }
 
+  // Record the enquiry durably before handing it to the email provider. If
+  // the record cannot be written, do not send: an enquiry that exists only
+  // in the provider's hands is exactly the loss this intake exists to stop.
+  const intakeDb = getIntakeDb(env);
+  if (intakeDb) {
+    try {
+      await recordPendingEnquiry(
+        intakeDb,
+        validated.values,
+        new Date().toISOString(),
+      );
+    } catch {
+      return jsonResponse(
+        503,
+        {
+          ok: false,
+          code: "temporarily_unavailable",
+          message:
+            "We could not record your inquiry just now. Your entries are still here; retry or use the email link.",
+        },
+        origin,
+      );
+    }
+  }
+
   const delivery = await sendEmail({
     values: validated.values,
     config,
     fetchImpl,
   });
   if (!delivery.ok) {
+    if (intakeDb) {
+      try {
+        await recordEnquiryOutcome(
+          intakeDb,
+          validated.values.submissionId,
+          {
+            status: delivery.unconfirmed ? "unconfirmed" : "failed",
+            failureReason: delivery.unconfirmed
+              ? "provider_unconfirmed"
+              : `provider_rejected:${delivery.status}`,
+          },
+          new Date().toISOString(),
+        );
+      } catch {
+        // Best effort only: the pending record is retained either way, and
+        // the visitor-facing delivery error below is unchanged.
+      }
+    }
     return jsonResponse(
       503,
       {
@@ -497,6 +600,33 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
       },
       origin,
     );
+  }
+
+  if (intakeDb) {
+    try {
+      await recordEnquiryOutcome(
+        intakeDb,
+        validated.values.submissionId,
+        { status: "accepted", providerMessageId: delivery.providerMessageId },
+        new Date().toISOString(),
+      );
+    } catch {
+      // Resend accepted the message, but the acceptance could not be
+      // recorded. Report the delivery as unconfirmed rather than claiming
+      // success: a retry with the same submission ID re-checks the
+      // idempotent send and retries the recording, and the pending enquiry
+      // is retained for reconciliation either way.
+      return jsonResponse(
+        503,
+        {
+          ok: false,
+          code: "delivery_unconfirmed",
+          message:
+            "We could not confirm delivery. Your entries are still here. Retry to check this submission before sending another.",
+        },
+        origin,
+      );
+    }
   }
 
   return jsonResponse(
