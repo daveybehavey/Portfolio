@@ -454,6 +454,43 @@ test("a retry replays recorded attribution byte-for-byte at a sanitize boundary"
   assert.doesNotMatch(emailBody.text, /fresh-value/);
 });
 
+test("concurrent same-ID requests: the insert loser is rejected, never sent", async () => {
+  const events = [];
+  const db = fakeDb(events);
+  const env = envWithDb(db);
+  const changedBody = {
+    ...validBody,
+    message: "Changed details racing under the same submission ID.",
+  };
+
+  const mockA = fetchMock(events);
+  const mockB = fetchMock(events);
+  const [resA, resB] = await Promise.all([
+    handleContactRequest(request(validBody), env, mockA),
+    handleContactRequest(request(changedBody), env, mockB),
+  ]);
+
+  // The first request records and sends its payload. The concurrent
+  // request whose insert no-ops against that record is judged against
+  // the recorded payload, rejected with the conflict, and never reaches
+  // the provider \u2014 a read-then-insert order would have let both
+  // racers observe "no record" and send divergent bodies under one key.
+  assert.equal(resA.status, 200);
+  assert.equal(resB.status, 409);
+  assert.equal((await resB.json()).code, "submission_conflict");
+  assert.equal(
+    mockB.calls.filter((call) => call.url.includes("resend.com")).length,
+    0,
+  );
+  assert.equal(
+    mockA.calls.filter((call) => call.url.includes("resend.com")).length,
+    1,
+  );
+  const row = db.rows.get(validBody.submissionId);
+  assert.equal(row.message, validBody.message);
+  assert.equal(row.status, "accepted");
+});
+
 test("a storage read failure sends nothing and reports temporarily unavailable", async () => {
   const events = [];
   const db = fakeDb(events, { failSelect: true });

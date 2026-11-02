@@ -604,11 +604,25 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
   let sendValues = validated.values;
   if (intakeDb) {
     try {
+      // The insert is the claim (INSERT OR IGNORE): whichever request
+      // records the submission ID first owns the recorded payload. The
+      // row is then read back, so a request that loses a concurrent race
+      // sees the winning record \u2014 not the empty read a read-then-insert
+      // order would hand both racers \u2014 and is rejected or replays
+      // exactly like a sequential retry.
+      await recordPendingEnquiry(
+        intakeDb,
+        validated.values,
+        new Date().toISOString(),
+      );
       const recorded = await readRecordedEnquiry(
         intakeDb,
         validated.values.submissionId,
       );
-      if (recorded && !sameRecordedPayload(recorded, validated.values)) {
+      if (!recorded) {
+        throw new Error("recorded enquiry missing after insert");
+      }
+      if (!sameRecordedPayload(recorded, validated.values)) {
         return jsonResponse(
           409,
           {
@@ -620,17 +634,10 @@ export async function handleContactRequest(request, env, fetchImpl = fetch) {
           origin,
         );
       }
-      if (recorded) {
-        sendValues = {
-          ...validated.values,
-          attribution: recordedAttribution(recorded),
-        };
-      }
-      await recordPendingEnquiry(
-        intakeDb,
-        validated.values,
-        new Date().toISOString(),
-      );
+      sendValues = {
+        ...validated.values,
+        attribution: recordedAttribution(recorded),
+      };
     } catch {
       return jsonResponse(
         503,

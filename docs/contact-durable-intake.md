@@ -55,8 +55,11 @@ modifies an `accepted` row, so if the browser loses the success response
 and retries with the same submission ID, a transient failure on that retry
 cannot erase the confirmed acceptance or its provider message ID.
 
-The recorded payload is authoritative for a submission ID (S96-3). Before
-sending, the handler reads any existing record for the submission ID:
+The recorded payload is authoritative for a submission ID (S96-3). The
+handler records the enquiry first (INSERT OR IGNORE \u2014 the insert is the
+claim) and then reads the record back before sending, so a request that
+loses a concurrent race against the same submission ID is judged against
+the winning record exactly like a sequential retry:
 
 - If the retry's enquiry details (name, email, business, project type,
   message) differ from the recorded ones, the handler returns 409
