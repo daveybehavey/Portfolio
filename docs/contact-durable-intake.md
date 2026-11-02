@@ -1,53 +1,62 @@
-# EuroDigital durable contact intake — blocked
+# EuroDigital durable contact intake — implemented
 
-Durable intake is not implemented. The task brief requires stopping if the build
-needs a new environment variable, and prohibits configuration/environment changes.
+Every validated, Turnstile-passed contact enquiry is recorded durably in
+Cloudflare D1 **before** the email send, and the delivery outcome is recorded
+afterwards, so a provider-side loss can never erase the only copy of an
+enquiry. (Finding S95-3; the ED2-01 test email did arrive in the inbox, but
+nothing durable recorded the enquiry itself.)
 
-## Repository evidence
+## Storage
 
-- `functions/api/contact.js` passes the request and Pages environment to
-  `server/contact.mjs`.
-- `server/contact.mjs` validates the request, verifies Turnstile, and calls Resend.
-  Acceptance requires a nonempty provider message ID. There is no durable write.
-- `wrangler.jsonc` configures production and preview variables, with no KV, D1,
-  R2, or Durable Object bindings. No existing durable intake system or database
-  adapter was found in the repository.
-- `.env.example` and `.dev.vars.example` contain contact delivery configuration,
-  with no durable storage binding.
+- D1 database `eurodigital-contact-intake`
+  (`40e26c32-ca9b-415a-8088-63b41f2189a9`, WNAM), provisioned 2026-11-02.
+- Bound as `CONTACT_DB` in the top-level (Production) section of
+  `wrangler.jsonc`. Preview has no binding and skips intake on purpose: its
+  deliveries go to the provider's test inbox and must not pollute the real
+  enquiry table.
+- Schema: `migrations/0001_contact_enquiries.sql` — one row per submission,
+  keyed by the client-minted submission ID, which is also the Resend
+  idempotency key. Columns: timestamps, name, email, business, project type,
+  message, source page (attribution `pagePath`), the sanitized attribution
+  JSON, a status (`pending` / `accepted` / `failed` / `unconfirmed`), the
+  provider message ID, and a bounded failure reason. Migration 0001 was
+  applied to the database at provisioning time.
+- The committed-config preflight (`npm run pages:config:preflight`) requires
+  the exact reviewed binding (`PRODUCTION_CONTACT_DB_BINDING`), so the
+  binding cannot be dropped or repointed silently.
 
-Cloudflare Pages Functions do not provide an implicit persistent filesystem or
-database. Browser storage, process memory, and provider acceptance do not satisfy
-the requirement to durably store the enquiry before sending email.
+## Handler behavior (`server/contact.mjs`)
 
-## Decision required
+Origin restrictions, payload validation, Turnstile verification, recipients,
+email copy, and the Resend idempotency key are unchanged. After validation
+and Turnstile:
 
-Authorize a separately reviewed Cloudflare storage resource and environment
-binding before implementation. A Cloudflare D1 database is a small native option
-for an enquiry table and status updates; it would require provisioning, a binding
-(for example `CONTACT_DB`), and a schema migration. None were added or applied.
-An existing owner-managed store could instead be used once its supported binding
-and access pattern are supplied. Repository inspection does not establish whether
-an unbound resource exists in the Cloudflare account; no account changes or
-external contact sends were performed.
+1. The enquiry is inserted with status `pending`
+   (`INSERT OR IGNORE`, so a retry with the same submission ID reuses the
+   record). If this write fails, the handler returns 503
+   `temporarily_unavailable` and **does not send** — an enquiry that exists
+   only in the provider's hands is exactly the loss this intake exists to
+   stop.
+2. Resend is called as before. Success still requires a nonempty provider
+   message ID; the visitor is told "accepted" only on confirmed acceptance.
+3. On acceptance, the row is updated to `accepted` with the provider message
+   ID. If that update fails, the response is 503 `delivery_unconfirmed`
+   rather than a false success: a retry with the same submission ID
+   re-checks the idempotent send and retries the recording, and the pending
+   enquiry is retained either way.
+4. On provider rejection the row is marked `failed` with reason
+   `provider_rejected:<status>`; on a network/timeout/no-ID outcome it is
+   marked `unconfirmed` with reason `provider_unconfirmed`. These outcome
+   writes are best-effort — the pending record is retained regardless, and
+   the visitor-facing delivery error is unchanged.
 
-## Implementation requirements after authorization
+Without a `CONTACT_DB` binding (Preview/local), intake is skipped and the
+handler behaves exactly as it did before this change.
 
-Preserve origin restrictions, payload validation, Turnstile, recipients, email
-copy, and the existing Resend idempotency key. After validation and Turnstile:
+## Tests
 
-1. Await a durable enquiry write containing the submission ID, timestamp, name,
-   email, message, and pending status before calling Resend. Preserve the other
-   validated enquiry fields needed to reconcile the existing email.
-2. Record accepted status and the provider message ID only on confirmed
-   acceptance. Distinguish provider rejection from an unconfirmed timeout or
-   malformed response, and retain a bounded reason for reconciliation.
-3. Return visitor success only after storage and provider acceptance with an ID.
-   Define retry handling and status-write failure behavior so an already accepted
-   email cannot cause a false success or lose its original pending enquiry.
-4. Test record-before-send ordering, stored-plus-provider-ID acceptance, retained
-   failure records, and no send or success on initial storage failure. Also cover
-   status-update failures and retries with the same submission ID.
-
-The runtime and UI remain unchanged in this blocker-only draft. These new intake
-tests cannot establish the requested behavior until storage is authorized and the
-implementation exists.
+`test/contact-intake.test.mjs` covers record-before-send ordering, stored
+fields, acceptance with the stored provider ID, retained `failed` and
+`unconfirmed` records, no send and no success on initial storage failure,
+the unrecorded-acceptance retry reconciliation, and the no-binding fallback.
+`test/pages-deployment.test.mjs` pins the config guard.

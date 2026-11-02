@@ -31,6 +31,11 @@ export function isValidDeploymentId(value) {
 export const PRODUCTION_SITE_KEY = "0x4AAAAAAEAJbd2XaAk7ZRBR";
 export const PREVIEW_SITE_KEY = "1x00000000000000000000AA";
 
+/** Durable contact-intake D1 binding required in top-level (Production) config. */
+export const CONTACT_DB_BINDING = "CONTACT_DB";
+export const CONTACT_DB_NAME = "eurodigital-contact-intake";
+export const CONTACT_DB_ID = "40e26c32-ca9b-415a-8088-63b41f2189a9";
+
 export const TURNSTILE_TEST_SITE_KEYS = Object.freeze([
   "1x00000000000000000000AA",
   "2x00000000000000000000AB",
@@ -467,6 +472,32 @@ export function validatePagesConfig(config, options = {}) {
     pass(
       "NO_ENV_PRODUCTION",
       "env.production is absent; Production uses top-level vars.",
+    );
+  }
+
+  // The durable contact intake depends on the top-level (Production) D1
+  // binding. Require the exact reviewed binding so it cannot be dropped or
+  // repointed silently; Preview intentionally has no binding and skips
+  // intake, since its deliveries go to the provider's test inbox.
+  const d1Bindings = Array.isArray(config.d1_databases)
+    ? config.d1_databases
+    : [];
+  const contactDb = d1Bindings.find(
+    (entry) => entry && entry.binding === CONTACT_DB_BINDING,
+  );
+  if (
+    contactDb &&
+    contactDb.database_name === CONTACT_DB_NAME &&
+    contactDb.database_id === CONTACT_DB_ID
+  ) {
+    pass(
+      "PRODUCTION_CONTACT_DB_BINDING",
+      `Top-level d1_databases binds ${CONTACT_DB_BINDING} to ${CONTACT_DB_NAME} (${CONTACT_DB_ID}).`,
+    );
+  } else {
+    fail(
+      "PRODUCTION_CONTACT_DB_BINDING",
+      `Top-level d1_databases must bind ${CONTACT_DB_BINDING} to ${CONTACT_DB_NAME} (${CONTACT_DB_ID}) for durable contact intake.`,
     );
   }
 

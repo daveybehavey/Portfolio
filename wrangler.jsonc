@@ -3,6 +3,14 @@
   "name": "eurodigital-ca",
   "pages_build_output_dir": "./out",
   "compatibility_date": "2026-04-25",
+  "d1_databases": [
+    {
+      "binding": "CONTACT_DB",
+      "database_name": "eurodigital-contact-intake",
+      "database_id": "40e26c32-ca9b-415a-8088-63b41f2189a9",
+      "migrations_dir": "./migrations"
+    }
+  ],
   "vars": {
     "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAEAJbd2XaAk7ZRBR",
     "CONTACT_FROM_EMAIL": "EuroDigital <website@send.eurodigital.ca>",
