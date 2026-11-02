@@ -55,6 +55,22 @@ modifies an `accepted` row, so if the browser loses the success response
 and retries with the same submission ID, a transient failure on that retry
 cannot erase the confirmed acceptance or its provider message ID.
 
+The recorded payload is authoritative for a submission ID (S96-3). Before
+sending, the handler reads any existing record for the submission ID:
+
+- If the retry's enquiry details (name, email, business, project type,
+  message) differ from the recorded ones, the handler returns 409
+  `submission_conflict` and sends nothing: a changed payload must not ride
+  the same Resend idempotency key, and the visitor is told to refresh the
+  page to start a new inquiry. The recorded enquiry is left untouched.
+- If the details match, the send replays the recorded payload — including
+  the recorded attribution, which the client collects fresh on every
+  attempt and does not cover with its change fingerprint — so the email
+  body under the idempotency key is the recorded one.
+- If the record cannot be read, the handler returns 503
+  `temporarily_unavailable` and does not send, matching the posture for a
+  failed initial write.
+
 Without a `CONTACT_DB` binding (Preview/local), intake is skipped and the
 handler behaves exactly as it did before this change.
 
@@ -63,5 +79,8 @@ handler behaves exactly as it did before this change.
 `test/contact-intake.test.mjs` covers record-before-send ordering, stored
 fields, acceptance with the stored provider ID, retained `failed` and
 `unconfirmed` records, no send and no success on initial storage failure,
-the unrecorded-acceptance retry reconciliation, and the no-binding fallback.
+the unrecorded-acceptance retry reconciliation, the recorded-payload
+authority (changed-details retries rejected with 409 before and after
+acceptance, recorded attribution replayed on a matching retry, no send on
+a storage read failure), and the no-binding fallback.
 `test/pages-deployment.test.mjs` pins the config guard.

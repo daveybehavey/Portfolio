@@ -134,6 +134,7 @@ The MaestrosServices case study below is a project overview: a site EuroDigital 
   showCaseStudies: true,
   relatedLinks: [
     { href: "/seo-services-vancouver-island", label: "Island SEO hub" },
+    { href: "/seo-victoria-bc", label: "SEO in Victoria" },
     { href: "/seo-nanaimo", label: "SEO in Nanaimo" },
     { href: "/seo-courtenay-bc", label: "SEO in Courtenay" },
     { href: "/web-design-duncan-cowichan", label: "Web design in Duncan" },

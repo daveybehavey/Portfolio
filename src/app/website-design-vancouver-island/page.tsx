@@ -419,8 +419,14 @@ export default function VancouverIslandWebsiteDesignPage() {
             <ButtonLink href="/web-design-victoria-bc" variant="secondary">
               Web design in Victoria
             </ButtonLink>
+            <ButtonLink href="/web-design-langford" variant="secondary">
+              Web design in Langford
+            </ButtonLink>
             <ButtonLink href="/web-design-nanaimo" variant="secondary">
               Web design in Nanaimo
+            </ButtonLink>
+            <ButtonLink href="/web-design-parksville-qualicum" variant="secondary">
+              Web design in Parksville and Qualicum Beach
             </ButtonLink>
             <ButtonLink href="/web-design-comox-valley" variant="secondary">
               Web design in the Comox Valley

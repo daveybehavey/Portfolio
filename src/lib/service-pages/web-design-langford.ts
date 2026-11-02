@@ -128,6 +128,13 @@ export const webDesignLangfordContent = {
   showCaseStudies: false,
   relatedLinks: [
     { href: "/website-design-vancouver-island", label: "Island website design hub" },
+    { href: "/web-design-victoria-bc", label: "Web design in Victoria" },
+    { href: "/web-design-nanaimo", label: "Web design in Nanaimo" },
+    { href: "/web-design-parksville-qualicum", label: "Web design in Parksville and Qualicum Beach" },
+    { href: "/web-design-comox-valley", label: "Web design in the Comox Valley" },
+    { href: "/web-design-duncan-cowichan", label: "Web design in Duncan" },
+    { href: "/web-design-campbell-river", label: "Web design in Campbell River" },
+    { href: "/web-design-sooke-bc", label: "Web design in Sooke" },
     {
       href: "/google-business-profile-setup-victoria",
       label: "Google Business Profile setup in Victoria",

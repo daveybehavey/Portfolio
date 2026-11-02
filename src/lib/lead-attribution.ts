@@ -193,14 +193,25 @@ export function noteInquiryCta(options: {
   session.ctaLocation = options.location;
 }
 
+function originOf(value: string): string {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return "";
+  }
+}
+
 /**
  * Observe the current URL: landing path (first view), UTMs, CTA params,
- * current path, and (once) document.referrer when external.
+ * current path, and (once) document.referrer when external. A referrer on
+ * the site's own origin is first-party navigation, not an external
+ * acquisition source, so it is never stored as the referral source.
  */
 export function observeLocation(options: {
   pathname: string;
   search: string;
   documentReferrer?: string;
+  currentOrigin?: string;
 }): void {
   const pathname = normalizePathname(options.pathname || "/");
   session.pagePath = pathname;
@@ -229,7 +240,12 @@ export function observeLocation(options: {
 
   if (session.referrer === null && options.documentReferrer) {
     const ref = sanitizeClientReferrer(options.documentReferrer);
-    if (ref) session.referrer = ref;
+    const currentOrigin = options.currentOrigin
+      ? originOf(options.currentOrigin)
+      : "";
+    if (ref && (!currentOrigin || originOf(ref) !== currentOrigin)) {
+      session.referrer = ref;
+    }
   }
 }
 

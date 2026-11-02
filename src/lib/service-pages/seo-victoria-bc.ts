@@ -136,6 +136,9 @@ Custom Project is quoted per project, with discovery and written deliverables, a
   showCaseStudies: false,
   relatedLinks: [
     { href: "/seo-services-vancouver-island", label: "Island SEO page" },
+    { href: "/seo-nanaimo", label: "SEO in Nanaimo" },
+    { href: "/seo-courtenay-bc", label: "SEO in Courtenay" },
+    { href: "/seo-duncan", label: "SEO in Duncan" },
     {
       href: "/google-business-profile-setup-victoria",
       label: "Google Business Profile setup (Victoria)",

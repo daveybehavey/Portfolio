@@ -27,6 +27,7 @@ export const ALLOWED_CTA_LOCATIONS = Object.freeze([
   "privacy",
   "service",
   "case_study",
+  "blog",
 ]);
 
 const ALLOWED_CTA_LOCATION_SET = new Set(ALLOWED_CTA_LOCATIONS);
