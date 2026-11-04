@@ -163,7 +163,7 @@ export function BeforeAfterCompare() {
 
         <div
           ref={trackRef}
-          className="relative mt-5 overflow-hidden rounded-xl border border-slate-200/90 bg-slate-100 shadow-inner"
+          className="relative mt-5 overflow-hidden rounded-xl border border-slate-200/90 bg-slate-100 shadow-inner focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2"
           onPointerDown={(event) => {
             dragging.current = true;
             (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);

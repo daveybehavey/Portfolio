@@ -30,16 +30,25 @@ export function HeroCollage({ items }: { items: Item[] }) {
                 it.className,
               )}
             >
-              <Image
-                src={it.src}
-                alt={it.alt}
-                fill
-                className="object-cover"
-                sizes="(min-width: 1024px) 520px, 90vw"
-                priority={idx === 0}
-                fetchPriority={idx === 0 ? "high" : "low"}
-                decoding={idx === 0 ? "sync" : "async"}
-              />
+              <picture>
+                {it.src === "/projects/vancouverislandproroofing.webp" ? (
+                  <source
+                    type="image/webp"
+                    srcSet="/projects/vancouverislandproroofing-480.webp 480w, /projects/vancouverislandproroofing-768.webp 768w, /projects/vancouverislandproroofing.webp 1200w"
+                    sizes="(min-width: 1152px) 240px, (min-width: 1024px) 21vw, (min-width: 640px) 50vw, 48vw"
+                  />
+                ) : null}
+                <Image
+                  src={it.src}
+                  alt={it.alt}
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 1024px) 520px, 90vw"
+                  priority={idx === 0}
+                  fetchPriority={idx === 0 ? "high" : "low"}
+                  decoding={idx === 0 ? "sync" : "async"}
+                />
+              </picture>
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/10 via-transparent to-transparent" />
             </div>
           ))}
