@@ -77,11 +77,11 @@ export const SERVICE_FAQS = [
   },
   {
     q: "Do you take on small website fixes?",
-    a: `Yes. Not every website problem needs a redesign. ${SMALL_SITE_REPAIR.name} start around ${SMALL_SITE_REPAIR.pricePlain}, depending on the platform, access required, and work involved. If a small fix is enough, that is what we will recommend. New builds keep the published launch package starting points.`,
+    a: `Yes. Not every website problem needs a redesign. ${SMALL_SITE_REPAIR.name} start from ${SMALL_SITE_REPAIR.pricePlain}, depending on the platform, access required, and work involved. If a small fix is enough, that is what we will recommend. New builds keep the published launch package starting points.`,
   },
   {
     q: "What are the starting prices?",
-    a: `Small website repairs start around ${SMALL_SITE_REPAIR.pricePlain} for narrowly scoped existing-site work. One-Page Launch starts at ${PACKAGES[0].price.replace("From ", "")}, Business Website at ${PACKAGES[1].price.replace("From ", "")}, and Online Store at ${PACKAGES[2].price.replace("From ", "")}. They are starting points for a defined scope. Content volume, integrations, product count, migrations, and unusual requirements can change the quote. You receive written deliverables and a price before work starts.`,
+    a: `Small website repairs start from ${SMALL_SITE_REPAIR.pricePlain} for narrowly scoped existing-site work. One-Page Launch starts at ${PACKAGES[0].price.replace("From ", "")}, Business Website at ${PACKAGES[1].price.replace("From ", "")}, and Online Store at ${PACKAGES[2].price.replace("From ", "")}. They are starting points for a defined scope. Content volume, integrations, product count, migrations, and unusual requirements can change the quote. You receive written deliverables and a price before work starts.`,
   },
   {
     q: "Will you create a separate page for every Island town?",
