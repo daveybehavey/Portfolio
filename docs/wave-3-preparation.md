@@ -1,5 +1,7 @@
 # Wave-3 preparation pack — DRAFT / evidence incomplete
 
+C8 inventory update (2026-11-03): the [authoritative URL identity register](wave-3-url-inventory.md) resolves the eight identities and records the complete 26-page marketing/editorial scope (18 service pages plus eight home/editorial/portfolio pages; privacy excluded). The original inventory-gap statements below are retained as historical PR #59 findings and are superseded for identity only. Measurement and implementation approval gaps remain open.
+
 Prepared 2026-11-03 (America/Vancouver). Source baseline: `main` at `efa3490f7684ba072127fa7be9884f6a3d509144`.
 
 Preparation only. This document proposes decisions; it changes no route, customer-facing copy, redirect, canonical, sitemap, schema, analytics, or configuration. No merge or deployment is authorized. Wave-3 implementation is blocked on the unverified items below.
