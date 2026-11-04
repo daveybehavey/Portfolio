@@ -75,7 +75,7 @@ test("homepage surfaces small-repair path without collapsing launch offers", () 
   assert.match(home, /SMALL_SITE_REPAIR/);
   assert.match(home, /SMALL_SITE_REPAIR\.ctaLabel/);
   assert.match(home, /Do you take on small website fixes\?/);
-  assert.match(home, /start around \$125 CAD/);
+  assert.match(home, /start from \$125 CAD/);
   assert.match(home, /One-Page Launch starts at \$499 CAD/);
   assert.match(home, /Business Website starts at \$1,250 CAD/);
 

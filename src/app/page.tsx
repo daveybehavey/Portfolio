@@ -30,11 +30,11 @@ const faqItems = [
   ...GEO_FAQS,
   {
     q: "Do you take on small website fixes?",
-    a: "Yes. Not every website problem needs a redesign. Small, clearly scoped repairs on an existing site can start around $125 CAD, depending on the platform, access required, and work involved. If a small fix is enough, that is what we will recommend. Larger launches stay on the package prices below when a new build is genuinely the right fit.",
+    a: "Yes. Not every website problem needs a redesign. Small, clearly scoped repairs on an existing site can start from $125 CAD, depending on the platform, access required, and work involved. If a small fix is enough, that is what we will recommend. Larger launches stay on the package prices below when a new build is genuinely the right fit.",
   },
   {
     q: "Are these prices fixed?",
-    a: "They are starting points for a defined scope. Small website repairs start around $125 CAD for narrowly scoped existing-site work. One-Page Launch starts at $499 CAD, Business Website starts at $1,250 CAD, and Online Store starts at $2,000 CAD. Content volume, integrations, product count, migrations, and unusual requirements can change the quote. You receive written deliverables and a price before work starts.",
+    a: "They are starting points for a defined scope. Small website repairs start from $125 CAD for narrowly scoped existing-site work. One-Page Launch starts at $499 CAD, Business Website starts at $1,250 CAD, and Online Store starts at $2,000 CAD. Content volume, integrations, product count, migrations, and unusual requirements can change the quote. You receive written deliverables and a price before work starts.",
   },
   {
     q: "What is included in the One-Page Launch?",
