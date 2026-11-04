@@ -64,6 +64,17 @@ type ContactResponse = {
   retryAfterSeconds?: number;
 };
 
+function readBusinessFields(form: HTMLFormElement) {
+  const data = new FormData(form);
+  return {
+    name: String(data.get("name") || ""),
+    email: String(data.get("email") || ""),
+    business: String(data.get("business") || ""),
+    projectType: String(data.get("projectType") || ""),
+    message: String(data.get("message") || ""),
+  };
+}
+
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
@@ -240,13 +251,7 @@ function ContactFormInner({ email }: { email: string }) {
 
     const form = event.currentTarget;
     const data = new FormData(form);
-    const businessFields = {
-      name: String(data.get("name") || ""),
-      email: String(data.get("email") || ""),
-      business: String(data.get("business") || ""),
-      projectType: String(data.get("projectType") || ""),
-      message: String(data.get("message") || ""),
-    };
+    const businessFields = readBusinessFields(form);
     // Keep one submission ID across unchanged retries so the server can
     // reconcile a retry with the original attempt; mint a new ID as soon as
     // any business field changes so an edited inquiry is never reconciled
@@ -291,14 +296,23 @@ function ContactFormInner({ email }: { email: string }) {
       }
 
       trackGenerateLead({ method: "contact_form", location: "contact" });
+      // Read the live form after both awaits: this completion belongs to the
+      // submitted snapshot, and must not clear a newer unsent draft.
+      const draftUnchanged =
+        JSON.stringify(readBusinessFields(form)) === fingerprint;
+      const acceptedMessage =
+        result.message ||
+        "Your inquiry was accepted by our email service for delivery.";
       setStatus({
         state: "success",
-        message:
-          result.message ||
-          "Your inquiry was accepted by our email service for delivery.",
+        message: draftUnchanged
+          ? acceptedMessage
+          : `${acceptedMessage} Your newer edits are still here and have not been sent.`,
       });
-      form.reset();
-      setProjectTypeValue("");
+      if (draftUnchanged) {
+        form.reset();
+        setProjectTypeValue("");
+      }
       submissionIdRef.current = null;
       submissionFingerprintRef.current = null;
       resetTurnstile();
