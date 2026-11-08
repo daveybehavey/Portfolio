@@ -81,7 +81,10 @@ export function BlogPostView({ post }: { post: BlogPost }) {
                       <ul className="mt-4 grid gap-2 text-sm leading-relaxed text-slate-700 sm:text-base">
                         {section.list.map((item) => (
                           <li key={item} className="flex gap-2">
-                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
+                            <span
+                              className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400"
+                              aria-hidden
+                            />
                             <span>{item}</span>
                           </li>
                         ))}
@@ -113,7 +116,7 @@ export function BlogPostView({ post }: { post: BlogPost }) {
               <p className="mt-10 text-sm text-slate-500">
                 <Link
                   href="/blog"
-                  className="font-medium text-indigo-700 underline-offset-4 hover:underline"
+                  className="rounded-sm font-medium text-indigo-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35 focus-visible:ring-offset-2"
                 >
                   ← All blog posts
                 </Link>
@@ -153,7 +156,7 @@ export function BlogIndexCard({ post }: { post: BlogPost }) {
       <h2 className="mt-2 text-xl font-semibold text-slate-900">
         <Link
           href={post.path}
-          className="underline-offset-4 hover:underline"
+          className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35 focus-visible:ring-offset-2"
         >
           {post.title}
         </Link>

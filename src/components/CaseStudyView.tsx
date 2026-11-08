@@ -80,7 +80,7 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
               <li>
                 <Link
                   href="/"
-                  className="font-medium text-slate-700 underline-offset-4 hover:underline"
+                  className="rounded-sm font-medium text-slate-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35 focus-visible:ring-offset-2"
                 >
                   Home
                 </Link>
@@ -91,7 +91,7 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
               <li>
                 <Link
                   href="/projects"
-                  className="font-medium text-slate-700 underline-offset-4 hover:underline"
+                  className="rounded-sm font-medium text-slate-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35 focus-visible:ring-offset-2"
                 >
                   Portfolio
                 </Link>
@@ -142,7 +142,7 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
                 <li key={chapter.id} className="flex items-center gap-2 sm:gap-3">
                   <a
                     href={`#${chapter.id}`}
-                    className="rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-slate-700 underline-offset-2 hover:border-indigo-200 hover:text-indigo-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35"
+                    className="rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-slate-700 underline-offset-2 hover:border-indigo-200 hover:text-indigo-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35 focus-visible:ring-offset-2"
                   >
                     {chapter.label}
                   </a>
@@ -172,7 +172,10 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
                 <ul className="mt-4 grid gap-2 text-sm text-slate-700">
                   {study.constraints.map((item) => (
                     <li key={item} className="flex gap-2">
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
+                      <span
+                        className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400"
+                        aria-hidden
+                      />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -186,7 +189,10 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
               <ul className="mt-4 grid gap-2 text-sm text-slate-700">
                 {study.implementation.map((item) => (
                   <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
+                    <span
+                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400"
+                      aria-hidden
+                    />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -221,7 +227,10 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
               <ul className="grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
                 {study.stack.map((item) => (
                   <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
+                    <span
+                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400"
+                      aria-hidden
+                    />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -268,7 +277,10 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
               <ul className="mt-4 grid gap-2 text-sm text-slate-700">
                 {study.limitations.map((item) => (
                   <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
+                    <span
+                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400"
+                      aria-hidden
+                    />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -281,7 +293,10 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
               <ul className="mt-4 grid gap-2 text-sm text-slate-700">
                 {study.notClaimed.map((item) => (
                   <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
+                    <span
+                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400"
+                      aria-hidden
+                    />
                     <span>{item}</span>
                   </li>
                 ))}
