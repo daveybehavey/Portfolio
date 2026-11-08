@@ -29,7 +29,8 @@ export function ProjectCard({ project }: { project: Project }) {
           fill
           className="object-cover opacity-90 transition duration-500 ease-out group-hover:scale-[1.02] group-hover:opacity-100 motion-reduce:group-hover:scale-100"
           sizes="(min-width: 1024px) 520px, (min-width: 640px) 50vw, 100vw"
-          priority={false}
+          loading="lazy"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/0 to-transparent" />
         <div className="absolute left-4 top-4 rounded-full border border-white/30 bg-white/85 px-2.5 py-1 text-xs font-medium text-slate-900">

@@ -84,20 +84,4 @@ body {
     }
   }
 
-  .nav-link-header {
-    @apply relative transition-colors duration-200;
-  }
-
-  .nav-link-header::after {
-    content: "";
-    @apply pointer-events-none absolute -bottom-0.5 left-0 right-0 h-0.5 origin-center scale-x-0 rounded-full opacity-0 transition duration-200 ease-out;
-    background-color: rgb(var(--mark) / 0.85);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .nav-link-header:hover::after,
-    .nav-link-header:focus-visible::after {
-      @apply scale-x-100 opacity-100;
-    }
-  }
 }

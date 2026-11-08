@@ -43,9 +43,10 @@ export function HeroCollage({ items }: { items: Item[] }) {
                   alt={it.alt}
                   fill
                   className="object-cover"
-                  sizes="(min-width: 1024px) 520px, 90vw"
+                  sizes="(min-width: 1024px) 240px, (min-width: 640px) 50vw, 48vw"
                   priority={idx === 0}
                   fetchPriority={idx === 0 ? "high" : "low"}
+                  loading={idx === 0 ? "eager" : "lazy"}
                   decoding={idx === 0 ? "sync" : "async"}
                 />
               </picture>

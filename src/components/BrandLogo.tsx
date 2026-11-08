@@ -31,6 +31,8 @@ export function BrandLogo({
         height={80}
         className={`${markSize} shrink-0 object-contain`}
         priority={size === "header"}
+        fetchPriority={size === "header" ? "high" : "low"}
+        decoding={size === "header" ? "sync" : "async"}
         aria-hidden
       />
       <span className="flex min-w-0 flex-col">

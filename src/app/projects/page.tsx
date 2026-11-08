@@ -104,13 +104,15 @@ export default function ProjectsPage() {
             <Reveal>
               <Card className="overflow-hidden">
                 <div className="grid gap-0 lg:grid-cols-2">
-                  <div className="relative min-h-[280px]">
+                  <div className="relative aspect-[16/10] w-full bg-slate-100 lg:aspect-auto lg:min-h-[280px]">
                     <Image
                       src={notebill.imageSrc}
                       alt={`${notebill.name} preview`}
                       fill
                       className="object-cover"
                       sizes="(min-width: 1024px) 38rem, 100vw"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-slate-950/10 to-transparent" />
                     {notebill.playStoreUrl ? (
@@ -128,9 +130,9 @@ export default function ProjectsPage() {
                     <div className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
                       {notebill.label}
                     </div>
-                    <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
+                    <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
                       {notebill.name}
-                    </h2>
+                    </h3>
                     <p className="mt-4 text-sm leading-relaxed text-slate-700">
                       {notebill.outcome}
                     </p>
@@ -199,10 +201,10 @@ export default function ProjectsPage() {
                 <div className="text-sm font-medium text-slate-600">
                   Website launch, essentials included, tidy handoff.
                 </div>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
+                <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
                   Tell me what your business does — I will suggest a package and
                   realistic timeline.
-                </h2>
+                </h3>
               </div>
               <div className="flex flex-wrap gap-3">
                 <ButtonLink

@@ -158,6 +158,9 @@ export function DeviceShowcase({
                     : "(min-width: 1024px) 720px, 100vw"
               }
               priority={mode === "desktop"}
+              fetchPriority={mode === "desktop" ? "high" : "low"}
+              loading={mode === "desktop" ? "eager" : "lazy"}
+              decoding="async"
             />
           </div>
         </div>

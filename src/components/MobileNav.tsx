@@ -84,9 +84,8 @@ export function MobileNav() {
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm shadow-slate-900/5 backdrop-blur transition hover:bg-white active:scale-[0.97] motion-reduce:active:scale-100"
+        className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm shadow-slate-900/5 backdrop-blur transition hover:bg-white active:scale-[0.97] motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35 focus-visible:ring-offset-2"
       >
-        <span className="sr-only">{open ? "Close" : "Menu"}</span>
         <span aria-hidden className="font-mono text-base leading-none">
           {open ? "×" : "≡"}
         </span>
