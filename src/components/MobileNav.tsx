@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useRef, useState } from "react";
 import { ButtonLink } from "@/components/Button";
 import { buildContactHref, noteInquiryCta } from "@/lib/lead-attribution";
@@ -30,12 +29,30 @@ const links = [
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
   const reduced = usePrefersReducedMotion();
   const baseId = useId();
   const panelId = `${baseId}-panel`;
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const prevOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      const raf = window.requestAnimationFrame(() => setVisible(true));
+      return () => window.cancelAnimationFrame(raf);
+    }
+    setVisible(false);
+    if (!mounted) return;
+    if (reduced) {
+      setMounted(false);
+      return;
+    }
+    const t = window.setTimeout(() => setMounted(false), 180);
+    return () => window.clearTimeout(t);
+  }, [open, mounted, reduced]);
 
   useEffect(() => {
     if (!open) return;
@@ -75,6 +92,13 @@ export function MobileNav() {
     }
   }, [open]);
 
+  const panelTransition = reduced
+    ? undefined
+    : "transition-[opacity,transform] duration-[180ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]";
+  const backdropTransition = reduced
+    ? undefined
+    : "transition-opacity duration-150 ease-out";
+
   return (
     <div className="lg:hidden">
       <button
@@ -92,78 +116,73 @@ export function MobileNav() {
         </span>
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <>
-            <motion.button
-              type="button"
-              aria-label="Close menu"
-              className="fixed inset-0 z-40 cursor-default bg-slate-950/25 backdrop-blur-[2px]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: reduced ? 0 : 0.15 }}
-              onClick={() => setOpen(false)}
-            />
+      {mounted ? (
+        <>
+          <button
+            type="button"
+            aria-label="Close menu"
+            className={[
+              "fixed inset-0 z-40 cursor-default bg-slate-950/25 backdrop-blur-[2px]",
+              backdropTransition,
+              visible ? "opacity-100" : "opacity-0",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            onClick={() => setOpen(false)}
+          />
 
-            <motion.div
-              ref={panelRef}
-              id={panelId}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Site navigation"
-              className="fixed left-3 right-3 top-20 z-50 overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 shadow-lg shadow-slate-900/10 backdrop-blur-md"
-              initial={
-                reduced ? { opacity: 1 } : { opacity: 0, y: -8, scale: 0.98 }
-              }
-              animate={
-                reduced ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }
-              }
-              exit={
-                reduced ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.98 }
-              }
-              transition={{
-                duration: reduced ? 0 : 0.18,
-                ease: [0.2, 0.8, 0.2, 1],
-              }}
-            >
-              <div className="p-4">
-                <div className="grid gap-1">
-                  {links.map((l) => (
-                    <a
-                      key={l.href}
-                      href={l.href}
-                      className="rounded-xl px-3 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
-                      onClick={() => {
-                        if (l.label === "Contact") {
-                          noteInquiryCta({
-                            label: "Contact",
-                            location: "mobile_nav",
-                          });
-                        }
-                        setOpen(false);
-                      }}
-                    >
-                      {l.label}
-                    </a>
-                  ))}
-                </div>
-                <div className="mt-4">
-                  <ButtonLink
-                    href="/#contact"
-                    className="w-full"
-                    magnetic
-                    analyticsLocation="mobile_nav"
-                    analyticsLabel="Get a quote"
+          <div
+            ref={panelRef}
+            id={panelId}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Site navigation"
+            className={[
+              "fixed left-3 right-3 top-20 z-50 overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 shadow-lg shadow-slate-900/10 backdrop-blur-md",
+              panelTransition,
+              visible
+                ? "translate-y-0 scale-100 opacity-100"
+                : "translate-y-[-8px] scale-[0.98] opacity-0",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            <div className="p-4">
+              <div className="grid gap-1">
+                {links.map((l) => (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    className="rounded-xl px-3 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+                    onClick={() => {
+                      if (l.label === "Contact") {
+                        noteInquiryCta({
+                          label: "Contact",
+                          location: "mobile_nav",
+                        });
+                      }
+                      setOpen(false);
+                    }}
                   >
-                    Get a quote
-                  </ButtonLink>
-                </div>
+                    {l.label}
+                  </a>
+                ))}
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+              <div className="mt-4">
+                <ButtonLink
+                  href="/#contact"
+                  className="w-full"
+                  magnetic
+                  analyticsLocation="mobile_nav"
+                  analyticsLabel="Get a quote"
+                >
+                  Get a quote
+                </ButtonLink>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }
