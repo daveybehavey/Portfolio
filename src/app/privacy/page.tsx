@@ -6,13 +6,29 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SkipLink } from "@/components/SkipLink";
 import { SiteFooter } from "@/components/SiteFooter";
 import { isGaEnabled } from "@/lib/analytics";
-import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
+import { SITE_SHARE_IMAGE } from "@/lib/structured-data";
+import { CONTACT_EMAIL, SITE_URL, defaultOpenGraph } from "@/lib/site";
+
+const privacyDescription =
+  "How EuroDigital handles contact inquiries, spam protection, analytics, and hosting on eurodigital.ca.";
 
 export const metadata: Metadata = {
   title: "Privacy",
-  description:
-    "How EuroDigital handles contact inquiries, spam protection, analytics, and hosting on eurodigital.ca.",
+  description: privacyDescription,
   alternates: { canonical: "/privacy" },
+  openGraph: {
+    ...defaultOpenGraph,
+    title: "Privacy — EuroDigital",
+    description: privacyDescription,
+    url: `${SITE_URL}/privacy`,
+    images: [SITE_SHARE_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Privacy — EuroDigital",
+    description: privacyDescription,
+    images: [SITE_SHARE_IMAGE.url],
+  },
 };
 
 export default function PrivacyPage() {
