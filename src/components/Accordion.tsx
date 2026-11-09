@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
@@ -32,29 +31,19 @@ export function Accordion({
               <span className="hidden text-slate-500 group-open:inline">–</span>
             </summary>
 
-            <AnimatePresence initial={false}>
-              {isOpen && (
-                <motion.div
-                  initial={
-                    reduced
-                      ? { height: "auto", opacity: 1 }
-                      : { height: 0, opacity: 0 }
-                  }
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={
-                    reduced
-                      ? { height: "auto", opacity: 0 }
-                      : { height: 0, opacity: 0 }
-                  }
-                  transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
-                  className="overflow-hidden"
-                >
-                  <div className="border-t border-slate-100/80 bg-slate-50/35 px-5 pb-5 pt-3 text-sm leading-relaxed text-slate-700">
-                    {it.a}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {isOpen ? (
+              <div
+                className={
+                  reduced
+                    ? "overflow-hidden"
+                    : "overflow-hidden motion-safe:animate-[accordion-open_0.28s_cubic-bezier(0.2,0.8,0.2,1)_both]"
+                }
+              >
+                <div className="border-t border-slate-100/80 bg-slate-50/35 px-5 pb-5 pt-3 text-sm leading-relaxed text-slate-700">
+                  {it.a}
+                </div>
+              </div>
+            ) : null}
           </details>
         );
       })}
