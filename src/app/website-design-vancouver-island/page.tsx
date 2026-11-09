@@ -27,6 +27,10 @@ import {
   SERVICE_WHO_FITS,
   SMALL_SITE_REPAIR,
 } from "@/lib/service-landing";
+import {
+  SITE_SHARE_IMAGE,
+  breadcrumbListJsonLd,
+} from "@/lib/structured-data";
 import { SITE_URL, defaultOpenGraph } from "@/lib/site";
 
 const pageUrl = `${SITE_URL}${SERVICE_LANDING_PATH}`;
@@ -40,11 +44,13 @@ export const metadata: Metadata = {
     title: `${SERVICE_LANDING_TITLE} — EuroDigital`,
     description: SERVICE_LANDING_DESCRIPTION,
     url: pageUrl,
+    images: [SITE_SHARE_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: `${SERVICE_LANDING_TITLE} — EuroDigital`,
     description: SERVICE_LANDING_DESCRIPTION,
+    images: [SITE_SHARE_IMAGE.url],
   },
 };
 
@@ -94,6 +100,11 @@ export default function VancouverIslandWebsiteDesignPage() {
       serviceType: "Website design and launch",
     },
   };
+
+  const breadcrumbJsonLd = breadcrumbListJsonLd([
+    { name: "Home", path: "/" },
+    { name: SERVICE_LANDING_TITLE, path: SERVICE_LANDING_PATH },
+  ]);
 
   return (
     <div className="relative min-h-screen overflow-x-clip">
@@ -475,6 +486,11 @@ export default function VancouverIslandWebsiteDesignPage() {
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
     </div>
   );
