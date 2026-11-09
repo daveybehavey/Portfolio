@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ServiceLandingContent } from "@/lib/service-landing-types";
+import { SITE_SHARE_IMAGE } from "@/lib/structured-data";
 import { SITE_URL, defaultOpenGraph } from "@/lib/site";
 
 // The root layout applies a "%s — EuroDigital" title template to every
@@ -24,11 +25,13 @@ export function servicePageMetadata(
       title: `${content.title} — EuroDigital`,
       description: content.description,
       url: pageUrl,
+      images: [SITE_SHARE_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title: `${content.title} — EuroDigital`,
       description: content.description,
+      images: [SITE_SHARE_IMAGE.url],
     },
   };
 }

@@ -9,8 +9,11 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SkipLink } from "@/components/SkipLink";
 import type { BlogPost } from "@/lib/blog";
+import { breadcrumbListJsonLd } from "@/lib/structured-data";
+import { SITE_URL } from "@/lib/site";
 
 export function BlogPostView({ post }: { post: BlogPost }) {
+  const pageUrl = `${SITE_URL}${post.path}`;
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -18,6 +21,7 @@ export function BlogPostView({ post }: { post: BlogPost }) {
     description: post.description,
     datePublished: post.publishedAt,
     dateModified: post.updatedAt ?? post.publishedAt,
+    url: pageUrl,
     author: {
       "@type": "Person",
       name: "David Heslop",
@@ -25,10 +29,16 @@ export function BlogPostView({ post }: { post: BlogPost }) {
     publisher: {
       "@type": "Organization",
       name: "EuroDigital",
-      url: "https://eurodigital.ca",
+      url: SITE_URL,
     },
-    mainEntityOfPage: `https://eurodigital.ca${post.path}`,
+    mainEntityOfPage: pageUrl,
   };
+
+  const breadcrumbJsonLd = breadcrumbListJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/blog" },
+    { name: post.title, path: post.path },
+  ]);
 
   return (
     <div className="relative min-h-screen overflow-x-clip">
@@ -139,6 +149,11 @@ export function BlogPostView({ post }: { post: BlogPost }) {
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
     </div>
   );
