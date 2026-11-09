@@ -12,6 +12,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SkipLink } from "@/components/SkipLink";
 import type { CaseStudy } from "@/lib/case-studies";
 import { SERVICE_LANDING_PATH } from "@/lib/service-landing";
+import { breadcrumbListJsonLd } from "@/lib/structured-data";
 import { SITE_URL } from "@/lib/site";
 
 const STORY_CHAPTERS = [
@@ -23,30 +24,13 @@ const STORY_CHAPTERS = [
 ] as const;
 
 export function CaseStudyView({ study }: { study: CaseStudy }) {
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: `${SITE_URL}/`,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Portfolio",
-        item: `${SITE_URL}/projects`,
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: study.projectName,
-        item: `${SITE_URL}${study.path}`,
-      },
-    ],
-  };
+  // Same visible breadcrumb labels; home item uses apex SITE_URL (no trailing slash)
+  // to match sitemap / canonical hygiene.
+  const breadcrumbJsonLd = breadcrumbListJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Portfolio", path: "/projects" },
+    { name: study.projectName, path: study.path },
+  ]);
 
   const creativeWorkJsonLd = {
     "@context": "https://schema.org",

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BlogPostView } from "@/components/BlogPostView";
 import { blogPosts, getBlogPost } from "@/lib/blog";
+import { SITE_SHARE_IMAGE } from "@/lib/structured-data";
 import { SITE_URL, defaultOpenGraph } from "@/lib/site";
 
 type BlogPostParams = { slug: string };
@@ -31,11 +32,13 @@ export async function generateMetadata({
       title: `${post.title} — EuroDigital`,
       description: post.description,
       url: pageUrl,
+      images: [SITE_SHARE_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title: `${post.title} — EuroDigital`,
       description: post.description,
+      images: [SITE_SHARE_IMAGE.url],
     },
   };
 }

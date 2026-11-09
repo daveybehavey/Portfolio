@@ -7,6 +7,10 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SkipLink } from "@/components/SkipLink";
 import { blogPosts } from "@/lib/blog";
+import {
+  SITE_SHARE_IMAGE,
+  breadcrumbListJsonLd,
+} from "@/lib/structured-data";
 import { SITE_URL, defaultOpenGraph } from "@/lib/site";
 
 const title = "Blog — practical notes for Victoria & Vancouver Island businesses";
@@ -22,15 +26,47 @@ export const metadata: Metadata = {
     title: `${title} — EuroDigital`,
     description,
     url: `${SITE_URL}/blog`,
+    images: [SITE_SHARE_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: `${title} — EuroDigital`,
     description,
+    images: [SITE_SHARE_IMAGE.url],
   },
 };
 
 export default function BlogIndexPage() {
+  const blogJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: title,
+    description,
+    url: `${SITE_URL}/blog`,
+    publisher: {
+      "@type": "Organization",
+      name: "EuroDigital",
+      url: SITE_URL,
+    },
+    blogPost: blogPosts.map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.description,
+      datePublished: post.publishedAt,
+      dateModified: post.updatedAt ?? post.publishedAt,
+      url: `${SITE_URL}${post.path}`,
+      author: {
+        "@type": "Person",
+        name: "David Heslop",
+      },
+    })),
+  };
+
+  const breadcrumbJsonLd = breadcrumbListJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/blog" },
+  ]);
+
   return (
     <div className="relative min-h-screen overflow-x-clip">
       <PageBackground />
@@ -74,6 +110,17 @@ export default function BlogIndexPage() {
       </main>
 
       <SiteFooter />
+
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
     </div>
   );
 }

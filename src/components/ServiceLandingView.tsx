@@ -16,6 +16,7 @@ import {
   SMALL_SITE_REPAIR,
 } from "@/lib/offer";
 import type { ServiceLandingContent } from "@/lib/service-landing-types";
+import { breadcrumbListJsonLd } from "@/lib/structured-data";
 import { SITE_URL } from "@/lib/site";
 
 function packagesForMode(mode: ServiceLandingContent["packagesMode"]) {
@@ -95,6 +96,12 @@ export function ServiceLandingView({
       serviceType: content.serviceType,
     },
   };
+
+  // "Home" matches case-study breadcrumb copy; page title is the on-page h1 source.
+  const breadcrumbJsonLd = breadcrumbListJsonLd([
+    { name: "Home", path: "/" },
+    { name: content.title, path: content.path },
+  ]);
 
   return (
     <div className="relative min-h-screen overflow-x-clip">
@@ -511,6 +518,11 @@ export function ServiceLandingView({
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
     </div>
   );

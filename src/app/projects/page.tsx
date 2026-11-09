@@ -10,6 +10,10 @@ import { Section } from "@/components/Section";
 import { PageBackground } from "@/components/PageBackground";
 import { SiteFooter } from "@/components/SiteFooter";
 import { projects } from "@/lib/projects";
+import {
+  SITE_SHARE_IMAGE,
+  breadcrumbListJsonLd,
+} from "@/lib/structured-data";
 import { SITE_URL, defaultOpenGraph } from "@/lib/site";
 
 const pageUrl = `${SITE_URL}/projects`;
@@ -26,11 +30,13 @@ export const metadata: Metadata = {
     title: "Portfolio — EuroDigital",
     description: portfolioDescription,
     url: pageUrl,
+    images: [SITE_SHARE_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: "Portfolio — EuroDigital",
     description: portfolioDescription,
+    images: [SITE_SHARE_IMAGE.url],
   },
 };
 
@@ -42,6 +48,32 @@ const otherProjects = projects.filter(
 
 export default function ProjectsPage() {
   const [leadExample, secondExample] = featuredProjects;
+
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Portfolio",
+    description: portfolioDescription,
+    url: pageUrl,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "EuroDigital",
+      url: SITE_URL,
+    },
+    hasPart: projects.map((project) => ({
+      "@type": "CreativeWork",
+      name: project.name,
+      description: project.outcome,
+      url: project.caseStudyPath
+        ? `${SITE_URL}${project.caseStudyPath}`
+        : project.url,
+    })),
+  };
+
+  const breadcrumbJsonLd = breadcrumbListJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Portfolio", path: "/projects" },
+  ]);
 
   return (
     <div className="relative min-h-screen overflow-x-clip">
@@ -230,6 +262,17 @@ export default function ProjectsPage() {
       </main>
 
       <SiteFooter />
+
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
     </div>
   );
 }
