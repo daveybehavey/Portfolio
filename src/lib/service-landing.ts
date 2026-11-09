@@ -101,12 +101,4 @@ export const SERVICE_FAQS = [
   },
 ] as const;
 
-export const SERVICE_PACKAGE_SUMMARY = PACKAGES.map((pkg) => ({
-  name: pkg.name,
-  price: pkg.price,
-  bestFor: pkg.bestFor,
-  badge: "badge" in pkg ? pkg.badge : undefined,
-  highlight: "highlight" in pkg ? pkg.highlight : undefined,
-}));
-
 export { FULL_LAUNCH_INCLUDES, PACKAGES, SMALL_SITE_REPAIR };

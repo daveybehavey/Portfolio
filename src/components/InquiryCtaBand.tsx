@@ -33,9 +33,9 @@ export function InquiryCtaBand({
     <Card className="p-8 sm:p-10">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
+          <h3 className="text-2xl font-semibold tracking-tight text-slate-900">
             {title}
-          </h2>
+          </h3>
           <p className="mt-3 text-sm leading-relaxed text-slate-700">{body}</p>
         </div>
         <div className="flex flex-wrap gap-3">

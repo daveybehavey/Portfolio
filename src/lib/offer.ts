@@ -1,8 +1,3 @@
-/** Site positioning — focused small-business website launches, not broad agency retainers. */
-
-export const CORE_OFFER =
-  "Professional websites that help Vancouver Island businesses earn trust, calls, quote requests, and online sales — with clear scope, practical setup, and a handoff you own." as const;
-
 /**
  * Complementary entry for narrowly scoped work on an existing site.
  * Not a launch package — keep separate from PACKAGES so $125 never reads as a new-site price.
@@ -38,9 +33,6 @@ export const FULL_LAUNCH_INCLUDES = [
   "Basic SEO, domain, and hosting setup",
   "Clear handoff — your accounts and files",
 ] as const;
-
-/** @deprecated Use FULL_LAUNCH_INCLUDES */
-export const LAUNCH_INCLUDES = FULL_LAUNCH_INCLUDES;
 
 export const PROJECT_ARCHETYPES = [
   {

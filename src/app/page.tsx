@@ -170,14 +170,15 @@ export default function Home() {
             {PROJECT_ARCHETYPES.map((archetype, idx) => (
               <Reveal key={archetype.id} delay={0.03 * idx}>
                 <Card className="overflow-hidden transition-shadow duration-500 ease-out hover:shadow-xl hover:shadow-indigo-950/[0.08] motion-reduce:hover:shadow-md">
-                  <div className="relative min-h-[220px] sm:min-h-[260px]">
+                  <div className="relative aspect-[16/10] w-full bg-slate-100">
                     <Image
                       src={archetype.imageSrc}
                       alt={`${archetype.example} website example`}
                       fill
                       className="object-cover"
                       sizes="(min-width: 1024px) 28rem, 100vw"
-                      priority={idx === 0}
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/15 to-transparent" />
                     <a
@@ -194,9 +195,9 @@ export default function Home() {
                     <div className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
                       {archetype.example}
                     </div>
-                    <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-900">
+                    <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-900">
                       {archetype.title}
-                    </h2>
+                    </h3>
                     <p className="mt-3 text-sm leading-relaxed text-slate-700">
                       {archetype.body}
                     </p>
@@ -243,9 +244,9 @@ export default function Home() {
                     <span className="mb-2 inline-flex w-fit rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700">
                       {SMALL_SITE_REPAIR.badge}
                     </span>
-                    <h2 className="text-base font-semibold text-slate-900">
+                    <h3 className="text-base font-semibold text-slate-900">
                       {SMALL_SITE_REPAIR.name}
-                    </h2>
+                    </h3>
                     <div className="mt-1 text-sm font-medium text-indigo-700">
                       {SMALL_SITE_REPAIR.price}
                     </div>
@@ -413,9 +414,9 @@ export default function Home() {
               },
             ].map((item) => (
               <Card key={item.href} className="flex h-full flex-col p-6">
-                <h2 className="text-lg font-semibold text-slate-900">
+                <h3 className="text-lg font-semibold text-slate-900">
                   {item.title}
-                </h2>
+                </h3>
                 <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-700">
                   {item.body}
                 </p>

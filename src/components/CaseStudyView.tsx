@@ -113,6 +113,8 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
                 className="object-cover"
                 sizes="(min-width: 1024px) 960px, 100vw"
                 priority
+                fetchPriority="high"
+                decoding="sync"
               />
             </div>
           </div>

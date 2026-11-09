@@ -145,7 +145,7 @@ export function ServiceLandingView({
         >
           <div className="grid gap-4 lg:grid-cols-2">
             <Card className="p-6 sm:p-8">
-              <h2 className="text-lg font-semibold text-slate-900">Good fit</h2>
+              <h3 className="text-lg font-semibold text-slate-900">Good fit</h3>
               <ul className="mt-4 grid gap-3 text-sm text-slate-700">
                 {content.whoFits.map((item) => (
                   <li key={item} className="flex gap-2">
@@ -156,9 +156,9 @@ export function ServiceLandingView({
               </ul>
             </Card>
             <Card className="p-6 sm:p-8">
-              <h2 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-slate-900">
                 Usually not a fit
-              </h2>
+              </h3>
               <ul className="mt-4 grid gap-3 text-sm text-slate-700">
                 {content.whoDoesNotFit.map((item) => (
                   <li key={item} className="flex gap-2">
@@ -180,9 +180,9 @@ export function ServiceLandingView({
             {content.deepDive.blocks.map((block, idx) => (
               <Reveal key={block.heading} delay={0.03 * idx}>
                 <Card className="p-6 sm:p-8">
-                  <h2 className="text-lg font-semibold text-slate-900">
+                  <h3 className="text-lg font-semibold text-slate-900">
                     {block.heading}
-                  </h2>
+                  </h3>
                   <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-700">
                     {block.body}
                   </p>
@@ -201,9 +201,9 @@ export function ServiceLandingView({
           >
             <Card className="p-6 sm:p-8">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-lg font-semibold text-slate-900">
+                <h3 className="text-lg font-semibold text-slate-900">
                   {SMALL_SITE_REPAIR.name}
-                </h2>
+                </h3>
                 <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
                   {SMALL_SITE_REPAIR.badge}
                 </span>
@@ -275,9 +275,9 @@ export function ServiceLandingView({
                     ].join(" ")}
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-lg font-semibold text-slate-900">
+                      <h3 className="text-lg font-semibold text-slate-900">
                         {pkg.name}
-                      </h2>
+                      </h3>
                       {"badge" in pkg && pkg.badge ? (
                         <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
                           {pkg.badge}
@@ -345,9 +345,9 @@ export function ServiceLandingView({
         >
           <div className="grid gap-4 lg:grid-cols-3">
             <Card className="p-6">
-              <h2 className="text-base font-semibold text-slate-900">
+              <h3 className="text-base font-semibold text-slate-900">
                 Deliverables
-              </h2>
+              </h3>
               <ul className="mt-4 grid gap-2 text-sm text-slate-700">
                 {content.deliverables.map((item) => (
                   <li key={item} className="flex gap-2">
@@ -358,9 +358,9 @@ export function ServiceLandingView({
               </ul>
             </Card>
             <Card className="p-6">
-              <h2 className="text-base font-semibold text-slate-900">
+              <h3 className="text-base font-semibold text-slate-900">
                 Exclusions
-              </h2>
+              </h3>
               <ul className="mt-4 grid gap-2 text-sm text-slate-700">
                 {content.exclusions.map((item) => (
                   <li key={item} className="flex gap-2">
@@ -371,9 +371,9 @@ export function ServiceLandingView({
               </ul>
             </Card>
             <Card className="p-6">
-              <h2 className="text-base font-semibold text-slate-900">
+              <h3 className="text-base font-semibold text-slate-900">
                 Dependencies
-              </h2>
+              </h3>
               <ul className="mt-4 grid gap-2 text-sm text-slate-700">
                 {content.dependencies.map((item) => (
                   <li key={item} className="flex gap-2">
@@ -417,9 +417,9 @@ export function ServiceLandingView({
                   <div className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
                     {study.relationship.label}
                   </div>
-                  <h2 className="mt-2 text-xl font-semibold text-slate-900">
+                  <h3 className="mt-2 text-xl font-semibold text-slate-900">
                     {study.projectName}
-                  </h2>
+                  </h3>
                   <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-700">
                     {study.description}
                   </p>

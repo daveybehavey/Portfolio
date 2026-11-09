@@ -165,14 +165,14 @@ export function BlogIndexCard({ post }: { post: BlogPost }) {
       <div className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
         {post.eyebrow}
       </div>
-      <h2 className="mt-2 text-xl font-semibold text-slate-900">
+      <h3 className="mt-2 text-xl font-semibold text-slate-900">
         <Link
           href={post.path}
           className="underline-offset-4 hover:underline"
         >
           {post.title}
         </Link>
-      </h2>
+      </h3>
       <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-700">
         {post.description}
       </p>

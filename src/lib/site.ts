@@ -10,8 +10,6 @@ export const SITE_TAGLINE =
 
 export const BRAND_LOGO_MARK = "/brand/logo-mark.webp" as const;
 
-export const BRAND_LOGO_SQUARE = "/brand/logo.png" as const;
-
 export const SITE_DESCRIPTION =
   "EuroDigital builds professional websites and practical digital growth systems for Victoria and Vancouver Island businesses — clear scope, search and analytics foundations, stronger customer paths, measurable setup, and a handoff you own." as const;
 

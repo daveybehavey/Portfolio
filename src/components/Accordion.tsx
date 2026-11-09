@@ -28,8 +28,12 @@ export function Accordion({
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl px-5 py-4 text-left outline-offset-2 transition hover:bg-slate-50/90 group-open:rounded-b-none group-open:bg-slate-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white">
               <span className="text-sm font-semibold text-slate-900">{it.q}</span>
-              <span className="text-slate-500 group-open:hidden">+</span>
-              <span className="hidden text-slate-500 group-open:inline">–</span>
+              <span className="text-slate-500 group-open:hidden" aria-hidden>
+                +
+              </span>
+              <span className="hidden text-slate-500 group-open:inline" aria-hidden>
+                –
+              </span>
             </summary>
 
             <AnimatePresence initial={false}>
