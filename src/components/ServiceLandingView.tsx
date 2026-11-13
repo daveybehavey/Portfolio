@@ -149,7 +149,7 @@ export function ServiceLandingView({
               <ul className="mt-4 grid gap-3 text-sm text-slate-700">
                 {content.whoFits.map((item) => (
                   <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" />
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" aria-hidden />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -162,7 +162,7 @@ export function ServiceLandingView({
               <ul className="mt-4 grid gap-3 text-sm text-slate-700">
                 {content.whoDoesNotFit.map((item) => (
                   <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" aria-hidden />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -217,7 +217,7 @@ export function ServiceLandingView({
               <ul className="mt-5 grid gap-2 text-sm text-slate-800">
                 {SMALL_SITE_REPAIR.examples.map((item) => (
                   <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" aria-hidden />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -293,7 +293,7 @@ export function ServiceLandingView({
                     <ul className="mt-5 grid flex-1 gap-2 text-sm text-slate-800">
                       {pkg.includes.map((item) => (
                         <li key={item} className="flex gap-2">
-                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" aria-hidden />
                           <span>{item}</span>
                         </li>
                       ))}
@@ -351,7 +351,7 @@ export function ServiceLandingView({
               <ul className="mt-4 grid gap-2 text-sm text-slate-700">
                 {content.deliverables.map((item) => (
                   <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" aria-hidden />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -364,7 +364,7 @@ export function ServiceLandingView({
               <ul className="mt-4 grid gap-2 text-sm text-slate-700">
                 {content.exclusions.map((item) => (
                   <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" aria-hidden />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -377,7 +377,7 @@ export function ServiceLandingView({
               <ul className="mt-4 grid gap-2 text-sm text-slate-700">
                 {content.dependencies.map((item) => (
                   <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" aria-hidden />
                     <span>{item}</span>
                   </li>
                 ))}
