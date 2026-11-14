@@ -31,7 +31,7 @@ Additional inventory evidence:
 - Redesign deliverables: `src/lib/service-pages/website-redesign-vancouver-island.ts:66` through line 70; package mapping at line 114; later updates at line 126.
 - Practical SEO deliverables: `src/lib/service-pages/seo-services-vancouver-island.ts:64` through line 69; existing-package pricing at line 117; separately quoted content/marketing at line 113.
 - Business Profile deliverables: `src/lib/service-pages/google-business-profile-setup-victoria.ts:70` through line 74; standalone quoted pricing at line 118. The repair anchor is not repurposed as a Profile setup price.
-- Separate copywriting/photography and ongoing services: `src/lib/service-landing.ts:37` through line 38; ongoing updates/maintenance/content/marketing at line 112 (see source text if line positions differ).
+- Separate copywriting/photography and ongoing services: `src/lib/service-landing.ts:37` through line 38; ongoing updates/maintenance/content/marketing at line 96.
 
 Read the complete offer authority and homepage, regional pricing page, ServiceLandingView and WebsiteNeedsConfigurator before drafting; also inspected their source data. Inventory bullets from offer.ts were extracted directly to preserve exact copy. Reviewed supplementary service descriptions and corrected the redesign quotation against its source.
 
@@ -50,7 +50,10 @@ Read the complete offer authority and homepage, regional pricing page, ServiceLa
 - Only the new packaging document and this required report are added. No tracked base file changes; specifically no live file, offer.ts, pricing component, or NS-1 outreach file changed.
 - No push, PR, deployment, send, prospect content, contact with anyone or external account mutation. Fetch was the only remote repository operation.
 - Code/UI tests are not applicable: documentation only, no code/config/dependency changes. No tests claimed as run.
-- Bundle verification and seeded local test-clone results are recorded below after execution.
+- Initial bundle: `git bundle create C:/Users/ReuseTechBC/projects/qns5.bundle 4423c26d202d2b3136bcaf8a0e92abdc3395439f..HEAD refs/heads/docs/ns5-packaging`; `git bundle verify` passed and listed the branch ref plus the exact base prerequisite.
+- Local test clone: `git clone --no-local --no-checkout --single-branch --branch main C:/Users/ReuseTechBC/projects/Portfolio C:/Users/ReuseTechBC/projects/pf-ns5-bundle-test`. The clone's local main was behind the prerequisite, so fetched only `refs/remotes/origin/main:refs/heads/ns5-base` from the local Portfolio clone before verification. This is expected for an incremental bundle: it needs the base history.
+- In that clone, bundle verify passed; fetching the bundle's branch ref and checking it out succeeded. Head matched the exporting branch. `git diff --check ns5-base HEAD` passed; `git diff --name-status ns5-base HEAD` listed exactly the two additions; `git status --short` was empty.
+- This report update is committed before final bundle creation. Final delivery repeats bundle verification and import in a fresh base-seeded clone after the report commit; the final response reports that outcome without requiring another self-referential report commit.
 
 ## Review status and limitations
 
