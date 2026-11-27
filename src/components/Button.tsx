@@ -112,7 +112,7 @@ export function ButtonLink({
         (ref as any).current = node;
       }}
       className={cn(
-        "inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold touch-manipulation transition duration-200 ease-out active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold touch-manipulation transition duration-200 ease-out active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35 focus-visible:ring-offset-2",
         classes,
         className,
       )}
@@ -163,7 +163,7 @@ export function ButtonA({
         ref.current = node as unknown as HTMLElement;
       }}
       className={cn(
-        "inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold touch-manipulation transition duration-200 ease-out active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold touch-manipulation transition duration-200 ease-out active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/35 focus-visible:ring-offset-2",
         classes,
         className,
       )}
